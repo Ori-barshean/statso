@@ -70,7 +70,8 @@ class BuildOfflineTests(unittest.TestCase):
 
     def test_version_stamp(self):
         version = (ROOT / "VERSION").read_text().strip()
-        self.assertEqual(version, "1.0.3"); self.assertRegex(self.html, r'id="app-version"[^>]*>\s*' + re.escape(version))
+        self.assertRegex(version, r"^\d+\.\d+\.\d+$")
+        self.assertRegex(self.html, r'id="app-version"[^>]*>\s*' + re.escape(version))
         with tempfile.TemporaryDirectory() as temp:
             out = Path(temp) / "statso.html"; build(out=out); self.assertIn(version, out.read_text(encoding="utf-8"))
 

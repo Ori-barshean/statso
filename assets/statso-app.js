@@ -19,7 +19,11 @@
     if (typeof root.Chart === 'function') { Statso.chart.init(doc.observations); Statso.data.setState(document.getElementById('chart-section'), 'ready'); }
     else { Statso.chart.showUnavailable(); }
   }
-  function showBoi(doc) { document.getElementById('kpi-boi-rate').textContent = Statso.core.formatPercent(doc.current_rate); Statso.data.setState(document.getElementById('boi-kpi'), 'ready'); }
+  function showBoi(doc) {
+    if (typeof doc.current_rate !== 'number' || !isFinite(doc.current_rate)) { throw new Error('הריבית הנוכחית חסרה'); }
+    document.getElementById('kpi-boi-rate').textContent = Statso.core.formatPercent(doc.current_rate);
+    Statso.data.setState(document.getElementById('boi-kpi'), 'ready');
+  }
   function showNext(doc) {
     if (!doc.next_decision_date) { throw new Error('מועד ההחלטה הבאה אינו זמין'); }
     document.getElementById('kpi-next-decision').textContent = Statso.core.formatIsoDateHe(doc.next_decision_date); Statso.data.setState(document.getElementById('next-kpi'), 'ready');
