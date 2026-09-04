@@ -4,3 +4,4 @@ data/*.json text eol=lf
 tests/fixtures/*.gz binary
 tests/fixtures/*.csv -text
 tests/fixtures/*.json -text
+assets/vendor/* -text

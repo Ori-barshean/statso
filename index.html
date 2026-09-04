@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="statso — נתונים כלכליים ישראליים ומחשבון הצמדה למדד">
+  <title>statso — הכלכלה הישראלית במספרים</title>
+  <link rel="stylesheet" href="assets/statso.css" data-inline="style">
+</head>
+<body>
+  <header class="site-header">
+    <div class="shell header-inner">
+      <a class="brand" href="index.html" aria-label="statso — דף הבית"><span class="brand-mark">s</span><span>statso</span></a>
+      <p>נתונים כלכליים ישראליים, במקום אחד</p>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="hero" aria-labelledby="page-title">
+      <p class="eyebrow">תמונת מצב עדכנית</p>
+      <h1 id="page-title">הכלכלה הישראלית במספרים</h1>
+      <p>מדד המחירים לצרכן, ריבית בנק ישראל וכלי הצמדה — על בסיס מקורות רשמיים.</p>
+    </section>
+
+    <section class="kpi-grid" aria-label="נתונים מרכזיים">
+      <article class="kpi-card accent-blue" id="cpi-kpi" data-state="loading">
+        <span class="kpi-label">מדד המחירים לצרכן</span>
+        <div class="state-loading">טוען נתונים…</div>
+        <div class="state-error" id="kpi-cpi-error"></div>
+        <div class="state-ready">
+          <strong class="kpi-value" id="kpi-cpi-value" dir="ltr">—</strong>
+          <span class="kpi-meta" id="kpi-cpi-month" dir="ltr">—</span>
+        </div>
+      </article>
+      <article class="kpi-card accent-cyan" id="yoy-kpi" data-state="loading">
+        <span class="kpi-label">שינוי שנתי במדד</span>
+        <div class="state-loading">טוען נתונים…</div>
+        <div class="state-error" id="kpi-yoy-error"></div>
+        <div class="state-ready"><strong class="kpi-value" id="kpi-yoy" dir="ltr">—</strong><span class="kpi-meta">לעומת החודש המקביל</span></div>
+      </article>
+      <article class="kpi-card accent-violet" id="boi-kpi" data-state="loading">
+        <span class="kpi-label">ריבית בנק ישראל</span>
+        <div class="state-loading">טוען נתונים…</div>
+        <div class="state-error" id="kpi-boi-error"></div>
+        <div class="state-ready"><strong class="kpi-value" id="kpi-boi-rate" dir="ltr">—</strong><span class="kpi-meta">ריבית נוכחית</span></div>
+      </article>
+      <article class="kpi-card accent-orange" id="next-kpi" data-state="loading">
+        <span class="kpi-label">החלטת הריבית הבאה</span>
+        <div class="state-loading">טוען נתונים…</div>
+        <div class="state-error" id="kpi-next-error"></div>
+        <div class="state-ready"><strong class="kpi-date" id="kpi-next-decision" dir="ltr">—</strong><span class="kpi-meta">לפי בנק ישראל</span></div>
+      </article>
+    </section>
+
+    <section class="panel" id="chart-section" data-state="loading" aria-labelledby="chart-title">
+      <div class="section-heading"><div><p class="eyebrow">מגמה היסטורית</p><h2 id="chart-title">המדד המשורשר לאורך זמן</h2></div>
+        <div class="range-controls"><label>משנה <select id="chart-start-year"></select></label><label>עד <select id="chart-end-year"></select></label></div>
+      </div>
+      <div class="state-loading">טוען תרשים…</div><div class="state-error"></div>
+      <div class="state-ready"><p class="inline-error" id="chart-range-error" role="alert"></p><div class="chart-wrap"><canvas id="cpi-chart" aria-label="תרשים מדד המחירים לצרכן" role="img"></canvas></div></div>
+    </section>
+
+    <section class="panel calculator-panel" id="calculator-section" data-state="loading" aria-labelledby="calculator-title">
+      <div class="section-heading"><div><p class="eyebrow">מחשבון</p><h2 id="calculator-title">חישוב הצמדה למדד</h2></div></div>
+      <div class="state-loading">טוען מחשבון…</div><div class="state-error"></div>
+      <div class="state-ready calc-layout">
+        <form class="calc-form" onsubmit="return false">
+          <label class="wide">סכום בשקלים <input id="calc-amount" type="number" min="0" step="any" value="1000" inputmode="decimal"></label>
+          <fieldset class="wide"><legend>סוג המדד</legend><label><input type="radio" name="calc-mode" value="known" checked> מדד ידוע</label><label><input type="radio" name="calc-mode" value="for"> מדד בגין</label></fieldset>
+          <div class="date-group"><span>חודש בסיס</span><label>שנה <select id="calc-base-year"></select></label><label>חודש <select id="calc-base-month"></select></label></div>
+          <div class="date-group"><span>חודש יעד</span><label>שנה <select id="calc-target-year"></select></label><label>חודש <select id="calc-target-month"></select></label></div>
+        </form>
+        <div class="calc-output">
+          <p class="inline-error" id="calc-error" role="alert"></p>
+          <div id="calc-result"><span>סכום מוצמד</span><strong id="calc-result-indexed" dir="ltr">—</strong><small>₪</small><hr><span>הפרש</span><strong id="calc-result-difference" dir="ltr">—</strong><small>₪</small></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="table-section" data-state="loading" aria-labelledby="table-title">
+      <div class="section-heading"><div><p class="eyebrow">כל הנתונים</p><h2 id="table-title">טבלת מדד המחירים לצרכן</h2></div><label class="search-label">חיפוש <input id="cpi-search" type="search" placeholder="חודש, ערך או בסיס…"></label></div>
+      <div class="state-loading">טוען טבלה…</div><div class="state-error"></div>
+      <div class="state-ready"><p class="table-summary"><span id="cpi-table-count" dir="ltr">0</span> רשומות</p><div class="table-scroll"><table><thead><tr><th>חודש</th><th>ערך שפורסם</th><th>בסיס</th><th>מדד משורשר</th></tr></thead><tbody id="cpi-table-body"></tbody></table></div></div>
+    </section>
+  </main>
+
+  <footer><div class="shell"><span class="brand"><span class="brand-mark">s</span><span>statso</span></span><span>נתונים ממקורות רשמיים · גרסה <span id="app-version" dir="ltr">1.0.3</span></span></div></footer>
+
+  <script type="application/json" id="data-cpi" data-inline="json" data-src="data/cpi.json" data-label="מדד המחירים לצרכן"></script>
+  <script type="application/json" id="data-boi" data-inline="json" data-src="data/boi_interest_rate.json" data-label="ריבית בנק ישראל"></script>
+  <script type="application/json" id="data-next" data-inline="json" data-src="data/boi_next_decision.json" data-label="מועד החלטת הריבית הבאה"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.1/chart.umd.min.js" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous" referrerpolicy="no-referrer" data-inline="script" data-offline-src="assets/vendor/chart-4.5.1.umd.min.js"></script>
+  <script src="assets/statso-core.js" data-inline="script"></script>
+  <script src="assets/statso-data.js" data-inline="script"></script>
+  <script src="assets/statso-chart.js" data-inline="script"></script>
+  <script src="assets/statso-table.js" data-inline="script"></script>
+  <script src="assets/statso-calculator.js" data-inline="script"></script>
+  <script src="assets/statso-app.js" data-inline="script"></script>
+</body>
+</html>

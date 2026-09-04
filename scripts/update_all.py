@@ -1,6 +1,6 @@
 import sys
 
-from . import boi_rate, cpi
+from . import boi_next_decision, boi_rate, cpi
 from .common import DATA_DIR, StatsoError, http_get, read_published_json, write_atomic
 
 
@@ -22,6 +22,14 @@ def update(*, fetch=http_get, data_dir=None):
     target.mkdir(parents=True, exist_ok=True)
     changed = [name for name, payload in payloads.items()
                if write_atomic(target / name, payload)]
+    try:
+        record = boi_next_decision.build_record(fetch(boi_next_decision.BOI_NEXT_URL))
+        boi_next_decision.validate(record)
+        if write_atomic(target / "boi_next_decision.json",
+                        boi_next_decision.to_json_bytes(record)):
+            changed.append("boi_next_decision.json")
+    except (StatsoError, OSError) as exc:
+        print(f"warning: next BOI decision date unavailable: {exc}", file=sys.stderr)
     print(f"CPI: {len(cpi_records)} observations; BOI: {len(changes)} change points; "
           f"files changed: {len(changed)}" + (f" ({', '.join(changed)})" if changed else ""))
     return changed

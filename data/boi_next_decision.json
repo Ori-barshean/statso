@@ -1,0 +1,10 @@
+{
+  "dataset": "boi_next_decision",
+  "source": "בנק ישראל",
+  "source_url": "https://boi.org.il/PublicApi/GetInterest",
+  "content": "next_decision_only",
+  "current_interest": 3.25,
+  "next_interest_date": "2026-10-21T00:00:00Z",
+  "next_decision_date": "2026-10-21",
+  "last_published_date": "2026-09-01T16:00:04.647Z"
+}
