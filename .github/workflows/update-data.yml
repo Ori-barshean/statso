@@ -1,0 +1,52 @@
+name: Update data
+
+on:
+  schedule:
+    - cron: '0 0 * * *'    # 02:00 Israel while UTC+2 (winter)
+    - cron: '0 23 * * *'   # 02:00 Israel while UTC+3 (summer, next calendar day)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-data
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: DST guard
+        id: guard
+        env:
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          STATSO_SCHEDULE: ${{ github.event.schedule }}
+        run: python3 scripts/schedule_guard.py >> "$GITHUB_OUTPUT"
+
+      - name: Unit tests
+        if: steps.guard.outputs.should_run == 'true'
+        run: python3 -m unittest discover -v
+
+      - name: Refresh datasets
+        if: steps.guard.outputs.should_run == 'true'
+        run: python3 -m scripts.update_all
+
+      - name: Commit data changes
+        if: steps.guard.outputs.should_run == 'true'
+        run: |
+          if [ -z "$(git status --porcelain -- data)" ]; then
+            echo "No data changes"; exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data
+          git commit -m "chore(data): automated refresh"
+          for i in 1 2 3; do
+            git push origin HEAD:main && exit 0
+            git pull --rebase origin main
+          done
+          exit 1

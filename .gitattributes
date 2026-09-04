@@ -1,0 +1,6 @@
+* text=auto eol=lf
+data/*.csv text eol=lf
+data/*.json text eol=lf
+tests/fixtures/*.gz binary
+tests/fixtures/*.csv -text
+tests/fixtures/*.json -text
