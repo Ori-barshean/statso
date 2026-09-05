@@ -121,16 +121,16 @@
   function initFx(summary) {
     populateCurrencySelects(summary);
     ['calc-fx-from', 'calc-fx-to', 'calc-fx-date'].forEach(function (id) { document.getElementById(id).addEventListener('input', recompute); });
-    document.querySelectorAll('input[name="calc-kind"]').forEach(function (radio) {
-      radio.addEventListener('change', function () { showKind(currentKind()); });
-    });
   }
   function init(cpiDoc, map) {
     indexMap = map; firstMonth = cpiDoc.first_month; lastMonth = cpiDoc.last_month;
     populateMonthSelects(firstMonth, lastMonth);
     ['calc-amount', 'calc-base-year', 'calc-base-month', 'calc-target-year', 'calc-target-month'].forEach(function (id) { document.getElementById(id).addEventListener('input', recompute); });
     document.querySelectorAll('input[name="calc-mode"]').forEach(function (radio) { radio.addEventListener('change', recompute); });
-    recompute();
+    document.querySelectorAll('input[name="calc-kind"]').forEach(function (radio) {
+      radio.addEventListener('change', function () { showKind(currentKind()); });
+    });
+    showKind(currentKind());
   }
   Statso.calculator = {populateMonthSelects: populateMonthSelects, populateCurrencySelects: populateCurrencySelects,
     readInputs: readInputs, readFxInputs: readFxInputs, recompute: recompute, showKind: showKind,

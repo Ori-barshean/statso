@@ -88,6 +88,21 @@ class UiSourceTests(unittest.TestCase):
             self.assertIn(f'id="{element_id}"', self.html)
         self.assertIn("loadFxDaily", self.scripts["statso-calculator.js"])
 
+    def test_hidden_attribute_beats_layout_rules(self):
+        css = (ROOT / "assets/statso.css").read_text(encoding="utf-8")
+        self.assertIn("[hidden] { display: none !important; }", css)
+        for selector in (".calc-form label", ".date-group", ".calc-form fieldset"):
+            self.assertLess(css.index("[hidden] { display: none !important; }"), css.index(selector + " {"),
+                            f"{selector} is declared before the [hidden] reset")
+
+    def test_calculator_mode_switch_is_wired_without_fx_data(self):
+        text = self.scripts["statso-calculator.js"]
+        fx_body = text.split("function initFx(")[1].split("function init(")[0]
+        init_body = text.split("function init(cpiDoc, map) {")[1]
+        self.assertNotIn('input[name="calc-kind"]', fx_body)
+        self.assertIn('input[name="calc-kind"]', init_body)
+        self.assertIn("showKind(currentKind());", init_body)
+
     def test_top_nav_remains_minimal(self):
         nav = re.search(r'<nav class="site-nav".*?</nav>', self.html, re.DOTALL).group(0)
         self.assertEqual(nav.count("<a "), 2)
