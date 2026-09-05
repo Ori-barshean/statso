@@ -100,7 +100,78 @@
     </article>
   </main>
 
-  <footer><div class="shell"><span class="brand"><span class="brand-mark">s</span><span>statso</span></span><span>נתונים ממקורות רשמיים · גרסה <span id="app-version" dir="ltr">1.0.7</span></span></div></footer>
+  <main class="shell info-view" id="info-view" hidden>
+    <article class="info-page" id="about-page" hidden aria-labelledby="about-title">
+      <header class="info-header"><h1 id="about-title">אודות</h1></header>
+      <div class="prose-guide">
+        <section>
+          <p>statso אוסף נתונים כלכליים ישראליים ממקורות רשמיים ומפרסם אותם כקבצים בכתובות קבועות, כדי שכלים אחרים — גיליונות אקסל, אתרים, מחשבונים — יוכלו למשוך מהם נתונים ישירות.</p>
+          <p>כרגע נאספים שני מקורות: מדד המחירים לצרכן מהלשכה המרכזית לסטטיסטיקה, וריבית בנק ישראל.</p>
+          <p>הנתונים מתרעננים אוטומטית כל לילה ב־<span dir="ltr">02:00</span> שעון ישראל. אם התוכן שנוצר זהה לקיים, לא נשמרת גרסה חדשה.</p>
+          <p>הקוד והנתונים פתוחים: <a href="https://github.com/Ori-barshean/statso" dir="ltr">https://github.com/Ori-barshean/statso</a></p>
+        </section>
+      </div>
+      <a class="info-back" href="#/">← חזרה ללוח המחוונים</a>
+    </article>
+
+    <article class="info-page" id="method-page" hidden aria-labelledby="method-title">
+      <header class="info-header"><h1 id="method-title">שיטת החישוב</h1></header>
+      <div class="prose-guide">
+        <section>
+          <h2>מקורות הנתונים</h2>
+          <ul class="source-list">
+            <li>הלמ״ס, מדד המחירים לצרכן (סדרה <span dir="ltr">120010</span>, ״מדד המחירים לצרכן - כללי״): <a href="https://api.cbs.gov.il/index/data/price?id=120010&amp;format=json&amp;download=false&amp;coef=true" dir="ltr">api.cbs.gov.il</a></li>
+            <li>הלמ״ס, פורטל המפתחים: <a href="https://www.cbs.gov.il/he/Pages/Developers-Portal.aspx" dir="ltr">cbs.gov.il</a></li>
+            <li>בנק ישראל, ה־<span dir="ltr">API</span> הסטטיסטי (<span dir="ltr">SDMX</span>), סדרה <span dir="ltr">MNT_RIB_BOI_D “Bank Of Israel nominal interest rate”</span>: <a href="https://edge.boi.gov.il/FusionEdgeServer/sdmx/v2/" dir="ltr">edge.boi.gov.il</a></li>
+            <li>בנק ישראל, ריבית נוכחית ומועד ההחלטה הבאה: <a href="https://boi.org.il/PublicApi/GetInterest" dir="ltr">boi.org.il/PublicApi/GetInterest</a></li>
+          </ul>
+        </section>
+        <section>
+          <h2>מדד המחירים לצרכן</h2>
+          <p>הסדרה חודשית ומתחילה ב־<span dir="ltr">09/1951</span>. כרגע <span dir="ltr">899</span> תצפיות.</p>
+          <p>לכל חודש מתפרסמים שני ערכים: הערך כפי שהלמ״ס פרסמה אותו, בבסיס שהיה בתוקף באותה תקופה; וערך משורשר לבסיס אחיד — ספטמבר 1951 = <span dir="ltr">100</span>.</p>
+          <p>הלמ״ס מחליפה את בסיס המדד כל כמה שנים, ולאורך ההיסטוריה היו <span dir="ltr">22</span> בסיסים שונים. השרשור כאן אינו מכפלה של מקדמי המרה: הלמ״ס עצמה מפרסמת לכל חודש את ערכו בכל אחד מהבסיסים הקודמים, ואנחנו קוראים ישירות את הערך בבסיס ספטמבר 1951. כך לא מצטברת שגיאת עיגול לאורך מאות חודשים.</p>
+        </section>
+        <section>
+          <h2>ריבית בנק ישראל</h2>
+          <p>המקור הוא סדרה יומית רציפה שמתחילה ב־<span dir="ltr">27/01/1994</span>.</p>
+          <p>אנחנו מפרסמים נקודות שינוי בלבד: שורה אחת לכל תאריך שבו הריבית באמת השתנתה. הן נגזרות במעבר על הסדרה היומית ורישום שורה בכל פעם שהערך שונה מזה של היום הקודם. כרגע <span dir="ltr">159</span> נקודות שינוי.</p>
+        </section>
+        <section>
+          <h2>מחשבון ההצמדה</h2>
+          <p>סכום מוצמד = הסכום × (מדד היעד ÷ מדד הבסיס).</p>
+          <p>במצב ״מדד ידוע״ המדד הנלקח לחודש שנבחר הוא זה של החודש שקדם לו; במצב ״מדד בגין״ נלקח המדד של אותו חודש עצמו. <a href="#/guides">המדריך מסביר את ההבחנה</a>.</p>
+        </section>
+        <section>
+          <h2>פורמטים</h2>
+          <p>הקבצים מתפרסמים ב־<span dir="ltr">JSON</span> וב־<span dir="ltr">CSV</span>. ה־<span dir="ltr">JSON</span> מקודד <span dir="ltr">UTF-8</span> בלי <span dir="ltr">BOM</span>; ה־<span dir="ltr">CSV</span> מקודד <span dir="ltr">UTF-8</span> עם <span dir="ltr">BOM</span>, כדי שעברית תיפתח נכון באקסל בלי הגדרות מיוחדות.</p>
+        </section>
+      </div>
+      <a class="info-back" href="#/">← חזרה ללוח המחוונים</a>
+    </article>
+
+    <article class="info-page" id="privacy-page" hidden aria-labelledby="privacy-title">
+      <header class="info-header"><h1 id="privacy-title">מדיניות פרטיות</h1></header>
+      <div class="prose-guide">
+        <section>
+          <p>האתר אינו משתמש בעוגיות, אינו שומר דבר בדפדפן שלך, ואין בו כלי אנליטיקה או מעקב כלשהו.</p>
+          <p>אין באתר טפסים ואין דרך לשלוח אלינו מידע דרכו. איננו מחזיקים שום מידע על מבקרים.</p>
+          <p>האתר מתארח ב־<span dir="ltr">GitHub Pages</span>. כמו כל שרת אינטרנט, <span dir="ltr">GitHub</span> מקבל את הבקשות לדפים ורואה נתוני בקשה סטנדרטיים כגון כתובת <span dir="ltr">IP</span> וסוג הדפדפן.</p>
+          <p>ספריית התרשימים <span dir="ltr">Chart.js</span> נטענת מרשת ההפצה <span dir="ltr">cdnjs.cloudflare.com</span>. לכן <span dir="ltr">Cloudflare</span> מקבלת גם היא את כתובת ה־<span dir="ltr">IP</span> וסוג הדפדפן, במסגרת אותה בקשה בלבד.</p>
+          <p>הגרסה המקומית של האתר, קובץ ה־<span dir="ltr">HTML</span> העצמאי, אינה מבצעת שום בקשת רשת.</p>
+        </section>
+      </div>
+      <a class="info-back" href="#/">← חזרה ללוח המחוונים</a>
+    </article>
+
+    <article class="info-page" id="contact-page" hidden aria-labelledby="contact-title">
+      <header class="info-header"><h1 id="contact-title">צור קשר</h1></header>
+      <div class="prose-guide"><section><p>רמת גן, ישראל.</p></section></div>
+      <a class="info-back" href="#/">← חזרה ללוח המחוונים</a>
+    </article>
+  </main>
+
+  <footer><div class="shell footer-inner"><div class="footer-meta"><span class="brand"><span class="brand-mark">s</span><span>statso</span></span><span>נתונים ממקורות רשמיים · גרסה <span id="app-version" dir="ltr">1.0.8</span></span></div><nav class="footer-links" aria-label="מידע"><a href="#/about">אודות</a><span aria-hidden="true">·</span><a href="#/method">שיטת החישוב</a><span aria-hidden="true">·</span><a href="#/privacy">מדיניות פרטיות</a><span aria-hidden="true">·</span><a href="#/contact">צור קשר</a></nav></div></footer>
 
   <script type="application/json" id="data-cpi" data-inline="json" data-src="data/cpi.json" data-label="מדד המחירים לצרכן"></script>
   <script type="application/json" id="data-boi" data-inline="json" data-src="data/boi_interest_rate.json" data-label="ריבית בנק ישראל"></script>

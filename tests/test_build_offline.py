@@ -45,7 +45,8 @@ class BuildOfflineTests(unittest.TestCase):
             out = Path(temp) / "statso.html"; build(out=out); payload = out.read_bytes(); text = payload.decode()
             self.assertTrue(text.startswith("<!DOCTYPE html>")); self.assertIn('lang="he"', text); self.assertIn('dir="rtl"', text)
             self.assertIn("Chart.js v4.5.1", text)
-            for absent in ("cdnjs.cloudflare.com", "integrity=", 'src="assets/', 'href="assets/', "http://"): self.assertNotIn(absent, text)
+            for absent in ("integrity=", 'src="assets/', 'href="assets/', "http://"): self.assertNotIn(absent, text)
+            self.assertIsNone(re.search(r'(?:src|href)="https://cdnjs\.cloudflare\.com', text))
             self.assertFalse(payload.startswith(b"\xef\xbb\xbf")); self.assertNotIn(b"\r", payload)
             self.assertEqual(text.count("<script"), text.count("</script>"))
             self.assertIn('id="guides-view"', text)
@@ -53,6 +54,14 @@ class BuildOfflineTests(unittest.TestCase):
             self.assertIn("Statso.guides", text)
             self.assertIn("מדד בגין מול מדד ידוע — ומה המדד בכלל מודד", text)
             self.assertIn("timeline-publication", text)
+            for route, title in (("about", "אודות"), ("method", "שיטת החישוב"),
+                                 ("privacy", "מדיניות פרטיות"), ("contact", "צור קשר")):
+                self.assertIn(f'href="#/{route}"', text)
+                self.assertIn(f'id="{route}-page"', text)
+                self.assertIn(title, text)
+            for content in (">899</span> תצפיות", ">159</span> נקודות שינוי", "רמת גן, ישראל",
+                            "אינה מבצעת שום בקשת רשת"):
+                self.assertIn(content, text)
 
     def test_artifact_json_roundtrip(self):
         with tempfile.TemporaryDirectory() as temp:

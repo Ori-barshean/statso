@@ -38,5 +38,20 @@ class UiSourceTests(unittest.TestCase):
         text = self.scripts["statso-data.js"]
         self.assertLess(text.index("textContent"), text.index("fetch("))
 
+    def test_info_routes_and_unknown_hash_fallback(self):
+        text = self.scripts["statso-nav.js"]
+        for route, page in (("about", "about-page"), ("method", "method-page"),
+                            ("privacy", "privacy-page"), ("contact", "contact-page")):
+            self.assertIn(f"'#/" + route + "': '" + page + "'", text)
+        self.assertIn("const infoPageId = infoRoutes[hash]", text)
+        self.assertIn("dashboardView.hidden = guides || info", text)
+        self.assertNotIn("dataReady", text)
+
+    def test_top_nav_remains_minimal(self):
+        nav = re.search(r'<nav class="site-nav".*?</nav>', self.html, re.DOTALL).group(0)
+        self.assertEqual(nav.count("<a "), 2)
+        self.assertIn('href="#/"', nav)
+        self.assertIn('href="#/guides"', nav)
+
 
 if __name__ == "__main__": unittest.main()
