@@ -47,6 +47,23 @@ class UiSourceTests(unittest.TestCase):
         self.assertIn("dashboardView.hidden = guides || info", text)
         self.assertNotIn("dataReady", text)
 
+    def test_kpi_cards_right_to_left(self):
+        cards = re.findall(r'<article class="kpi-card[^"]*" id="([^"]+)"', self.html)
+        self.assertEqual(cards, ["cpi-kpi", "boi-kpi", "fx-kpi", "brand-kpi"])
+        for value_id in ("kpi-cpi-yoy", "kpi-cpi-yoy-range", "kpi-cpi-mom", "kpi-cpi-mom-month",
+                         "kpi-boi-rate", "kpi-boi-prime", "kpi-next-decision",
+                         "kpi-fx-usd", "kpi-fx-eur", "kpi-fx-date"):
+            self.assertIn(f'id="{value_id}"', self.html)
+        self.assertNotIn('id="kpi-cpi-value"', self.html)
+        self.assertNotIn('id="yoy-kpi"', self.html)
+        self.assertNotIn('id="next-kpi"', self.html)
+
+    def test_prime_rate_is_derived_from_the_boi_rate(self):
+        text = self.scripts["statso-core.js"]
+        self.assertIn("const PRIME_SPREAD = 1.5;", text)
+        self.assertIn("function primeRate(boiRate) { return boiRate + PRIME_SPREAD; }", text)
+        self.assertNotIn("4.75", self.html)
+
     def test_top_nav_remains_minimal(self):
         nav = re.search(r'<nav class="site-nav".*?</nav>', self.html, re.DOTALL).group(0)
         self.assertEqual(nav.count("<a "), 2)

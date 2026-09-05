@@ -25,11 +25,11 @@ class BuildOfflineTests(unittest.TestCase):
     def test_markers_present_and_unique(self):
         self.assertEqual(self.html.count('data-inline="style"'), 1)
         self.assertEqual(self.html.count('data-inline="script"'), 11)
-        self.assertEqual(self.html.count('data-inline="json"'), 3)
+        self.assertEqual(self.html.count('data-inline="json"'), 4)
         self.assertEqual(self.html.count('data-inline="text"'), 1)
         self.assertEqual(set(re.findall(r'data-src="([^"]+)"', self.html)),
                          {"data/cpi.json", "data/boi_interest_rate.json", "data/boi_next_decision.json",
-                          "VERSION"})
+                          "data/fx_latest.json", "VERSION"})
 
     def test_cdn_tag_contract(self):
         self.assertIn("https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.1/chart.umd.min.js", self.html)
@@ -79,7 +79,8 @@ class BuildOfflineTests(unittest.TestCase):
     def test_artifact_json_roundtrip(self):
         with tempfile.TemporaryDirectory() as temp:
             out = Path(temp) / "statso.html"; build(out=out); text = out.read_text(encoding="utf-8")
-            for element, relative in (("data-cpi", "data/cpi.json"), ("data-boi", "data/boi_interest_rate.json"), ("data-next", "data/boi_next_decision.json")):
+            for element, relative in (("data-cpi", "data/cpi.json"), ("data-boi", "data/boi_interest_rate.json"),
+                                      ("data-next", "data/boi_next_decision.json"), ("data-fx", "data/fx_latest.json")):
                 content = re.search(r'<script[^>]*id="' + element + r'"[^>]*>(.*?)</script>', text, re.DOTALL).group(1)
                 self.assertEqual(json.loads(content), json.loads((ROOT / relative).read_text(encoding="utf-8")))
 

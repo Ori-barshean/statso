@@ -33,27 +33,38 @@
         <div class="state-loading">טוען נתונים…</div>
         <div class="state-error" id="kpi-cpi-error"></div>
         <div class="state-ready">
-          <strong class="kpi-value" id="kpi-cpi-value" dir="ltr">—</strong>
-          <span class="kpi-meta" id="kpi-cpi-month" dir="ltr">—</span>
+          <div class="kpi-pair">
+            <div><strong class="kpi-value" id="kpi-cpi-yoy" dir="ltr">—</strong><span class="kpi-meta">שינוי שנתי</span><span class="kpi-meta" id="kpi-cpi-yoy-range" dir="ltr">—</span></div>
+            <div><strong class="kpi-value" id="kpi-cpi-mom" dir="ltr">—</strong><span class="kpi-meta">שינוי חודשי</span><span class="kpi-meta" id="kpi-cpi-mom-month" dir="ltr">—</span></div>
+          </div>
         </div>
-      </article>
-      <article class="kpi-card accent-cyan" id="yoy-kpi" data-state="loading">
-        <span class="kpi-label">שינוי שנתי במדד</span>
-        <div class="state-loading">טוען נתונים…</div>
-        <div class="state-error" id="kpi-yoy-error"></div>
-        <div class="state-ready"><strong class="kpi-value" id="kpi-yoy" dir="ltr">—</strong><span class="kpi-meta">לעומת החודש המקביל</span></div>
       </article>
       <article class="kpi-card accent-violet" id="boi-kpi" data-state="loading">
         <span class="kpi-label">ריבית בנק ישראל</span>
         <div class="state-loading">טוען נתונים…</div>
         <div class="state-error" id="kpi-boi-error"></div>
-        <div class="state-ready"><strong class="kpi-value" id="kpi-boi-rate" dir="ltr">—</strong><span class="kpi-meta">ריבית נוכחית</span></div>
+        <div class="state-ready">
+          <div class="kpi-pair">
+            <div><strong class="kpi-value" id="kpi-boi-rate" dir="ltr">—</strong><span class="kpi-meta">ריבית נוכחית</span></div>
+            <div><strong class="kpi-value" id="kpi-boi-prime" dir="ltr">—</strong><span class="kpi-meta">ריבית פריים</span></div>
+          </div>
+          <span class="kpi-footnote">החלטת הריבית הבאה: <strong id="kpi-next-decision" dir="ltr">—</strong></span>
+        </div>
       </article>
-      <article class="kpi-card accent-orange" id="next-kpi" data-state="loading">
-        <span class="kpi-label">החלטת הריבית הבאה</span>
+      <article class="kpi-card accent-cyan" id="fx-kpi" data-state="loading">
+        <span class="kpi-label">שערי חליפין נבחרים</span>
         <div class="state-loading">טוען נתונים…</div>
-        <div class="state-error" id="kpi-next-error"></div>
-        <div class="state-ready"><strong class="kpi-date" id="kpi-next-decision" dir="ltr">—</strong><span class="kpi-meta">לפי בנק ישראל</span></div>
+        <div class="state-error" id="kpi-fx-error"></div>
+        <div class="state-ready">
+          <div class="kpi-pair">
+            <div><strong class="kpi-value" id="kpi-fx-usd" dir="ltr">—</strong><span class="kpi-meta">דולר / שקל</span></div>
+            <div><strong class="kpi-value" id="kpi-fx-eur" dir="ltr">—</strong><span class="kpi-meta">אירו / שקל</span></div>
+          </div>
+          <span class="kpi-footnote">עדכני ל־<strong id="kpi-fx-date" dir="ltr">—</strong></span>
+        </div>
+      </article>
+      <article class="kpi-card accent-orange" id="brand-kpi">
+        <div class="kpi-brand"><span class="brand"><span class="brand-mark">s</span><span>statso</span></span></div>
       </article>
     </section>
 
@@ -194,6 +205,7 @@
   <script type="application/json" id="data-cpi" data-inline="json" data-src="data/cpi.json" data-label="מדד המחירים לצרכן"></script>
   <script type="application/json" id="data-boi" data-inline="json" data-src="data/boi_interest_rate.json" data-label="ריבית בנק ישראל"></script>
   <script type="application/json" id="data-next" data-inline="json" data-src="data/boi_next_decision.json" data-label="מועד החלטת הריבית הבאה"></script>
+  <script type="application/json" id="data-fx" data-inline="json" data-src="data/fx_latest.json" data-label="שערי חליפין"></script>
   <script type="text/plain" id="version-source" data-inline="text" data-src="VERSION"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.1/chart.umd.min.js" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous" referrerpolicy="no-referrer" data-inline="script" data-offline-src="assets/vendor/chart-4.5.1.umd.min.js"></script>
   <script src="assets/statso-core.js" data-inline="script"></script>

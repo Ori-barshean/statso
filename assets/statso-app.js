@@ -1,19 +1,26 @@
 (function (root) {
   'use strict';
   const Statso = root.Statso = root.Statso || {};
-  function failKpi(sectionId, valueId, errorId, message) {
-    document.getElementById(valueId).textContent = '—';
+  function failCard(sectionId, errorId, message, valueIds) {
+    valueIds.forEach(function (id) { document.getElementById(id).textContent = '—'; });
     document.getElementById(errorId).textContent = message;
     Statso.data.setState(document.getElementById(sectionId), 'error', message);
   }
+  function failCpi(message) {
+    failCard('cpi-kpi', 'kpi-cpi-error', message, ['kpi-cpi-yoy', 'kpi-cpi-mom']);
+    Statso.data.setState(document.getElementById('chart-section'), 'error', message);
+    Statso.data.setState(document.getElementById('calculator-section'), 'error', message);
+  }
   function showCpi(doc) {
-    const map = Statso.core.buildIndexMap(doc.observations); const latest = Statso.core.latestObservation(doc, map); const yoy = Statso.core.yearOverYear(map, doc.last_month);
+    const map = Statso.core.buildIndexMap(doc.observations); const latest = Statso.core.latestObservation(doc, map);
     if (!latest) { throw new Error('המדד העדכני חסר'); }
-    document.getElementById('kpi-cpi-value').textContent = Statso.core.formatNumber(latest.value, 1);
-    document.getElementById('kpi-cpi-month').textContent = Statso.core.formatMonthHe(latest.month);
+    const yoy = Statso.core.yearOverYear(map, doc.last_month); const mom = Statso.core.monthOverMonth(map, doc.last_month);
+    if (!yoy.ok || !mom.ok) { throw new Error('לא ניתן לחשב את השינוי במדד'); }
+    document.getElementById('kpi-cpi-yoy').textContent = Statso.core.formatPercent(yoy.percent);
+    document.getElementById('kpi-cpi-yoy-range').textContent = Statso.core.formatMonthHe(Statso.core.shiftMonth(doc.last_month, -12)) + '–' + Statso.core.formatMonthHe(doc.last_month);
+    document.getElementById('kpi-cpi-mom').textContent = Statso.core.formatPercent(mom.percent);
+    document.getElementById('kpi-cpi-mom-month').textContent = Statso.core.formatMonthHe(doc.last_month);
     Statso.data.setState(document.getElementById('cpi-kpi'), 'ready');
-    if (yoy.ok) { document.getElementById('kpi-yoy').textContent = Statso.core.formatPercent(yoy.percent); Statso.data.setState(document.getElementById('yoy-kpi'), 'ready'); }
-    else { failKpi('yoy-kpi', 'kpi-yoy', 'kpi-yoy-error', 'לא ניתן לחשב שינוי שנתי'); }
     Statso.data.setState(document.getElementById('calculator-section'), 'ready');
     Statso.calculator.init(doc, map);
     if (typeof root.Chart === 'function') { Statso.chart.init(doc.observations); Statso.data.setState(document.getElementById('chart-section'), 'ready'); }
@@ -22,11 +29,22 @@
   function showBoi(doc) {
     if (typeof doc.current_rate !== 'number' || !isFinite(doc.current_rate)) { throw new Error('הריבית הנוכחית חסרה'); }
     document.getElementById('kpi-boi-rate').textContent = Statso.core.formatPercent(doc.current_rate);
+    document.getElementById('kpi-boi-prime').textContent = Statso.core.formatPercent(Statso.core.primeRate(doc.current_rate));
     Statso.data.setState(document.getElementById('boi-kpi'), 'ready');
   }
   function showNext(doc) {
     if (!doc.next_decision_date) { throw new Error('מועד ההחלטה הבאה אינו זמין'); }
-    document.getElementById('kpi-next-decision').textContent = Statso.core.formatIsoDateHe(doc.next_decision_date); Statso.data.setState(document.getElementById('next-kpi'), 'ready');
+    document.getElementById('kpi-next-decision').textContent = Statso.core.formatIsoDateHe(doc.next_decision_date);
+  }
+  function showNextUnavailable() { document.getElementById('kpi-next-decision').textContent = 'אינה ידועה'; }
+  function showFx(doc) {
+    const rates = new Map((doc.rates || []).map(function (row) { return [row.code, row]; }));
+    const usd = rates.get('USD'); const eur = rates.get('EUR');
+    if (!usd || !eur) { throw new Error('שערי החליפין אינם זמינים'); }
+    document.getElementById('kpi-fx-usd').textContent = Statso.core.formatRate(usd.latest_rate);
+    document.getElementById('kpi-fx-eur').textContent = Statso.core.formatRate(eur.latest_rate);
+    document.getElementById('kpi-fx-date').textContent = Statso.core.formatIsoDateHe(usd.latest_date);
+    Statso.data.setState(document.getElementById('fx-kpi'), 'ready');
   }
   function showVersion() {
     Statso.data.loadVersion().then(function (version) {
@@ -38,10 +56,13 @@
   function init() {
     showVersion();
     Statso.data.loadAll().then(function (results) {
-      if (results[0].status === 'fulfilled') { try { showCpi(results[0].value); } catch (error) { failKpi('cpi-kpi', 'kpi-cpi-value', 'kpi-cpi-error', error.message); failKpi('yoy-kpi', 'kpi-yoy', 'kpi-yoy-error', error.message); Statso.data.setState(document.getElementById('chart-section'), 'error', error.message); Statso.data.setState(document.getElementById('calculator-section'), 'error', error.message); } }
-      else { const msg = results[0].reason.message; failKpi('cpi-kpi', 'kpi-cpi-value', 'kpi-cpi-error', msg); failKpi('yoy-kpi', 'kpi-yoy', 'kpi-yoy-error', msg); Statso.data.setState(document.getElementById('chart-section'), 'error', msg); Statso.data.setState(document.getElementById('calculator-section'), 'error', msg); }
-      if (results[1].status === 'fulfilled') { try { showBoi(results[1].value); } catch (error) { failKpi('boi-kpi', 'kpi-boi-rate', 'kpi-boi-error', error.message); } } else { failKpi('boi-kpi', 'kpi-boi-rate', 'kpi-boi-error', results[1].reason.message); }
-      if (results[2].status === 'fulfilled') { try { showNext(results[2].value); } catch (error) { failKpi('next-kpi', 'kpi-next-decision', 'kpi-next-error', error.message); } } else { failKpi('next-kpi', 'kpi-next-decision', 'kpi-next-error', results[2].reason.message); }
+      const cpi = results[0], boi = results[1], next = results[2], fx = results[3];
+      if (cpi.status === 'fulfilled') { try { showCpi(cpi.value); } catch (error) { failCpi(error.message); } } else { failCpi(cpi.reason.message); }
+      if (boi.status === 'fulfilled') { try { showBoi(boi.value); } catch (error) { failCard('boi-kpi', 'kpi-boi-error', error.message, ['kpi-boi-rate', 'kpi-boi-prime']); } }
+      else { failCard('boi-kpi', 'kpi-boi-error', boi.reason.message, ['kpi-boi-rate', 'kpi-boi-prime']); }
+      if (next.status === 'fulfilled') { try { showNext(next.value); } catch (error) { showNextUnavailable(); } } else { showNextUnavailable(); }
+      if (fx.status === 'fulfilled') { try { showFx(fx.value); } catch (error) { failCard('fx-kpi', 'kpi-fx-error', error.message, ['kpi-fx-usd', 'kpi-fx-eur']); } }
+      else { failCard('fx-kpi', 'kpi-fx-error', fx.reason.message, ['kpi-fx-usd', 'kpi-fx-eur']); }
       root.dispatchEvent(new CustomEvent('statso:app-ready'));
     });
   }

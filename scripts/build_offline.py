@@ -12,6 +12,7 @@ _JSON_RE = re.compile(r'(<script\b[^>]*\bdata-inline="json"[^>]*>)(\s*)(</script
 _TEXT_RE = re.compile(r'(<script\b[^>]*\bdata-inline="text"[^>]*>)(\s*)(</script>)', re.IGNORECASE)
 _ATTR_RE = re.compile(r'\b([\w-]+)="([^"]*)"')
 _FORBIDDEN = ("</script", "</style", "<!--", "-->")
+_JSON_MARKERS = 4
 
 
 def escape_json_for_html(text: str) -> str:
@@ -51,8 +52,8 @@ def build(*, out=None, source=None):
         raise StatsoError("UI source must contain at least one style marker")
     if len(_SCRIPT_RE.findall(html)) < 10:
         raise StatsoError("UI source must contain at least ten script markers")
-    if len(_JSON_RE.findall(html)) != 3:
-        raise StatsoError("UI source must contain exactly three JSON markers")
+    if len(_JSON_RE.findall(html)) != _JSON_MARKERS:
+        raise StatsoError(f"UI source must contain exactly {_JSON_MARKERS} JSON markers")
     if len(_TEXT_RE.findall(html)) != 1:
         raise StatsoError("UI source must contain exactly one text marker")
 
@@ -91,11 +92,11 @@ def build(*, out=None, source=None):
     transformed = _TEXT_RE.sub(text_replace, transformed)
     if 'data-inline="style"' in transformed or 'data-inline="script"' in transformed:
         raise StatsoError("offline transform left asset markers behind")
-    if transformed.count('data-inline="json"') != 3:
+    if transformed.count('data-inline="json"') != _JSON_MARKERS:
         raise StatsoError("offline transform left an invalid number of JSON markers")
     remaining = re.findall(r'<script\b[^>]*\bdata-inline="json"[^>]*>(.*?)</script>', transformed,
                            flags=re.IGNORECASE | re.DOTALL)
-    if len(remaining) != 3 or any(not content.strip() for content in remaining):
+    if len(remaining) != _JSON_MARKERS or any(not content.strip() for content in remaining):
         raise StatsoError("offline transform did not embed all JSON datasets")
     embedded_text = re.findall(r'<script\b[^>]*\bdata-inline="text"[^>]*>(.*?)</script>', transformed,
                                flags=re.IGNORECASE | re.DOTALL)

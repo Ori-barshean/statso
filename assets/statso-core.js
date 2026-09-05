@@ -1,6 +1,7 @@
 (function (root) {
   'use strict';
   const Statso = root.Statso = root.Statso || {};
+  const PRIME_SPREAD = 1.5;
 
   function monthToOrdinal(key) {
     const parts = key.split('-').map(Number);
@@ -30,21 +31,27 @@
     return {indexed: indexed, difference: indexed - amount};
   }
 
-  function yearOverYear(map, lastMonth) {
+  function changeOverMonths(map, lastMonth, back) {
     const current = map.get(lastMonth);
-    const prior = map.get(shiftMonth(lastMonth, -12));
+    const prior = map.get(shiftMonth(lastMonth, -back));
     return current && prior ? {ok: true, percent: (current.chained_1951_09 / prior.chained_1951_09 - 1) * 100} : {ok: false, percent: null};
   }
+
+  function yearOverYear(map, lastMonth) { return changeOverMonths(map, lastMonth, 12); }
+  function monthOverMonth(map, lastMonth) { return changeOverMonths(map, lastMonth, 1); }
+  function primeRate(boiRate) { return boiRate + PRIME_SPREAD; }
 
   function latestObservation(cpiDoc, map) { return map.get(cpiDoc.last_month); }
   function formatNumber(x, digits) { return new Intl.NumberFormat('he-IL', {minimumFractionDigits: digits, maximumFractionDigits: digits}).format(x); }
   function formatPercent(x) { return formatNumber(x, 2) + '%'; }
+  function formatRate(x) { return new Intl.NumberFormat('he-IL', {minimumFractionDigits: 2, maximumFractionDigits: 4}).format(x); }
   function formatMonthHe(key) { const p = key.split('-'); return p[1] + '/' + p[0]; }
   function formatIsoDateHe(value) { const p = value.split('-'); return p[2] + '/' + p[1] + '/' + p[0]; }
 
   Statso.core = {monthToOrdinal: monthToOrdinal, ordinalToMonth: ordinalToMonth, shiftMonth: shiftMonth,
     buildIndexMap: buildIndexMap, resolveIndexMonth: resolveIndexMonth, lookupChained: lookupChained,
-    indexAmount: indexAmount, yearOverYear: yearOverYear, latestObservation: latestObservation,
+    indexAmount: indexAmount, yearOverYear: yearOverYear, monthOverMonth: monthOverMonth,
+    primeRate: primeRate, PRIME_SPREAD: PRIME_SPREAD, formatRate: formatRate, latestObservation: latestObservation,
     formatNumber: formatNumber, formatPercent: formatPercent, formatMonthHe: formatMonthHe,
     formatIsoDateHe: formatIsoDateHe};
 })(window);
