@@ -2,6 +2,9 @@
   'use strict';
   const Statso = root.Statso = root.Statso || {};
   const PRIME_SPREAD = 1.5;
+  const CURRENCY_NAMES = {USD: 'דולר ארה״ב', EUR: 'אירו', GBP: 'ליש״ט', CHF: 'פרנק שווייצרי',
+    JPY: 'ין יפני', CAD: 'דולר קנדי', AUD: 'דולר אוסטרלי', DKK: 'כתר דני',
+    NOK: 'כתר נורווגי', SEK: 'כתר שוודי', ILS: 'שקל חדש'};
 
   function monthToOrdinal(key) {
     const parts = key.split('-').map(Number);
@@ -24,6 +27,21 @@
     }
     const row = map.get(month);
     return row ? {ok: true, value: row.chained_1951_09, reason: null} : {ok: false, value: null, reason: 'missing'};
+  }
+
+  function lookupRateAt(dates, rates, isoDate) {
+    if (!dates.length || isoDate < dates[0]) { return {ok: false, rate: null, date: null}; }
+    let low = 0; let high = dates.length - 1; let found = 0;
+    while (low <= high) {
+      const mid = (low + high) >> 1;
+      if (dates[mid] <= isoDate) { found = mid; low = mid + 1; } else { high = mid - 1; }
+    }
+    return {ok: true, rate: rates[found], date: dates[found]};
+  }
+
+  function convertAmount(amount, from, to) {
+    const rate = (from.rate / from.unit) / (to.rate / to.unit);
+    return {amount: amount * rate, rate: rate};
   }
 
   function indexAmount(amount, baseChained, targetChained) {
@@ -50,8 +68,10 @@
 
   Statso.core = {monthToOrdinal: monthToOrdinal, ordinalToMonth: ordinalToMonth, shiftMonth: shiftMonth,
     buildIndexMap: buildIndexMap, resolveIndexMonth: resolveIndexMonth, lookupChained: lookupChained,
-    indexAmount: indexAmount, yearOverYear: yearOverYear, monthOverMonth: monthOverMonth,
-    primeRate: primeRate, PRIME_SPREAD: PRIME_SPREAD, formatRate: formatRate, latestObservation: latestObservation,
+    indexAmount: indexAmount, lookupRateAt: lookupRateAt, convertAmount: convertAmount,
+    yearOverYear: yearOverYear, monthOverMonth: monthOverMonth,
+    primeRate: primeRate, PRIME_SPREAD: PRIME_SPREAD, formatRate: formatRate,
+    CURRENCY_NAMES: CURRENCY_NAMES, latestObservation: latestObservation,
     formatNumber: formatNumber, formatPercent: formatPercent, formatMonthHe: formatMonthHe,
     formatIsoDateHe: formatIsoDateHe};
 })(window);

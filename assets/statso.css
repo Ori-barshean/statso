@@ -63,20 +63,35 @@ input:focus, select:focus, textarea:focus { border-color: var(--blue); box-shado
 .chart-wrap { position: relative; height: 370px; direction: ltr; }
 .inline-error { min-height: 1.5em; margin: 0 0 10px; color: #b42318; font-size: .9rem; }
 .calc-layout { display: grid; grid-template-columns: 1.6fr 1fr; gap: 36px; }
-.calc-form { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.calc-form { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
 .calc-form .wide { grid-column: 1 / -1; }
 .calc-form label { display: grid; gap: 7px; }
-.calc-form fieldset { border: 0; padding: 0; margin: 0; display: flex; align-items: center; gap: 24px; }
+.calc-form fieldset { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 24px; }
 .calc-form fieldset label { display: flex; align-items: center; gap: 7px; }
 .calc-form legend { float: right; margin-inline-end: 22px; color: #45556c; font-size: .86rem; font-weight: 700; }
-.date-group { padding: 16px; background: var(--wash); border-radius: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.date-group { padding: 16px; background: var(--wash); border-radius: 12px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
 .date-group > span { grid-column: 1 / -1; font-weight: 750; }
 .calc-output { background: var(--navy); color: white; border-radius: 15px; padding: 24px; }
 .calc-output .inline-error { color: #fecaca; }
-#calc-result span { color: #cbd5e1; font-size: .86rem; display: block; }
-#calc-result strong { display: inline-block; font-size: 2rem; margin: 3px 0; }
-#calc-result small { margin-inline-start: 5px; color: #cbd5e1; }
-#calc-result hr { border: 0; border-top: 1px solid rgba(255,255,255,.18); margin: 18px 0; }
+.section-toggle { display: inline-flex; align-items: center; gap: 9px; padding: 0; border: 0; background: none; font: inherit; color: inherit; cursor: pointer; text-align: start; }
+.section-toggle:hover .toggle-caret { border-color: var(--blue); color: var(--blue); }
+.toggle-caret { display: grid; place-items: center; width: 22px; height: 22px; flex: 0 0 22px; border: 1px solid var(--line); border-radius: 7px; color: var(--muted); font-size: .7rem; transition: transform .15s ease; }
+.toggle-caret::before { content: "\25BC"; }
+[data-collapsed="true"] .toggle-caret { transform: rotate(90deg); }
+[data-collapsed="true"] .range-controls { display: none; }
+.table-wrap { overflow-x: auto; }
+.data-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.data-table th, .data-table td { padding: 10px 12px; text-align: start; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.data-table thead th { color: var(--muted); font-size: .8rem; font-weight: 700; }
+.data-table tbody tr:last-child th, .data-table tbody tr:last-child td { border-bottom: 0; }
+.data-table tbody th { font-weight: 700; }
+.data-table td { font-size: .94rem; }
+.data-table .currency-code { color: var(--muted); font-size: .78rem; margin-inline-start: 6px; }
+.table-note { margin: 14px 0 0; color: var(--muted); font-size: .8rem; }
+.calc-result span { color: #cbd5e1; font-size: .86rem; display: block; }
+.calc-result strong { display: inline-block; font-size: 2rem; margin: 3px 0; }
+.calc-result small { margin-inline-start: 5px; color: #cbd5e1; }
+.calc-result hr { border: 0; border-top: 1px solid rgba(255,255,255,.18); margin: 18px 0; }
 .search-label { display: grid; gap: 5px; min-width: min(290px, 100%); }
 .table-summary { color: var(--muted); font-size: .84rem; }
 .table-scroll { overflow: auto; max-height: 540px; border: 1px solid var(--line); border-radius: 12px; }
@@ -94,6 +109,9 @@ footer { margin-top: 42px; background: white; border-top: 1px solid var(--line);
 .state-loading, .state-error, .state-ready { display: none; }
 [data-state="loading"] > .state-loading, [data-state="error"] > .state-error, [data-state="ready"] > .state-ready { display: block; }
 .kpi-card[data-state="loading"] .state-loading, .kpi-card[data-state="error"] .state-error, .kpi-card[data-state="ready"] .state-ready { display: block; }
+.panel[data-collapsed="true"] > .state-loading, .panel[data-collapsed="true"] > .state-error,
+.panel[data-collapsed="true"] > .state-ready { display: none; }
+.panel[data-collapsed="true"] .section-heading { margin-bottom: 0; }
 .state-loading { color: var(--muted); }
 .state-error { color: #b42318; }
 
@@ -170,4 +188,4 @@ footer { margin-top: 42px; background: white; border-top: 1px solid var(--line);
 
 @media (max-width: 900px) { .kpi-grid { grid-template-columns: 1fr 1fr; } .calc-layout { grid-template-columns: 1fr; } .guide-selectors { grid-template-columns: 1fr; } }
 @media (max-width: 700px) { .step-art, .guide-cards { grid-template-columns: 1fr; } }
-@media (max-width: 600px) { .shell { width: min(100% - 22px, 1180px); } .header-inner { gap: 12px; } .brand { font-size: 1.08rem; } .nav-item { padding-inline: 10px; } .hero, .guide-hero { padding-top: 38px; } .kpi-grid { grid-template-columns: 1fr; } .section-heading { align-items: stretch; flex-direction: column; } .range-controls { justify-content: space-between; } .calc-form { grid-template-columns: 1fr; } .date-group { grid-column: 1; } .guide-svg, .step-art img { min-width: 430px; } footer .shell { align-items: flex-start; flex-direction: column; justify-content: center; padding-block: 16px; gap: 12px; } .footer-meta { width: 100%; flex-wrap: wrap; gap: 8px 16px; } .footer-links { justify-content: flex-start; gap: 6px; } }
+@media (max-width: 600px) { .shell { width: min(100% - 22px, 1180px); } .header-inner { gap: 12px; } .brand { font-size: 1.08rem; } .nav-item { padding-inline: 10px; } .hero, .guide-hero { padding-top: 38px; } .kpi-grid { grid-template-columns: 1fr; } .section-heading { align-items: stretch; flex-direction: column; } .range-controls { justify-content: space-between; } .calc-form { grid-template-columns: minmax(0, 1fr); } .date-group { grid-column: 1; } .guide-svg, .step-art img { min-width: 430px; } footer .shell { align-items: flex-start; flex-direction: column; justify-content: center; padding-block: 16px; gap: 12px; } .footer-meta { width: 100%; flex-wrap: wrap; gap: 8px 16px; } .footer-links { justify-content: flex-start; gap: 6px; } }

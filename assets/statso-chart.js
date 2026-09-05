@@ -3,6 +3,9 @@
   const Statso = root.Statso = root.Statso || {};
   let chartInstance = null;
   let observations = [];
+  let hasData = false;
+  let opened = false;
+  let started = false;
 
   function populateYearSelects(years) {
     const start = document.getElementById('chart-start-year');
@@ -32,16 +35,20 @@
     error.textContent = ''; render(sliceByYears(observations, start, end));
   }
 
-  function init(rows) {
-    observations = rows;
-    const years = Array.from(new Set(rows.map(function (row) { return row.year; })));
+  function start() {
+    if (started || !hasData || !opened) { return; }
+    started = true;
+    const years = Array.from(new Set(observations.map(function (row) { return row.year; })));
     populateYearSelects(years);
     document.getElementById('chart-start-year').addEventListener('change', onRangeChange);
     document.getElementById('chart-end-year').addEventListener('change', onRangeChange);
     onRangeChange();
   }
 
+  function init(rows) { observations = rows; hasData = true; start(); }
+  function activate() { opened = true; start(); }
+
   function showUnavailable() { Statso.data.setState(document.getElementById('chart-section'), 'error', 'ספריית התרשים אינה זמינה. יתר הכלים ממשיכים לפעול.'); }
   function resize() { if (chartInstance) { chartInstance.resize(); } }
-  Statso.chart = {populateYearSelects: populateYearSelects, sliceByYears: sliceByYears, buildConfig: buildConfig, render: render, onRangeChange: onRangeChange, init: init, showUnavailable: showUnavailable, resize: resize};
+  Statso.chart = {populateYearSelects: populateYearSelects, sliceByYears: sliceByYears, buildConfig: buildConfig, render: render, onRangeChange: onRangeChange, init: init, activate: activate, showUnavailable: showUnavailable, resize: resize};
 })(window);

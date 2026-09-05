@@ -64,6 +64,30 @@ class UiSourceTests(unittest.TestCase):
         self.assertIn("function primeRate(boiRate) { return boiRate + PRIME_SPREAD; }", text)
         self.assertNotIn("4.75", self.html)
 
+    def test_collapsible_sections(self):
+        for section_id, collapsed in (("fx-table-section", "false"), ("chart-section", "true")):
+            pattern = r'<section[^>]*id="' + section_id + r'"[^>]*data-collapsed="' + collapsed + r'"'
+            self.assertRegex(self.html, pattern)
+            block = re.search(r'<section[^>]*id="' + section_id + r'".*?</section>', self.html, re.DOTALL).group(0)
+            self.assertIn('class="section-toggle"', block)
+        text = self.scripts["statso-collapse.js"]
+        self.assertIn("localStorage.getItem", text)
+        self.assertIn("localStorage.setItem", text)
+        self.assertEqual(text.count("catch"), 2)
+
+    def test_chart_only_renders_once_opened(self):
+        text = self.scripts["statso-chart.js"]
+        self.assertIn("if (started || !hasData || !opened) { return; }", text)
+        self.assertIn("function activate() { opened = true; start(); }", text)
+        self.assertIn("onOpen: function () { Statso.chart.activate(); }", self.scripts["statso-app.js"])
+
+    def test_calculator_offers_both_kinds(self):
+        self.assertRegex(self.html, r'name="calc-kind"[^>]*value="index"[^>]*checked')
+        self.assertRegex(self.html, r'name="calc-kind"[^>]*value="fx"')
+        for element_id in ("calc-fx-from", "calc-fx-to", "calc-fx-date", "calc-fx-converted", "calc-fx-rate"):
+            self.assertIn(f'id="{element_id}"', self.html)
+        self.assertIn("loadFxDaily", self.scripts["statso-calculator.js"])
+
     def test_top_nav_remains_minimal(self):
         nav = re.search(r'<nav class="site-nav".*?</nav>', self.html, re.DOTALL).group(0)
         self.assertEqual(nav.count("<a "), 2)

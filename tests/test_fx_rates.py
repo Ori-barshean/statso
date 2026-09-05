@@ -61,7 +61,7 @@ class FxRatesTests(unittest.TestCase):
             target = Path(temp)
             fetch_full = lambda url: raw_series()
             self.assertEqual(len(fx_rates.update(fetch=fetch_full, data_dir=target,
-                                                 backfill=True)), 21)
+                                                 backfill=True)), 23)
             mtimes = {path: path.stat().st_mtime_ns for path in target.rglob("*") if path.is_file()}
             time.sleep(0.001)
             self.assertEqual(fx_rates.update(fetch=fetch_full, data_dir=target), [])
@@ -135,6 +135,38 @@ class FxRatesTests(unittest.TestCase):
             fx_rates.validate(series, {"USD": len(series["USD"]) + 1}, require_minimum=False)
         with mock.patch.dict(os.environ, {"STATSO_ALLOW_SHRINK": "1"}):
             fx_rates.validate(series, {"USD": len(series["USD"]) + 1}, require_minimum=False)
+
+    def test_summary_year_end_and_average(self):
+        observations = [{"date": "2024-01-02", "rate": 3.0}, {"date": "2024-12-30", "rate": 4.0},
+                        {"date": "2025-06-01", "rate": 5.0}, {"date": "2025-12-31", "rate": 7.0},
+                        {"date": "2026-09-04", "rate": 9.0}]
+        series = {code: list(observations) for code in fx_rates.CURRENCIES}
+        self.assertEqual(fx_rates.completed_years(series), [2025, 2024])
+        stats_2024 = fx_rates.year_stats(observations, 2024)
+        self.assertEqual(stats_2024["year_end"], {"date": "2024-12-30", "rate": 4.0})
+        self.assertEqual(stats_2024["average"], 3.5)
+        self.assertEqual(stats_2024["count"], 2)
+        self.assertIsNone(fx_rates.year_stats(observations, 2019))
+        summary = json.loads(fx_rates.summary_json_bytes(series))
+        self.assertEqual(summary["years"], [2025, 2024])
+        usd = summary["rates"][0]
+        self.assertEqual(usd["code"], "USD")
+        self.assertEqual(usd["latest"], {"date": "2026-09-04", "rate": 9.0})
+        self.assertEqual(usd["first_date"], "2024-01-02")
+        self.assertEqual([entry["year"] for entry in usd["years"]], [2025, 2024])
+        self.assertEqual(usd["years"][0]["average"], 6.0)
+
+    def test_daily_arrays_stay_aligned(self):
+        series = small_series()
+        daily = json.loads(fx_rates.daily_json_bytes(series))
+        self.assertEqual(set(daily["currencies"]), set(fx_rates.CURRENCIES))
+        for code in fx_rates.CURRENCIES:
+            entry = daily["currencies"][code]
+            self.assertEqual(len(entry["dates"]), len(entry["rates"]))
+            self.assertEqual(entry["dates"], [item["date"] for item in series[code]])
+            self.assertEqual(entry["rates"], [item["rate"] for item in series[code]])
+            self.assertEqual(entry["unit"], fx_rates.EXPECTED_UNITS[code])
+        self.assertNotIn(b"\n  ", fx_rates.daily_json_bytes(series))
 
     def test_recent_url(self):
         self.assertTrue(fx_rates.FULL_URL.endswith("RER_SEK_ILS..?format=csv"))

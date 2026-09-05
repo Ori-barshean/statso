@@ -1,0 +1,313 @@
+{
+  "dataset": "boi_exchange_rates_summary",
+  "source": "בנק ישראל",
+  "source_url": "https://edge.boi.gov.il/FusionEdgeServer/sdmx/v2/data/dataflow/BOI.STATISTICS/EXR/1.0/RER_USD_ILS+RER_EUR_ILS+RER_GBP_ILS+RER_CHF_ILS+RER_JPY_ILS+RER_CAD_ILS+RER_AUD_ILS+RER_DKK_ILS+RER_NOK_ILS+RER_SEK_ILS..?format=csv",
+  "counter_currency": "ILS",
+  "years": [
+    2025,
+    2024
+  ],
+  "count": 10,
+  "rates": [
+    {
+      "code": "USD",
+      "unit": 1,
+      "first_date": "1948-05-15",
+      "count": 13273,
+      "latest": {
+        "date": "2026-09-04",
+        "rate": 3.005
+      },
+      "years": [
+        {
+          "year": 2025,
+          "count": 246,
+          "year_end": {
+            "date": "2025-12-31",
+            "rate": 3.19
+          },
+          "average": 3.452943
+        },
+        {
+          "year": 2024,
+          "count": 244,
+          "year_end": {
+            "date": "2024-12-31",
+            "rate": 3.647
+          },
+          "average": 3.69902
+        }
+      ]
+    },
+    {
+      "code": "EUR",
+      "unit": 1,
+      "first_date": "1999-01-04",
+      "count": 6775,
+      "latest": {
+        "date": "2026-09-04",
+        "rate": 3.4932
+      },
+      "years": [
+        {
+          "year": 2025,
+          "count": 246,
+          "year_end": {
+            "date": "2025-12-31",
+            "rate": 3.7455
+          },
+          "average": 3.89285
+        },
+        {
+          "year": 2024,
+          "count": 244,
+          "year_end": {
+            "date": "2024-12-31",
+            "rate": 3.7964
+          },
+          "average": 4.0021
+        }
+      ]
+    },
+    {
+      "code": "GBP",
+      "unit": 1,
+      "first_date": "1962-02-10",
+      "count": 12897,
+      "latest": {
+        "date": "2026-09-04",
+        "rate": 4.0681
+      },
+      "years": [
+        {
+          "year": 2025,
+          "count": 246,
+          "year_end": {
+            "date": "2025-12-31",
+            "rate": 4.29
+          },
+          "average": 4.546332
+        },
+        {
+          "year": 2024,
+          "count": 244,
+          "year_end": {
+            "date": "2024-12-31",
+            "rate": 4.5743
+          },
+          "average": 4.727729
+        }
+      ]
+    },
+    {
+      "code": "CHF",
+      "unit": 1,
+      "first_date": "1962-02-10",
+      "count": 12892,
+      "latest": {
+        "date": "2026-09-04",
+        "rate": 3.7177
+      },
+      "years": [
+        {
+          "year": 2025,
+          "count": 246,
+          "year_end": {
+            "date": "2025-12-31",
+            "rate": 4.0213
+          },
+          "average": 4.154463
+        },
+        {
+          "year": 2024,
+          "count": 244,
+          "year_end": {
+            "date": "2024-12-31",
+            "rate": 4.0278
+          },
+          "average": 4.203278
+        }
+      ]
+    },
+    {
+      "code": "JPY",
+      "unit": 100,
+      "first_date": "1974-11-10",
+      "count": 12886,
+      "latest": {
+        "date": "2026-09-04",
+        "rate": 1.9227
+      },
+      "years": [
+        {
+          "year": 2025,
+          "count": 246,
+          "year_end": {
+            "date": "2025-12-31",
+            "rate": 2.0365
+          },
+          "average": 2.30967
+        },
+        {
+          "year": 2024,
+          "count": 244,
+          "year_end": {
+            "date": "2024-12-31",
+            "rate": 2.3285
+          },
+          "average": 2.445082
+        }
+      ]
+    },
+    {
+      "code": "CAD",
+      "unit": 1,
+      "first_date": "1962-02-10",
+      "count": 12893,
+      "latest": {
+        "date": "2026-09-04",
+        "rate": 2.1772
+      },
+      "years": [
+        {
+          "year": 2025,
+          "count": 246,
+          "year_end": {
+            "date": "2025-12-31",
+            "rate": 2.3275
+          },
+          "average": 2.469321
+        },
+        {
+          "year": 2024,
+          "count": 244,
+          "year_end": {
+            "date": "2024-12-31",
+            "rate": 2.5354
+          },
+          "average": 2.700699
+        }
+      ]
+    },
+    {
+      "code": "AUD",
+      "unit": 1,
+      "first_date": "1962-02-10",
+      "count": 12901,
+      "latest": {
+        "date": "2026-09-04",
+        "rate": 2.1642
+      },
+      "years": [
+        {
+          "year": 2025,
+          "count": 246,
+          "year_end": {
+            "date": "2025-12-31",
+            "rate": 2.1319
+          },
+          "average": 2.223634
+        },
+        {
+          "year": 2024,
+          "count": 244,
+          "year_end": {
+            "date": "2024-12-31",
+            "rate": 2.2642
+          },
+          "average": 2.440441
+        }
+      ]
+    },
+    {
+      "code": "DKK",
+      "unit": 1,
+      "first_date": "1962-02-10",
+      "count": 12894,
+      "latest": {
+        "date": "2026-09-04",
+        "rate": 0.4673
+      },
+      "years": [
+        {
+          "year": 2025,
+          "count": 246,
+          "year_end": {
+            "date": "2025-12-31",
+            "rate": 0.5015
+          },
+          "average": 0.521581
+        },
+        {
+          "year": 2024,
+          "count": 244,
+          "year_end": {
+            "date": "2024-12-31",
+            "rate": 0.509
+          },
+          "average": 0.536543
+        }
+      ]
+    },
+    {
+      "code": "NOK",
+      "unit": 1,
+      "first_date": "1962-02-10",
+      "count": 12895,
+      "latest": {
+        "date": "2026-09-04",
+        "rate": 0.3231
+      },
+      "years": [
+        {
+          "year": 2025,
+          "count": 246,
+          "year_end": {
+            "date": "2025-12-31",
+            "rate": 0.3169
+          },
+          "average": 0.332138
+        },
+        {
+          "year": 2024,
+          "count": 244,
+          "year_end": {
+            "date": "2024-12-31",
+            "rate": 0.3222
+          },
+          "average": 0.344262
+        }
+      ]
+    },
+    {
+      "code": "SEK",
+      "unit": 1,
+      "first_date": "1962-02-10",
+      "count": 12892,
+      "latest": {
+        "date": "2026-09-04",
+        "rate": 0.315
+      },
+      "years": [
+        {
+          "year": 2025,
+          "count": 246,
+          "year_end": {
+            "date": "2025-12-31",
+            "rate": 0.3467
+          },
+          "average": 0.351855
+        },
+        {
+          "year": 2024,
+          "count": 244,
+          "year_end": {
+            "date": "2024-12-31",
+            "rate": 0.3315
+          },
+          "average": 0.350095
+        }
+      ]
+    }
+  ]
+}

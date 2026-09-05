@@ -68,8 +68,21 @@
       </article>
     </section>
 
-    <section class="panel" id="chart-section" data-state="loading" aria-labelledby="chart-title">
-      <div class="section-heading"><div><p class="eyebrow">מגמה היסטורית</p><h2 id="chart-title">המדד המשורשר לאורך זמן</h2></div>
+    <section class="panel" id="fx-table-section" data-state="loading" data-collapsed="false" aria-labelledby="fx-table-title">
+      <div class="section-heading"><div><p class="eyebrow">שערי חליפין</p><h2 id="fx-table-title"><button class="section-toggle" type="button" aria-expanded="true" aria-controls="fx-table-section"><span class="toggle-caret" aria-hidden="true"></span>מטבעות נבחרים מול השקל</button></h2></div></div>
+      <div class="state-loading">טוען שערי חליפין…</div>
+      <div class="state-error" id="fx-table-error"></div>
+      <div class="state-ready">
+        <div class="table-wrap"><table class="data-table" id="fx-table">
+          <thead><tr id="fx-table-head"></tr></thead>
+          <tbody id="fx-table-body"></tbody>
+        </table></div>
+        <p class="table-note" id="fx-table-note"></p>
+      </div>
+    </section>
+
+    <section class="panel" id="chart-section" data-state="loading" data-collapsed="true" aria-labelledby="chart-title">
+      <div class="section-heading"><div><p class="eyebrow">מגמה היסטורית</p><h2 id="chart-title"><button class="section-toggle" type="button" aria-expanded="false" aria-controls="chart-section"><span class="toggle-caret" aria-hidden="true"></span>המדד המשורשר לאורך זמן</button></h2></div>
         <div class="range-controls"><label>משנה <select id="chart-start-year"></select></label><label>עד <select id="chart-end-year"></select></label></div>
       </div>
       <div class="state-loading">טוען תרשים…</div><div class="state-error"></div>
@@ -77,18 +90,22 @@
     </section>
 
     <section class="panel calculator-panel" id="calculator-section" data-state="loading" aria-labelledby="calculator-title">
-      <div class="section-heading"><div><p class="eyebrow">מחשבון</p><h2 id="calculator-title">חישוב הצמדה למדד</h2></div></div>
+      <div class="section-heading"><div><p class="eyebrow">מחשבון</p><h2 id="calculator-title">הצמדה למדד והמרת מטבע</h2></div></div>
       <div class="state-loading">טוען מחשבון…</div><div class="state-error"></div>
       <div class="state-ready calc-layout">
         <form class="calc-form" onsubmit="return false">
-          <label class="wide">סכום בשקלים <input id="calc-amount" type="number" min="0" step="any" value="1000" inputmode="decimal"></label>
-          <fieldset class="wide"><legend>סוג המדד</legend><label><input type="radio" name="calc-mode" value="known" checked> מדד ידוע</label><label><input type="radio" name="calc-mode" value="for"> מדד בגין</label></fieldset>
-          <div class="date-group"><span>חודש בסיס</span><label>שנה <select id="calc-base-year"></select></label><label>חודש <select id="calc-base-month"></select></label></div>
-          <div class="date-group"><span>חודש יעד</span><label>שנה <select id="calc-target-year"></select></label><label>חודש <select id="calc-target-month"></select></label></div>
+          <fieldset class="wide"><legend>סוג החישוב</legend><label><input type="radio" name="calc-kind" value="index" checked> הצמדה למדד</label><label><input type="radio" name="calc-kind" value="fx"> המרת מטבע</label></fieldset>
+          <label class="wide"><span id="calc-amount-label">סכום בשקלים</span> <input id="calc-amount" type="number" min="0" step="any" value="1000" inputmode="decimal"></label>
+          <fieldset class="wide calc-index-only"><legend>סוג המדד</legend><label><input type="radio" name="calc-mode" value="known" checked> מדד ידוע</label><label><input type="radio" name="calc-mode" value="for"> מדד בגין</label></fieldset>
+          <div class="date-group calc-index-only"><span>חודש בסיס</span><label>שנה <select id="calc-base-year"></select></label><label>חודש <select id="calc-base-month"></select></label></div>
+          <div class="date-group calc-index-only"><span>חודש יעד</span><label>שנה <select id="calc-target-year"></select></label><label>חודש <select id="calc-target-month"></select></label></div>
+          <div class="date-group calc-fx-only" hidden><span>המרה</span><label>ממטבע <select id="calc-fx-from"></select></label><label>למטבע <select id="calc-fx-to"></select></label></div>
+          <label class="wide calc-fx-only" hidden>לפי השער ליום <input id="calc-fx-date" type="date"></label>
         </form>
         <div class="calc-output">
           <p class="inline-error" id="calc-error" role="alert"></p>
-          <div id="calc-result"><span>סכום מוצמד</span><strong id="calc-result-indexed" dir="ltr">—</strong><small>₪</small><hr><span>הפרש</span><strong id="calc-result-difference" dir="ltr">—</strong><small>₪</small></div>
+          <div class="calc-result" id="calc-result"><span>סכום מוצמד</span><strong id="calc-result-indexed" dir="ltr">—</strong><small>₪</small><hr><span>הפרש</span><strong id="calc-result-difference" dir="ltr">—</strong><small>₪</small></div>
+          <div class="calc-result" id="calc-fx-result" hidden><span>סכום מומר</span><strong id="calc-fx-converted" dir="ltr">—</strong><small id="calc-fx-unit">—</small><hr><span>שער ההמרה</span><strong id="calc-fx-rate" dir="ltr">—</strong><small id="calc-fx-used-date"></small></div>
         </div>
       </div>
     </section>
@@ -205,12 +222,15 @@
   <script type="application/json" id="data-cpi" data-inline="json" data-src="data/cpi.json" data-label="מדד המחירים לצרכן"></script>
   <script type="application/json" id="data-boi" data-inline="json" data-src="data/boi_interest_rate.json" data-label="ריבית בנק ישראל"></script>
   <script type="application/json" id="data-next" data-inline="json" data-src="data/boi_next_decision.json" data-label="מועד החלטת הריבית הבאה"></script>
-  <script type="application/json" id="data-fx" data-inline="json" data-src="data/fx_latest.json" data-label="שערי חליפין"></script>
+  <script type="application/json" id="data-fx-summary" data-inline="json" data-src="data/fx_summary.json" data-label="סיכום שערי חליפין"></script>
+  <script type="application/json" id="data-fx-daily" data-inline="json" data-src="data/fx_daily.json" data-label="שערי חליפין יומיים"></script>
   <script type="text/plain" id="version-source" data-inline="text" data-src="VERSION"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.1/chart.umd.min.js" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous" referrerpolicy="no-referrer" data-inline="script" data-offline-src="assets/vendor/chart-4.5.1.umd.min.js"></script>
   <script src="assets/statso-core.js" data-inline="script"></script>
   <script src="assets/statso-data.js" data-inline="script"></script>
+  <script src="assets/statso-collapse.js" data-inline="script"></script>
   <script src="assets/statso-chart.js" data-inline="script"></script>
+  <script src="assets/statso-fxtable.js" data-inline="script"></script>
   <script src="assets/statso-calculator.js" data-inline="script"></script>
   <script src="assets/statso-guide-art.js" data-inline="script"></script>
   <script src="assets/statso-guides.js" data-inline="script"></script>

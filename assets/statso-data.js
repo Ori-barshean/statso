@@ -30,8 +30,14 @@
       loadDataset(document.getElementById('data-cpi')),
       loadDataset(document.getElementById('data-boi')),
       loadDataset(document.getElementById('data-next')),
-      loadDataset(document.getElementById('data-fx'))
+      loadDataset(document.getElementById('data-fx-summary'))
     ]);
+  }
+
+  let dailyFxPromise = null;
+  function loadFxDaily() {
+    if (!dailyFxPromise) { dailyFxPromise = loadDataset(document.getElementById('data-fx-daily')); }
+    return dailyFxPromise;
   }
 
   function setState(sectionEl, state, messageHe) {
@@ -42,5 +48,5 @@
     }
   }
 
-  Statso.data = {loadDataset: loadDataset, loadAll: loadAll, loadVersion: loadVersion, setState: setState};
+  Statso.data = {loadDataset: loadDataset, loadAll: loadAll, loadVersion: loadVersion, loadFxDaily: loadFxDaily, setState: setState};
 })(window);

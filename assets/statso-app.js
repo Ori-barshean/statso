@@ -41,10 +41,16 @@
     const rates = new Map((doc.rates || []).map(function (row) { return [row.code, row]; }));
     const usd = rates.get('USD'); const eur = rates.get('EUR');
     if (!usd || !eur) { throw new Error('שערי החליפין אינם זמינים'); }
-    document.getElementById('kpi-fx-usd').textContent = Statso.core.formatRate(usd.latest_rate);
-    document.getElementById('kpi-fx-eur').textContent = Statso.core.formatRate(eur.latest_rate);
-    document.getElementById('kpi-fx-date').textContent = Statso.core.formatIsoDateHe(usd.latest_date);
+    document.getElementById('kpi-fx-usd').textContent = Statso.core.formatRate(usd.latest.rate);
+    document.getElementById('kpi-fx-eur').textContent = Statso.core.formatRate(eur.latest.rate);
+    document.getElementById('kpi-fx-date').textContent = Statso.core.formatIsoDateHe(usd.latest.date);
     Statso.data.setState(document.getElementById('fx-kpi'), 'ready');
+    Statso.fxtable.init(doc);
+    Statso.calculator.initFx(doc);
+  }
+  function failFx(message) {
+    failCard('fx-kpi', 'kpi-fx-error', message, ['kpi-fx-usd', 'kpi-fx-eur']);
+    Statso.data.setState(document.getElementById('fx-table-section'), 'error', message);
   }
   function showVersion() {
     Statso.data.loadVersion().then(function (version) {
@@ -55,14 +61,15 @@
   }
   function init() {
     showVersion();
+    Statso.collapse.attach('fx-table-section', {collapsed: false});
+    Statso.collapse.attach('chart-section', {collapsed: true, onOpen: function () { Statso.chart.activate(); }});
     Statso.data.loadAll().then(function (results) {
       const cpi = results[0], boi = results[1], next = results[2], fx = results[3];
       if (cpi.status === 'fulfilled') { try { showCpi(cpi.value); } catch (error) { failCpi(error.message); } } else { failCpi(cpi.reason.message); }
       if (boi.status === 'fulfilled') { try { showBoi(boi.value); } catch (error) { failCard('boi-kpi', 'kpi-boi-error', error.message, ['kpi-boi-rate', 'kpi-boi-prime']); } }
       else { failCard('boi-kpi', 'kpi-boi-error', boi.reason.message, ['kpi-boi-rate', 'kpi-boi-prime']); }
       if (next.status === 'fulfilled') { try { showNext(next.value); } catch (error) { showNextUnavailable(); } } else { showNextUnavailable(); }
-      if (fx.status === 'fulfilled') { try { showFx(fx.value); } catch (error) { failCard('fx-kpi', 'kpi-fx-error', error.message, ['kpi-fx-usd', 'kpi-fx-eur']); } }
-      else { failCard('fx-kpi', 'kpi-fx-error', fx.reason.message, ['kpi-fx-usd', 'kpi-fx-eur']); }
+      if (fx.status === 'fulfilled') { try { showFx(fx.value); } catch (error) { failFx(error.message); } } else { failFx(fx.reason.message); }
       root.dispatchEvent(new CustomEvent('statso:app-ready'));
     });
   }

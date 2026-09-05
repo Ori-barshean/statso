@@ -148,6 +148,45 @@ def latest_json_bytes(series):
         "rates": rates})
 
 
+def completed_years(series, count=2):
+    latest = max(int(series[code][-1]["date"][:4]) for code in CURRENCIES)
+    return [latest - offset for offset in range(1, count + 1)]
+
+
+def year_stats(observations, year):
+    rows = [item for item in observations if item["date"].startswith(f"{year}-")]
+    if not rows:
+        return None
+    return {"year": year, "count": len(rows),
+        "year_end": {"date": rows[-1]["date"], "rate": rows[-1]["rate"]},
+        "average": round(math.fsum(item["rate"] for item in rows) / len(rows), 6)}
+
+
+def summary_json_bytes(series):
+    years = completed_years(series)
+    rates = []
+    for code in CURRENCIES:
+        observations = series[code]
+        rates.append({"code": code, "unit": EXPECTED_UNITS[code],
+            "first_date": observations[0]["date"], "count": len(observations),
+            "latest": {"date": observations[-1]["date"], "rate": observations[-1]["rate"]},
+            "years": [year_stats(observations, year) for year in years]})
+    return dumps_json({"dataset": "boi_exchange_rates_summary", "source": "בנק ישראל",
+        "source_url": FULL_URL, "counter_currency": "ILS", "years": years,
+        "count": len(rates), "rates": rates})
+
+
+def daily_json_bytes(series):
+    currencies = {code: {"unit": EXPECTED_UNITS[code],
+                         "dates": [item["date"] for item in series[code]],
+                         "rates": [item["rate"] for item in series[code]]}
+                  for code in CURRENCIES}
+    obj = {"dataset": "boi_exchange_rates_daily", "source": "בנק ישראל",
+        "source_url": FULL_URL, "counter_currency": "ILS", "currencies": currencies}
+    return (json.dumps(obj, ensure_ascii=False, separators=(",", ":"),
+                       allow_nan=False, sort_keys=False) + "\n").encode("utf-8")
+
+
 def _backfill_message(detail):
     return ValidationError(f"{detail}; run python3 -m scripts.fx_rates --backfill")
 
@@ -211,6 +250,8 @@ def prepare_update(*, fetch=http_get, data_dir=DATA_DIR, backfill=False,
         payloads[f"{stem}.json"] = to_json_bytes(code, series[code])
         payloads[f"{stem}.csv"] = to_csv_bytes(series[code])
     payloads["fx_latest.json"] = latest_json_bytes(series)
+    payloads["fx_summary.json"] = summary_json_bytes(series)
+    payloads["fx_daily.json"] = daily_json_bytes(series)
     return series, payloads
 
 

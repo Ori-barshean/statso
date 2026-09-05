@@ -12,7 +12,8 @@ _JSON_RE = re.compile(r'(<script\b[^>]*\bdata-inline="json"[^>]*>)(\s*)(</script
 _TEXT_RE = re.compile(r'(<script\b[^>]*\bdata-inline="text"[^>]*>)(\s*)(</script>)', re.IGNORECASE)
 _ATTR_RE = re.compile(r'\b([\w-]+)="([^"]*)"')
 _FORBIDDEN = ("</script", "</style", "<!--", "-->")
-_JSON_MARKERS = 4
+_JSON_MARKERS = 5
+_SCRIPT_MARKERS = 12
 
 
 def escape_json_for_html(text: str) -> str:
@@ -50,8 +51,8 @@ def build(*, out=None, source=None):
         raise StatsoError(f"cannot read UI source: {exc}") from exc
     if len(_STYLE_RE.findall(html)) < 1:
         raise StatsoError("UI source must contain at least one style marker")
-    if len(_SCRIPT_RE.findall(html)) < 10:
-        raise StatsoError("UI source must contain at least ten script markers")
+    if len(_SCRIPT_RE.findall(html)) < _SCRIPT_MARKERS:
+        raise StatsoError(f"UI source must contain at least {_SCRIPT_MARKERS} script markers")
     if len(_JSON_RE.findall(html)) != _JSON_MARKERS:
         raise StatsoError(f"UI source must contain exactly {_JSON_MARKERS} JSON markers")
     if len(_TEXT_RE.findall(html)) != 1:
