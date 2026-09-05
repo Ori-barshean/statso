@@ -1,6 +1,6 @@
 import sys
 
-from . import boi_next_decision, boi_rate, cpi
+from . import boi_next_decision, boi_rate, cpi, fx_rates
 from .common import DATA_DIR, StatsoError, http_get, read_published_json, write_atomic
 
 
@@ -15,10 +15,13 @@ def update(*, fetch=http_get, data_dir=None):
     boi_rate.validate(changes, observations,
                       read_published_json(target / "boi_interest_rate.json"))
 
+    fx_series, fx_payloads = fx_rates.prepare_update(fetch=fetch, data_dir=target)
+
     payloads = {"cpi.json": cpi.to_json_bytes(cpi_records),
         "cpi.csv": cpi.to_csv_bytes(cpi_records),
         "boi_interest_rate.json": boi_rate.to_json_bytes(changes),
         "boi_interest_rate.csv": boi_rate.to_csv_bytes(changes)}
+    payloads.update(fx_payloads)
     target.mkdir(parents=True, exist_ok=True)
     changed = [name for name, payload in payloads.items()
                if write_atomic(target / name, payload)]
@@ -30,7 +33,9 @@ def update(*, fetch=http_get, data_dir=None):
             changed.append("boi_next_decision.json")
     except (StatsoError, OSError) as exc:
         print(f"warning: next BOI decision date unavailable: {exc}", file=sys.stderr)
+    fx_count = sum(len(items) for items in fx_series.values())
     print(f"CPI: {len(cpi_records)} observations; BOI: {len(changes)} change points; "
+          f"FX: {fx_count} observations across {len(fx_series)} currencies; "
           f"files changed: {len(changed)}" + (f" ({', '.join(changed)})" if changed else ""))
     return changed
 

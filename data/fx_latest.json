@@ -1,0 +1,89 @@
+{
+  "dataset": "boi_exchange_rates_latest",
+  "source": "בנק ישראל",
+  "source_url": "https://edge.boi.gov.il/FusionEdgeServer/sdmx/v2/data/dataflow/BOI.STATISTICS/EXR/1.0/RER_USD_ILS+RER_EUR_ILS+RER_GBP_ILS+RER_CHF_ILS+RER_JPY_ILS+RER_CAD_ILS+RER_AUD_ILS+RER_DKK_ILS+RER_NOK_ILS+RER_SEK_ILS..?format=csv",
+  "counter_currency": "ILS",
+  "count": 10,
+  "rates": [
+    {
+      "code": "USD",
+      "unit": 1,
+      "latest_date": "2026-09-04",
+      "latest_rate": 3.005,
+      "first_date": "1948-05-15",
+      "count": 13273
+    },
+    {
+      "code": "EUR",
+      "unit": 1,
+      "latest_date": "2026-09-04",
+      "latest_rate": 3.4932,
+      "first_date": "1999-01-04",
+      "count": 6775
+    },
+    {
+      "code": "GBP",
+      "unit": 1,
+      "latest_date": "2026-09-04",
+      "latest_rate": 4.0681,
+      "first_date": "1962-02-10",
+      "count": 12897
+    },
+    {
+      "code": "CHF",
+      "unit": 1,
+      "latest_date": "2026-09-04",
+      "latest_rate": 3.7177,
+      "first_date": "1962-02-10",
+      "count": 12892
+    },
+    {
+      "code": "JPY",
+      "unit": 100,
+      "latest_date": "2026-09-04",
+      "latest_rate": 1.9227,
+      "first_date": "1974-11-10",
+      "count": 12886
+    },
+    {
+      "code": "CAD",
+      "unit": 1,
+      "latest_date": "2026-09-04",
+      "latest_rate": 2.1772,
+      "first_date": "1962-02-10",
+      "count": 12893
+    },
+    {
+      "code": "AUD",
+      "unit": 1,
+      "latest_date": "2026-09-04",
+      "latest_rate": 2.1642,
+      "first_date": "1962-02-10",
+      "count": 12901
+    },
+    {
+      "code": "DKK",
+      "unit": 1,
+      "latest_date": "2026-09-04",
+      "latest_rate": 0.4673,
+      "first_date": "1962-02-10",
+      "count": 12894
+    },
+    {
+      "code": "NOK",
+      "unit": 1,
+      "latest_date": "2026-09-04",
+      "latest_rate": 0.3231,
+      "first_date": "1962-02-10",
+      "count": 12895
+    },
+    {
+      "code": "SEK",
+      "unit": 1,
+      "latest_date": "2026-09-04",
+      "latest_rate": 0.315,
+      "first_date": "1962-02-10",
+      "count": 12892
+    }
+  ]
+}

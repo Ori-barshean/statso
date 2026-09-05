@@ -1,5 +1,6 @@
 import codecs
 import csv
+import decimal
 import io
 import json
 import math
@@ -60,7 +61,7 @@ def fmt_number(x):
         raise ValidationError(f"non-finite number {f!r}")
     value = repr(f)
     if "e" in value or "E" in value:
-        raise ValidationError(f"scientific notation for {f!r}")
+        value = format(decimal.Decimal(value), "f")
     return value
 
 

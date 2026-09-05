@@ -42,7 +42,8 @@ class SerializationTests(unittest.TestCase):
         self.assertEqual(fmt_number(40691566.5993423), "40691566.5993423")
         self.assertEqual(fmt_number(100.0), "100.0")
         self.assertEqual(fmt_number(1), "1.0")
-        with self.assertRaises(ValidationError): fmt_number(1e17)
+        self.assertEqual(fmt_number(0.000025), "0.000025")
+        self.assertEqual(fmt_number(1e17), "100000000000000000")
 
     def test_deterministic_and_roundtrip(self):
         self.assertEqual(cpi.to_json_bytes(self.cpi_records), cpi.to_json_bytes(self.cpi_records))

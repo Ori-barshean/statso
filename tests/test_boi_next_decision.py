@@ -3,6 +3,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from scripts import boi_next_decision, boi_rate, cpi, update_all
 from scripts.common import ParseError, SourceError
@@ -61,14 +62,16 @@ class BoiNextDecisionTests(unittest.TestCase):
     def test_update_all_writes_and_is_idempotent(self):
         with tempfile.TemporaryDirectory() as temp:
             target = Path(temp) / "data"
-            self.assertEqual(len(update_all.update(fetch=self.fixture_fetch(), data_dir=target)), 5)
-            self.assertEqual(update_all.update(fetch=self.fixture_fetch(), data_dir=target), [])
+            with mock.patch("scripts.update_all.fx_rates.prepare_update", return_value=({}, {})):
+                self.assertEqual(len(update_all.update(fetch=self.fixture_fetch(), data_dir=target)), 5)
+                self.assertEqual(update_all.update(fetch=self.fixture_fetch(), data_dir=target), [])
 
     def test_update_all_soft_fails_on_next_decision(self):
         with tempfile.TemporaryDirectory() as temp:
             target = Path(temp) / "data"; target.mkdir()
             stale = b"stale\n"; (target / "boi_next_decision.json").write_bytes(stale)
-            changed = update_all.update(fetch=self.fixture_fetch(True), data_dir=target)
+            with mock.patch("scripts.update_all.fx_rates.prepare_update", return_value=({}, {})):
+                changed = update_all.update(fetch=self.fixture_fetch(True), data_dir=target)
             self.assertEqual(len(changed), 4)
             self.assertEqual((target / "boi_next_decision.json").read_bytes(), stale)
 
