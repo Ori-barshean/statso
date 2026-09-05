@@ -28,7 +28,15 @@
     if (!doc.next_decision_date) { throw new Error('מועד ההחלטה הבאה אינו זמין'); }
     document.getElementById('kpi-next-decision').textContent = Statso.core.formatIsoDateHe(doc.next_decision_date); Statso.data.setState(document.getElementById('next-kpi'), 'ready');
   }
+  function showVersion() {
+    Statso.data.loadVersion().then(function (version) {
+      if (!/^\d+\.\d+\.\d+$/.test(version)) { return; }
+      document.getElementById('app-version').textContent = version;
+      document.getElementById('app-version-line').hidden = false;
+    }).catch(function () {});
+  }
   function init() {
+    showVersion();
     Statso.data.loadAll().then(function (results) {
       if (results[0].status === 'fulfilled') { try { showCpi(results[0].value); } catch (error) { failKpi('cpi-kpi', 'kpi-cpi-value', 'kpi-cpi-error', error.message); failKpi('yoy-kpi', 'kpi-yoy', 'kpi-yoy-error', error.message); Statso.data.setState(document.getElementById('chart-section'), 'error', error.message); Statso.data.setState(document.getElementById('calculator-section'), 'error', error.message); } }
       else { const msg = results[0].reason.message; failKpi('cpi-kpi', 'kpi-cpi-value', 'kpi-cpi-error', msg); failKpi('yoy-kpi', 'kpi-yoy', 'kpi-yoy-error', msg); Statso.data.setState(document.getElementById('chart-section'), 'error', msg); Statso.data.setState(document.getElementById('calculator-section'), 'error', msg); }

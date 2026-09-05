@@ -14,6 +14,17 @@
     }).catch(function () { throw new Error('לא ניתן לטעון את ' + el.dataset.label); });
   }
 
+  function loadVersion() {
+    const el = document.getElementById('version-source');
+    if (!el) { return Promise.reject(new Error('version source missing')); }
+    const embedded = el.textContent.trim();
+    if (embedded) { return Promise.resolve(embedded); }
+    return fetch(el.dataset.src, {cache: 'no-store'}).then(function (res) {
+      if (!res.ok) { throw new Error('response'); }
+      return res.text();
+    }).then(function (text) { return text.trim(); });
+  }
+
   function loadAll() {
     return Promise.allSettled([
       loadDataset(document.getElementById('data-cpi')),
@@ -30,5 +41,5 @@
     }
   }
 
-  Statso.data = {loadDataset: loadDataset, loadAll: loadAll, setState: setState};
+  Statso.data = {loadDataset: loadDataset, loadAll: loadAll, loadVersion: loadVersion, setState: setState};
 })(window);

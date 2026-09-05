@@ -9,6 +9,7 @@ _HTML_UNSAFE = {"<": "\\u003C", ">": "\\u003E", "\u2028": "\\u2028", "\u2029": "
 _STYLE_RE = re.compile(r'<link\b[^>]*\bdata-inline="style"[^>]*>', re.IGNORECASE)
 _SCRIPT_RE = re.compile(r'<script\b[^>]*\bdata-inline="script"[^>]*>\s*</script>', re.IGNORECASE)
 _JSON_RE = re.compile(r'(<script\b[^>]*\bdata-inline="json"[^>]*>)(\s*)(</script>)', re.IGNORECASE)
+_TEXT_RE = re.compile(r'(<script\b[^>]*\bdata-inline="text"[^>]*>)(\s*)(</script>)', re.IGNORECASE)
 _ATTR_RE = re.compile(r'\b([\w-]+)="([^"]*)"')
 _FORBIDDEN = ("</script", "</style", "<!--", "-->")
 
@@ -52,6 +53,8 @@ def build(*, out=None, source=None):
         raise StatsoError("UI source must contain at least ten script markers")
     if len(_JSON_RE.findall(html)) != 3:
         raise StatsoError("UI source must contain exactly three JSON markers")
+    if len(_TEXT_RE.findall(html)) != 1:
+        raise StatsoError("UI source must contain exactly one text marker")
 
     def style_replace(match):
         attrs = _attributes(match.group(0))
@@ -73,9 +76,19 @@ def build(*, out=None, source=None):
         payload = escape_json_for_html(_read_source(attrs["data-src"], "json"))
         return match.group(1) + "\n" + payload + "\n" + match.group(3)
 
+    def text_replace(match):
+        attrs = _attributes(match.group(1))
+        if "data-src" not in attrs:
+            raise StatsoError("inline text marker has no data source")
+        payload = _read_source(attrs["data-src"], "text").strip()
+        if not payload or any(ch in payload for ch in "<>\n\r"):
+            raise StatsoError(f"unsafe inline text payload from {attrs['data-src']}")
+        return match.group(1) + payload + match.group(3)
+
     transformed = _STYLE_RE.sub(style_replace, html)
     transformed = _SCRIPT_RE.sub(script_replace, transformed)
     transformed = _JSON_RE.sub(json_replace, transformed)
+    transformed = _TEXT_RE.sub(text_replace, transformed)
     if 'data-inline="style"' in transformed or 'data-inline="script"' in transformed:
         raise StatsoError("offline transform left asset markers behind")
     if transformed.count('data-inline="json"') != 3:
@@ -84,6 +97,10 @@ def build(*, out=None, source=None):
                            flags=re.IGNORECASE | re.DOTALL)
     if len(remaining) != 3 or any(not content.strip() for content in remaining):
         raise StatsoError("offline transform did not embed all JSON datasets")
+    embedded_text = re.findall(r'<script\b[^>]*\bdata-inline="text"[^>]*>(.*?)</script>', transformed,
+                               flags=re.IGNORECASE | re.DOTALL)
+    if len(embedded_text) != 1 or not embedded_text[0].strip():
+        raise StatsoError("offline transform did not embed the version stamp")
     return write_atomic(output_path, transformed.encode("utf-8"))
 
 

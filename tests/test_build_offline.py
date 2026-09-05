@@ -26,8 +26,10 @@ class BuildOfflineTests(unittest.TestCase):
         self.assertEqual(self.html.count('data-inline="style"'), 1)
         self.assertEqual(self.html.count('data-inline="script"'), 11)
         self.assertEqual(self.html.count('data-inline="json"'), 3)
+        self.assertEqual(self.html.count('data-inline="text"'), 1)
         self.assertEqual(set(re.findall(r'data-src="([^"]+)"', self.html)),
-                         {"data/cpi.json", "data/boi_interest_rate.json", "data/boi_next_decision.json"})
+                         {"data/cpi.json", "data/boi_interest_rate.json", "data/boi_next_decision.json",
+                          "VERSION"})
 
     def test_cdn_tag_contract(self):
         self.assertIn("https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.1/chart.umd.min.js", self.html)
@@ -93,12 +95,25 @@ class BuildOfflineTests(unittest.TestCase):
             with self.assertRaises(StatsoError): build(out=out, source=source)
             self.assertFalse(out.exists())
 
-    def test_version_stamp(self):
+    def test_version_has_a_single_source(self):
         version = (ROOT / "VERSION").read_text().strip()
         self.assertRegex(version, r"^\d+\.\d+\.\d+$")
-        self.assertRegex(self.html, r'id="app-version"[^>]*>\s*' + re.escape(version))
+        footer = re.search(r"<footer\b.*?</footer>", self.html, re.DOTALL).group(0)
+        self.assertIsNone(re.search(r"\d+\.\d+\.\d+", footer))
+        self.assertRegex(self.html, r'id="version-source"[^>]*data-src="VERSION"[^>]*>\s*</script>')
+        self.assertRegex(self.html, r'id="app-version"[^>]*>\s*</span>')
         with tempfile.TemporaryDirectory() as temp:
-            out = Path(temp) / "statso.html"; build(out=out); self.assertIn(version, out.read_text(encoding="utf-8"))
+            out = Path(temp) / "statso.html"; build(out=out); text = out.read_text(encoding="utf-8")
+            embedded = re.search(r'<script[^>]*id="version-source"[^>]*>(.*?)</script>', text, re.DOTALL)
+            self.assertEqual(embedded.group(1).strip(), version)
+
+    def test_missing_version_marker_fails_closed(self):
+        with tempfile.TemporaryDirectory() as temp:
+            source = Path(temp) / "index.html"; out = Path(temp) / "out.html"
+            source.write_text(re.sub(r'<script[^>]*data-inline="text"[^>]*>\s*</script>', "", self.html),
+                              encoding="utf-8")
+            with self.assertRaises(StatsoError): build(out=out, source=source)
+            self.assertFalse(out.exists())
 
     def test_default_output_path(self):
         self.assertEqual(default_output_path(), Path.home() / "Desktop" / "statso-test.html")
