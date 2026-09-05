@@ -66,6 +66,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--blue); box-shado
 .calc-form { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
 .calc-form .wide { grid-column: 1 / -1; }
 .calc-form label { display: grid; gap: 7px; }
+.calc-form input:not([type="radio"]), .calc-form select { min-width: 0; width: 100%; }
 .calc-form fieldset { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 24px; }
 .calc-form fieldset label { display: flex; align-items: center; gap: 7px; }
 .calc-form legend { float: right; margin-inline-end: 22px; color: #45556c; font-size: .86rem; font-weight: 700; }
