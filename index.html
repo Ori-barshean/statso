@@ -155,7 +155,8 @@
       <div class="prose-guide">
         <section>
           <p>האתר אינו משתמש בעוגיות, אינו שומר דבר בדפדפן שלך, ואין בו כלי אנליטיקה או מעקב כלשהו.</p>
-          <p>אין באתר טפסים ואין דרך לשלוח אלינו מידע דרכו. איננו מחזיקים שום מידע על מבקרים.</p>
+          <p>בדף ״צור קשר״ יש טופס. השדות שתמלאו — שם, כתובת מייל להחזרה ותוכן ההודעה — נשלחים לשירות <span dir="ltr">Web3Forms</span>, שמעביר אותם אלינו בדואר אלקטרוני. איננו מפעילים מסד נתונים ואיננו שומרים את ההודעות באתר עצמו.</p>
+          <p>מלבד הטופס אין באתר דרך אחרת לשלוח אלינו מידע.</p>
           <p>האתר מתארח ב־<span dir="ltr">GitHub Pages</span>. כמו כל שרת אינטרנט, <span dir="ltr">GitHub</span> מקבל את הבקשות לדפים ורואה נתוני בקשה סטנדרטיים כגון כתובת <span dir="ltr">IP</span> וסוג הדפדפן.</p>
           <p>ספריית התרשימים <span dir="ltr">Chart.js</span> נטענת מרשת ההפצה <span dir="ltr">cdnjs.cloudflare.com</span>. לכן <span dir="ltr">Cloudflare</span> מקבלת גם היא את כתובת ה־<span dir="ltr">IP</span> וסוג הדפדפן, במסגרת אותה בקשה בלבד.</p>
           <p>הגרסה המקומית של האתר, קובץ ה־<span dir="ltr">HTML</span> העצמאי, אינה מבצעת שום בקשת רשת.</p>
@@ -166,12 +167,36 @@
 
     <article class="info-page" id="contact-page" hidden aria-labelledby="contact-title">
       <header class="info-header"><h1 id="contact-title">צור קשר</h1></header>
-      <div class="prose-guide"><section><p>רמת גן, ישראל.</p></section></div>
+      <div class="prose-guide"><section id="contact-form-area">
+        <form class="contact-form" id="contact-form" novalidate>
+          <div class="contact-field">
+            <label for="contact-name">שם מלא</label>
+            <input id="contact-name" name="name" type="text" required aria-describedby="contact-name-error">
+            <p class="field-error" id="contact-name-error"></p>
+          </div>
+          <div class="contact-field">
+            <label for="contact-email">אימייל לחזרה</label>
+            <input id="contact-email" name="email" type="email" dir="ltr" required aria-describedby="contact-email-error">
+            <p class="field-error" id="contact-email-error"></p>
+          </div>
+          <div class="contact-field">
+            <label for="contact-message">תוכן ההודעה</label>
+            <textarea id="contact-message" name="message" maxlength="300" required aria-describedby="contact-message-error contact-message-count"></textarea>
+            <div class="contact-field-meta">
+              <p class="field-error" id="contact-message-error"></p>
+              <span id="contact-message-count" role="status" aria-live="polite" aria-atomic="true" dir="ltr">0/300</span>
+            </div>
+          </div>
+          <div class="contact-honeypot" aria-hidden="true"><label>השאירו שדה זה ריק <input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off"></label></div>
+          <p class="contact-status" id="contact-status" role="alert"></p>
+          <button class="contact-submit" id="contact-submit" type="submit">שלח</button>
+        </form>
+      </section></div>
       <a class="info-back" href="#/">← חזרה ללוח המחוונים</a>
     </article>
   </main>
 
-  <footer><div class="shell footer-inner"><div class="footer-meta"><span class="brand"><span class="brand-mark">s</span><span>statso</span></span><span>נתונים ממקורות רשמיים · גרסה <span id="app-version" dir="ltr">1.0.8</span></span></div><nav class="footer-links" aria-label="מידע"><a href="#/about">אודות</a><span aria-hidden="true">·</span><a href="#/method">שיטת החישוב</a><span aria-hidden="true">·</span><a href="#/privacy">מדיניות פרטיות</a><span aria-hidden="true">·</span><a href="#/contact">צור קשר</a></nav></div></footer>
+  <footer><div class="shell footer-inner"><div class="footer-meta"><span class="brand"><span class="brand-mark">s</span><span>statso</span></span><span>נתונים ממקורות רשמיים · גרסה <span id="app-version" dir="ltr">1.0.9</span></span></div><nav class="footer-links" aria-label="מידע"><a href="#/about">אודות</a><span aria-hidden="true">·</span><a href="#/method">שיטת החישוב</a><span aria-hidden="true">·</span><a href="#/privacy">מדיניות פרטיות</a><span aria-hidden="true">·</span><a href="#/contact">צור קשר</a></nav></div></footer>
 
   <script type="application/json" id="data-cpi" data-inline="json" data-src="data/cpi.json" data-label="מדד המחירים לצרכן"></script>
   <script type="application/json" id="data-boi" data-inline="json" data-src="data/boi_interest_rate.json" data-label="ריבית בנק ישראל"></script>
@@ -184,6 +209,7 @@
   <script src="assets/statso-calculator.js" data-inline="script"></script>
   <script src="assets/statso-guide-art.js" data-inline="script"></script>
   <script src="assets/statso-guides.js" data-inline="script"></script>
+  <script src="assets/statso-contact.js" data-inline="script"></script>
   <script src="assets/statso-nav.js" data-inline="script"></script>
   <script src="assets/statso-app.js" data-inline="script"></script>
 </body>

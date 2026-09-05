@@ -48,8 +48,8 @@ def build(*, out=None, source=None):
         raise StatsoError(f"cannot read UI source: {exc}") from exc
     if len(_STYLE_RE.findall(html)) < 1:
         raise StatsoError("UI source must contain at least one style marker")
-    if len(_SCRIPT_RE.findall(html)) < 10:
-        raise StatsoError("UI source must contain at least ten script markers")
+    if len(_SCRIPT_RE.findall(html)) < 11:
+        raise StatsoError("UI source must contain at least eleven script markers")
     if len(_JSON_RE.findall(html)) != 3:
         raise StatsoError("UI source must contain exactly three JSON markers")
 

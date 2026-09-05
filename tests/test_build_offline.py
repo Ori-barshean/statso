@@ -24,7 +24,7 @@ class BuildOfflineTests(unittest.TestCase):
 
     def test_markers_present_and_unique(self):
         self.assertEqual(self.html.count('data-inline="style"'), 1)
-        self.assertEqual(self.html.count('data-inline="script"'), 10)
+        self.assertEqual(self.html.count('data-inline="script"'), 11)
         self.assertEqual(self.html.count('data-inline="json"'), 3)
         self.assertEqual(set(re.findall(r'data-src="([^"]+)"', self.html)),
                          {"data/cpi.json", "data/boi_interest_rate.json", "data/boi_next_decision.json"})
@@ -59,9 +59,20 @@ class BuildOfflineTests(unittest.TestCase):
                 self.assertIn(f'href="#/{route}"', text)
                 self.assertIn(f'id="{route}-page"', text)
                 self.assertIn(title, text)
-            for content in (">899</span> תצפיות", ">159</span> נקודות שינוי", "רמת גן, ישראל",
+            for content in (">899</span> תצפיות", ">159</span> נקודות שינוי",
                             "אינה מבצעת שום בקשת רשת"):
                 self.assertIn(content, text)
+
+    def test_artifact_contact_form_and_privacy(self):
+        with tempfile.TemporaryDirectory() as temp:
+            out = Path(temp) / "statso.html"; build(out=out); text = out.read_text(encoding="utf-8")
+            for field in ('id="contact-name"', 'id="contact-email"', 'id="contact-message"'):
+                self.assertIn(field, text)
+            self.assertRegex(text, r'<button[^>]*id="contact-submit"[^>]*>שלח</button>')
+            self.assertNotIn("רמת גן", text)
+            self.assertIsNone(re.search(r'[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}', text))
+            self.assertNotIn("אין באתר טפסים", text)
+            self.assertIn("בדף ״צור קשר״ יש טופס", text)
 
     def test_artifact_json_roundtrip(self):
         with tempfile.TemporaryDirectory() as temp:
