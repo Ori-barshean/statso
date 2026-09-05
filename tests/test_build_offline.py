@@ -24,7 +24,7 @@ class BuildOfflineTests(unittest.TestCase):
 
     def test_markers_present_and_unique(self):
         self.assertEqual(self.html.count('data-inline="style"'), 1)
-        self.assertEqual(self.html.count('data-inline="script"'), 7)
+        self.assertEqual(self.html.count('data-inline="script"'), 10)
         self.assertEqual(self.html.count('data-inline="json"'), 3)
         self.assertEqual(set(re.findall(r'data-src="([^"]+)"', self.html)),
                          {"data/cpi.json", "data/boi_interest_rate.json", "data/boi_next_decision.json"})
@@ -48,6 +48,9 @@ class BuildOfflineTests(unittest.TestCase):
             for absent in ("cdnjs.cloudflare.com", "integrity=", 'src="assets/', 'href="assets/', "http://"): self.assertNotIn(absent, text)
             self.assertFalse(payload.startswith(b"\xef\xbb\xbf")); self.assertNotIn(b"\r", payload)
             self.assertEqual(text.count("<script"), text.count("</script>"))
+            self.assertIn('id="guides-view"', text)
+            self.assertIn('class="site-nav"', text)
+            self.assertIn("Statso.guides", text)
 
     def test_artifact_json_roundtrip(self):
         with tempfile.TemporaryDirectory() as temp:

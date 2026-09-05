@@ -34,6 +34,7 @@
       else { const msg = results[0].reason.message; failKpi('cpi-kpi', 'kpi-cpi-value', 'kpi-cpi-error', msg); failKpi('yoy-kpi', 'kpi-yoy', 'kpi-yoy-error', msg); Statso.data.setState(document.getElementById('chart-section'), 'error', msg); Statso.data.setState(document.getElementById('table-section'), 'error', msg); Statso.data.setState(document.getElementById('calculator-section'), 'error', msg); }
       if (results[1].status === 'fulfilled') { try { showBoi(results[1].value); } catch (error) { failKpi('boi-kpi', 'kpi-boi-rate', 'kpi-boi-error', error.message); } } else { failKpi('boi-kpi', 'kpi-boi-rate', 'kpi-boi-error', results[1].reason.message); }
       if (results[2].status === 'fulfilled') { try { showNext(results[2].value); } catch (error) { failKpi('next-kpi', 'kpi-next-decision', 'kpi-next-error', error.message); } } else { failKpi('next-kpi', 'kpi-next-decision', 'kpi-next-error', results[2].reason.message); }
+      root.dispatchEvent(new CustomEvent('statso:app-ready'));
     });
   }
   document.addEventListener('DOMContentLoaded', init);

@@ -42,5 +42,6 @@
   }
 
   function showUnavailable() { Statso.data.setState(document.getElementById('chart-section'), 'error', 'ספריית התרשים אינה זמינה. יתר הכלים ממשיכים לפעול.'); }
-  Statso.chart = {populateYearSelects: populateYearSelects, sliceByYears: sliceByYears, buildConfig: buildConfig, render: render, onRangeChange: onRangeChange, init: init, showUnavailable: showUnavailable};
+  function resize() { if (chartInstance) { chartInstance.resize(); } }
+  Statso.chart = {populateYearSelects: populateYearSelects, sliceByYears: sliceByYears, buildConfig: buildConfig, render: render, onRangeChange: onRangeChange, init: init, showUnavailable: showUnavailable, resize: resize};
 })(window);

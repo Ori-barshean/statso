@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="statso — נתונים כלכליים ישראליים ומחשבון הצמדה למדד">
-  <title>statso — הכלכלה הישראלית במספרים</title>
+  <title>statso — נתונים בזריזות - ישראל</title>
   <link rel="stylesheet" href="assets/statso.css" data-inline="style">
 </head>
 <body>
@@ -12,13 +12,19 @@
     <div class="shell header-inner">
       <a class="brand" href="index.html" aria-label="statso — דף הבית"><span class="brand-mark">s</span><span>statso</span></a>
       <p>נתונים כלכליים ישראליים, במקום אחד</p>
+      <nav class="site-nav" aria-label="ניווט ראשי">
+        <a class="nav-item nav-home" href="#/" aria-label="דף הבית" title="דף הבית" aria-current="page">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.2 12 4l9 7.2v8.3a.5.5 0 0 1-.5.5H15v-6H9v6H3.5a.5.5 0 0 1-.5-.5z"/></svg>
+        </a>
+        <a class="nav-item" href="#/guides">מדריכים</a>
+      </nav>
     </div>
   </header>
 
-  <main class="shell">
+  <main class="shell" id="dashboard-view">
     <section class="hero" aria-labelledby="page-title">
       <p class="eyebrow">תמונת מצב עדכנית</p>
-      <h1 id="page-title">הכלכלה הישראלית במספרים</h1>
+      <h1 id="page-title">נתונים בזריזות - ישראל</h1>
       <p>מדד המחירים לצרכן, ריבית בנק ישראל וכלי הצמדה — על בסיס מקורות רשמיים.</p>
     </section>
 
@@ -84,7 +90,18 @@
     </section>
   </main>
 
-  <footer><div class="shell"><span class="brand"><span class="brand-mark">s</span><span>statso</span></span><span>נתונים ממקורות רשמיים · גרסה <span id="app-version" dir="ltr">1.0.4</span></span></div></footer>
+  <main class="shell guides-view" id="guides-view" hidden>
+    <section class="guides-index" id="guides-index" aria-labelledby="guides-title">
+      <div class="guide-hero"><p class="eyebrow">לומדים לעבוד עם הנתונים</p><h1 id="guides-title">מדריכים</h1><p>הסברים מעשיים לשימוש בנתוני statso בכלים מוכרים.</p></div>
+      <div class="guide-cards" id="guide-cards"></div>
+    </section>
+    <article class="guide-detail" id="guide-detail" hidden aria-labelledby="excel-guide-title">
+      <button class="guide-back" id="guide-back" type="button">← חזרה לכל המדריכים</button>
+      <div id="guide-content"></div>
+    </article>
+  </main>
+
+  <footer><div class="shell"><span class="brand"><span class="brand-mark">s</span><span>statso</span></span><span>נתונים ממקורות רשמיים · גרסה <span id="app-version" dir="ltr">1.0.6</span></span></div></footer>
 
   <script type="application/json" id="data-cpi" data-inline="json" data-src="data/cpi.json" data-label="מדד המחירים לצרכן"></script>
   <script type="application/json" id="data-boi" data-inline="json" data-src="data/boi_interest_rate.json" data-label="ריבית בנק ישראל"></script>
@@ -95,6 +112,9 @@
   <script src="assets/statso-chart.js" data-inline="script"></script>
   <script src="assets/statso-table.js" data-inline="script"></script>
   <script src="assets/statso-calculator.js" data-inline="script"></script>
+  <script src="assets/statso-guide-art.js" data-inline="script"></script>
+  <script src="assets/statso-guides.js" data-inline="script"></script>
+  <script src="assets/statso-nav.js" data-inline="script"></script>
   <script src="assets/statso-app.js" data-inline="script"></script>
 </body>
 </html>
