@@ -23,7 +23,13 @@
     const lang = options.lang === 'en' ? 'en' : 'he'; const rtl = lang === 'he'; const w = words[lang];
     const step = options.step || 1; const url = options.url || ''; const cols = options.dataset === 'cpi' ? ['month','year','month_num','value','base_desc','chained_1951_09'] : ['date','rate'];
     let body = '';
-    if (archetype === 'ribbon-data' || archetype === 'ribbon-refresh') {
+    if (archetype === 'timeline-publication') {
+      body = text(300, 66, 'חודש X', 'timeline-title center') +
+        '<path d="M70 176H530" class="timeline"/><path d="M70 168v16M300 160v32M530 160v32" class="timeline"/>' +
+        text(70, 210, 'X-1', 'timeline-label center') + text(300, 210, 'X', 'timeline-label center') + text(530, 210, 'X+1', 'timeline-label center') +
+        '<rect x="190" y="82" width="220" height="54" rx="10" class="known-callout"/>' + text(300, 105, 'במהלך חודש X', 'small center') + text(300, 124, 'מדד ידוע = מדד X-1', 'timeline-label center') +
+        '<circle cx="470" cy="176" r="10" class="marker"/>' + text(470, 153, '15 בחודש X+1', 'small center') + text(470, 238, 'פרסום מדד בגין X', 'timeline-label center');
+    } else if (archetype === 'ribbon-data' || archetype === 'ribbon-refresh') {
       body = '<rect x="18" y="56" width="564" height="70" rx="5" fill="#f1f5f9"/>' + text(rtl ? 530 : 42, 48, w.data, 'tab active') + text(rtl ? 485 : 42, 92, archetype === 'ribbon-refresh' ? w.refresh : w.getData, 'button-label') + '<rect x="' + (rtl ? 430 : 30) + '" y="66" width="140" height="42" rx="6" class="highlight"/>' + marker(rtl ? 422 : 178, 87, step) + grid(cols);
     } else if (archetype === 'menu-getdata') {
       const mx = rtl ? 302 : 28;
@@ -41,8 +47,9 @@
     } else if (archetype === 'cell-formula') {
       body = text(rtl ? 550 : 28, 55, w.formula, 'tab') + '<rect x="24" y="72" width="552" height="38" fill="#fff" stroke="#64748b"/>' + text(36, 97, '=WEBSERVICE("' + url + '")', 'formula') + grid(cols) + '<rect x="23" y="117" width="93" height="31" class="highlight"/>' + marker(130, 134, step);
     }
+    const bare = archetype === 'timeline-publication';
     const directionClass = rtl ? ' rtl-art' : '';
-    return '<svg class="guide-svg' + directionClass + '" viewBox="0 0 600 330" role="img" aria-label="' + esc(archetype) + '"' + (rtl ? ' direction="rtl"' : '') + '><style>.window{fill:#fff;stroke:#b8c5d4}.title{fill:#176b45}.grid{stroke:#dbe3ec}.highlight{fill:#dbeafe;fill-opacity:.5;stroke:#f97316;stroke-width:3}.marker{fill:#f97316}.marker-text{fill:#fff;font:bold 14px Arial;text-anchor:middle}.primary{fill:#217346}.white{fill:#fff}.center{text-anchor:middle}.tab{font:bold 15px Arial}.active{fill:#176b45}.button-label,.menu,.dialog-title{font:bold 14px Arial}.small,.tiny{font:11px Arial}.url,.formula,.mono{font:10px monospace;direction:ltr;unicode-bidi:embed}.formula{font-size:9px}text{fill:#25364a}</sty' + 'le><g><rect x="5" y="5" width="590" height="320" rx="10" class="window"/><rect x="5" y="5" width="590" height="28" rx="10" class="title"/>' + chrome(600, options.platform) + body + '</g></svg>';
+    return '<svg class="guide-svg' + directionClass + '" viewBox="0 0 600 330" role="img" aria-label="' + esc(archetype) + '"' + (rtl ? ' direction="rtl"' : '') + '><style>.window{fill:#fff;stroke:#b8c5d4}.title{fill:#176b45}.grid{stroke:#dbe3ec}.highlight{fill:#dbeafe;fill-opacity:.5;stroke:#f97316;stroke-width:3}.marker{fill:#f97316}.marker-text{fill:#fff;font:bold 14px Arial;text-anchor:middle}.primary{fill:#217346}.white{fill:#fff}.center{text-anchor:middle}.tab{font:bold 15px Arial}.active{fill:#176b45}.button-label,.menu,.dialog-title{font:bold 14px Arial}.small,.tiny{font:11px Arial}.url,.formula,.mono{font:10px monospace;direction:ltr;unicode-bidi:embed}.formula{font-size:9px}.timeline{stroke:#2563eb;stroke-width:4;stroke-linecap:round}.known-callout{fill:#dbeafe;stroke:#2563eb}.timeline-title{font:bold 20px Arial}.timeline-label{font:bold 14px Arial}text{fill:#25364a}</sty' + 'le><g><rect x="5" y="5" width="590" height="320" rx="10" class="window"/>' + (bare ? '' : '<rect x="5" y="5" width="590" height="28" rx="10" class="title"/>' + chrome(600, options.platform)) + body + '</g></svg>';
   }
   Statso.guideArt = {render: render, words: words};
 })(window);

@@ -43,6 +43,29 @@ class GuidesSourceTests(unittest.TestCase):
         self.assertIn("source.img", self.guides)
         self.assertIn("rtl-art", self.art)
 
+    def test_second_guide_and_id_dispatch(self):
+        self.assertIn("id: 'cpi-terms'", self.guides)
+        self.assertIn("guideId === 'cpi-terms'", self.guides)
+        self.assertIn("eventOrId.currentTarget.dataset.guide", self.guides)
+        self.assertIn("data-cpi-live-example", self.guides)
+        self.assertIn("Statso.data.loadDataset(source)", self.guides)
+        self.assertIn("לא ניתן להציג דוגמה מהנתונים כרגע", self.guides)
+
+    def test_timeline_art_is_non_empty_and_not_double_escaped(self):
+        script = """
+global.window = {};
+require(%s);
+const svg = window.Statso.guideArt.render('timeline-publication', {lang: 'he', platform: 'win'});
+process.stdout.write(svg);
+""" % json.dumps(str(ROOT / "assets/statso-guide-art.js"))
+        svg = subprocess.run(
+            ["node", "-e", script], check=True, capture_output=True, text=True
+        ).stdout
+        self.assertIn("פרסום מדד בגין X", svg)
+        self.assertIn("מדד ידוע = מדד X-1", svg)
+        self.assertNotIn("&amp;quot;", svg)
+        self.assertGreater(len(svg), 1000)
+
     def test_cell_formula_art_does_not_double_escape_quotes(self):
         script = """
 global.window = {};

@@ -51,6 +51,8 @@ class BuildOfflineTests(unittest.TestCase):
             self.assertIn('id="guides-view"', text)
             self.assertIn('class="site-nav"', text)
             self.assertIn("Statso.guides", text)
+            self.assertIn("מדד בגין מול מדד ידוע — ומה המדד בכלל מודד", text)
+            self.assertIn("timeline-publication", text)
 
     def test_artifact_json_roundtrip(self):
         with tempfile.TemporaryDirectory() as temp:
