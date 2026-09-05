@@ -24,7 +24,7 @@ class BuildOfflineTests(unittest.TestCase):
 
     def test_markers_present_and_unique(self):
         self.assertEqual(self.html.count('data-inline="style"'), 1)
-        self.assertEqual(self.html.count('data-inline="script"'), 11)
+        self.assertEqual(self.html.count('data-inline="script"'), 10)
         self.assertEqual(self.html.count('data-inline="json"'), 4)
         self.assertEqual(self.html.count('data-inline="text"'), 1)
         self.assertEqual(set(re.findall(r'data-src="([^"]+)"', self.html)),
