@@ -36,7 +36,7 @@ class ValidationError(StatsoError):
     pass
 
 
-def http_get(url, *, timeout=60, retries=3, backoff=5):
+def http_get(url, *, timeout=120, retries=3, backoff=10):
     request = urllib.request.Request(
         url, headers={"User-Agent": USER_AGENT, "Accept-Encoding": "identity"}
     )

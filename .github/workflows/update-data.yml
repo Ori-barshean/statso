@@ -16,7 +16,7 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
@@ -33,7 +33,18 @@ jobs:
 
       - name: Refresh datasets
         if: steps.guard.outputs.should_run == 'true'
-        run: python3 -m scripts.update_all
+        run: |
+          for attempt in 1 2 3; do
+            if python3 -m scripts.update_all; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 3 ]; then
+              echo "::warning::refresh attempt $attempt failed; retrying in 5 minutes"
+              sleep 300
+            fi
+          done
+          echo "::error::data refresh failed after 3 attempts"
+          exit 1
 
       - name: Commit data changes
         if: steps.guard.outputs.should_run == 'true'
