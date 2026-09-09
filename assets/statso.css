@@ -20,7 +20,7 @@ body { margin: 0; color: var(--ink); background: radial-gradient(circle at 80% 0
 button, input, select, textarea { font: inherit; }
 [hidden] { display: none !important; }
 .shell { width: min(1180px, calc(100% - 32px)); margin-inline: auto; }
-.site-header { background: rgba(255,255,255,.88); border-bottom: 1px solid var(--line); backdrop-filter: blur(12px); }
+.site-header { position: sticky; inset-block-start: 0; z-index: 50; background: rgba(255,255,255,.92); border-bottom: 1px solid var(--line); backdrop-filter: blur(12px); }
 .header-inner, footer .shell { min-height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 .site-nav { display: flex; align-items: center; align-self: stretch; gap: 5px; }
 .nav-item { display: grid; place-items: center; min-width: 44px; min-height: 42px; padding: 8px 13px; border-radius: 10px; color: var(--muted); text-decoration: none; font-weight: 750; }

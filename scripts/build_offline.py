@@ -13,7 +13,7 @@ _TEXT_RE = re.compile(r'(<script\b[^>]*\bdata-inline="text"[^>]*>)(\s*)(</script
 _ATTR_RE = re.compile(r'\b([\w-]+)="([^"]*)"')
 _FORBIDDEN = ("</script", "</style", "<!--", "-->")
 _JSON_MARKERS = 5
-_SCRIPT_MARKERS = 16
+_SCRIPT_MARKERS = 18
 
 
 def escape_json_for_html(text: str) -> str:

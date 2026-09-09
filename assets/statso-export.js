@@ -63,6 +63,9 @@
     if (!container) { return false; }
     const previous = document.title;
     container.innerHTML = html;
+    // The mutation observer runs on a microtask, but print() is called
+    // synchronously below, so translate the document before it goes out.
+    if (Statso.i18n) { Statso.i18n.apply(container); }
     document.body.classList.add('is-printing');
     document.title = title;
     let restored = false;

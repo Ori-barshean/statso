@@ -1,0 +1,427 @@
+(function (root) {
+  'use strict';
+  const Statso = root.Statso = root.Statso || {};
+
+  // Hebrew source string -> English. Keys are the exact trimmed text as it
+  // reaches the DOM, so anything a module renders is covered without the module
+  // itself knowing about languages.
+  const en = {
+    // --- chrome -----------------------------------------------------------
+    'statso — נתונים בזריזות - ישראל': 'statso — Israeli economic data, fast',
+    'נתונים בזריזות - ישראל': 'Israeli economic data, fast',
+    'תמונת מצב עדכנית': 'Current snapshot',
+    'מדד המחירים לצרכן, ריבית בנק ישראל וכלי הצמדה — על בסיס מקורות רשמיים.':
+      'The consumer price index, the Bank of Israel rate and linkage tools — from official sources.',
+    'ניווט ראשי': 'Main navigation',
+    'דף הבית': 'Home',
+    'statso — דף הבית': 'statso — home',
+    'מדריכים': 'Guides',
+    'כלים': 'Tools',
+    'מידע': 'Information',
+    'נתונים ממקורות רשמיים': 'Data from official sources',
+    '· גרסה': '· version',
+
+    // --- dashboard cards ---------------------------------------------------
+    'נתונים מרכזיים': 'Headline figures',
+    'מדד המחירים לצרכן': 'Consumer price index',
+    'טוען נתונים…': 'Loading data…',
+    'שינוי שנתי': 'Year over year',
+    'שינוי חודשי': 'Month over month',
+    'ריבית בנק ישראל': 'Bank of Israel rate',
+    'ריבית נוכחית': 'Current rate',
+    'ריבית פריים': 'Prime rate',
+    'החלטת הריבית הבאה:': 'Next rate decision:',
+    'שערי חליפין נבחרים': 'Selected exchange rates',
+    'דולר / שקל': 'USD / ILS',
+    'אירו / שקל': 'EUR / ILS',
+    'עדכני ל־': 'As at ',
+    'מעודכן לסוף יום המסחר האחרון': 'As at the close of the last trading day',
+    'אינה ידועה': 'not known',
+
+    // --- exchange-rate table ----------------------------------------------
+    'שערי חליפין': 'Exchange rates',
+    'מטבעות נבחרים מול השקל': 'Selected currencies against the shekel',
+    'טוען שערי חליפין…': 'Loading exchange rates…',
+    'מטבע': 'Currency',
+    'שער עדכני': 'Latest rate',
+    'שערים יציגים של בנק ישראל מול השקל החדש. שער סוף שנה הוא השער האחרון שפורסם באותה שנה, והממוצע הוא ממוצע כל השערים שפורסמו בה. ×100 מציין ציטוט ל־100 יחידות מטבע.':
+      'Bank of Israel representative rates against the new shekel. The year-end rate is the last rate published that year, and the average covers every rate published in it. ×100 marks a quote per 100 units of the currency.',
+
+    // --- chart --------------------------------------------------------------
+    'מגמה היסטורית': 'Historical trend',
+    'המדד המשורשר לאורך זמן': 'The chained index over time',
+    'תרשים מדד המחירים לצרכן': 'Consumer price index chart',
+    'משנה': 'From year',
+    'עד': 'to',
+    'טוען תרשים…': 'Loading chart…',
+    'מדד משורשר': 'Chained index',
+    'שנת ההתחלה חייבת להיות מוקדמת משנת הסיום.': 'The start year must come before the end year.',
+    'ספריית התרשים אינה זמינה. יתר הכלים ממשיכים לפעול.':
+      'The chart library is unavailable. Everything else keeps working.',
+    'משבר הסאב־פריים': 'Subprime crisis',
+    'קורונה': 'Covid',
+    '7 באוקטובר': '7 October',
+    'מלחמת איראן הראשונה': 'First Iran war',
+    'מלחמת איראן השנייה': 'Second Iran war',
+
+    // --- dashboard calculator ----------------------------------------------
+    'מחשבון': 'Calculator',
+    'הצמדה למדד והמרת מטבע': 'Index linkage and currency conversion',
+    'טוען מחשבון…': 'Loading calculator…',
+    'סוג החישוב': 'Calculation',
+    'הצמדה למדד': 'Index linkage',
+    'המרת מטבע': 'Currency conversion',
+    'סכום בשקלים': 'Amount in shekels',
+    'סוג המדד': 'Index',
+    'מדד ידוע': 'Known index',
+    'מדד בגין': 'Index for the month',
+    'חודש בסיס': 'Base month',
+    'שנה': 'Year',
+    'חודש': 'Month',
+    'חודש יעד': 'Target month',
+    'המרה': 'Conversion',
+    'ממטבע': 'From',
+    'למטבע': 'To',
+    'לפי השער ליום': 'Rate as at',
+    'סכום מוצמד': 'Linked amount',
+    'הפרש': 'Difference',
+    'סכום מומר': 'Converted amount',
+    'סכום ממומר': 'Converted amount',
+    'שער ההמרה': 'Rate used',
+    'סכום': 'Amount',
+
+    // --- tools index --------------------------------------------------------
+    'כלי חישוב': 'Calculation tools',
+    'מחשבוני הצמדה, נתוני מדד היסטוריים והצמדת הסכמי שכירות — כולם על בסיס הנתונים הרשמיים של הלמ״ס ובנק ישראל. כל כלי מייצא לאקסל או ל־PDF מעוצב.':
+      'Linkage calculators, historical index data and rent-agreement linkage — all built on the official CBS and Bank of Israel data. Every tool exports to Excel or to a styled PDF.',
+    'הצמדה למדדים': 'Index linkage',
+    'הצמדה למטבע': 'Currency linkage',
+    'נתוני מדד היסטוריים': 'Historical index data',
+    'הצמדת הסכם שכירות': 'Rent agreement linkage',
+    'הצמדת סכום בין שני חודשים לפי מדד המחירים לצרכן.':
+      'Link an amount between two months by the consumer price index.',
+    'המרה לפי שער יציג, או הצמדה לפי שינוי השער בין שני תאריכים.':
+      'Convert at a representative rate, or link by the change in that rate between two dates.',
+    'טבלת מדד לטווח שתבחר, עם העתקה ישירה לאקסל.':
+      'An index table for the range you choose, ready to paste into Excel.',
+    'חישוב הפרשי הצמדה לכל תקופות השכירות והאופציה, לשליחה לשוכר.':
+      'Linkage differences across every rental and option period, ready to send to the tenant.',
+    'כלי 1': 'Tool 1', 'כלי 2': 'Tool 2', 'כלי 3': 'Tool 3', 'כלי 4': 'Tool 4',
+    '← לכל הכלים': '← All tools',
+    'סוג המדד לחישוב': 'Index basis',
+    'ייצוא לאקסל': 'Export to Excel',
+    'ייצוא ל־PDF': 'Export to PDF',
+    'העתקה לאקסל': 'Copy for Excel',
+    'הועתק ✓': 'Copied ✓',
+    'ההעתקה נכשלה': 'Copy failed',
+
+    // --- currency tool ------------------------------------------------------
+    'המרה לפי שער': 'Convert at a rate',
+    'הצמדה בין תאריכים': 'Link between dates',
+    'מטבע ההצמדה': 'Linkage currency',
+    'תאריך השער': 'Rate date',
+    'תאריך בסיס': 'Base date',
+    'תאריך יעד': 'Target date',
+
+    // --- history tool -------------------------------------------------------
+    'מ־': 'From',
+    'מדד מקורי': 'As published',
+    'שינוי חודשי %': 'Month over month %',
+    'שינוי שנתי %': 'Year over year %',
+    'חודש ההתחלה חייב להיות מוקדם מחודש הסיום.': 'The start month must come before the end month.',
+
+    // --- rent tool ----------------------------------------------------------
+    'הצמדת הסכם שכירות למדד': 'Rent agreement index linkage',
+    'פרטי ההסכם': 'Agreement details',
+    'מועד הסכם השכירות': 'Date of the rent agreement',
+    'שם המשכיר': 'Landlord',
+    'שם השוכר': 'Tenant',
+    'שם מלא': 'Full name',
+    'תקופת השכירות הבסיסית': 'Base rental period',
+    'מחודש': 'From month',
+    'עד חודש': 'To month',
+    'דמי שכירות חודשיים (₪)': 'Monthly rent (₪)',
+    'תקופות אופציה והארכה': 'Option and extension periods',
+    'קיימות תקופות אופציה': 'The agreement has option periods',
+    'הוספת תקופה': 'Add a period',
+    'הסרה': 'Remove',
+    'הסרת תקופה': 'Remove period',
+    'מדד הבסיס': 'Base index',
+    'מדד בסיס מוסכם אחר (במקום המדד הידוע במועד ההסכם)':
+      'A different agreed base index (instead of the known index at signing)',
+    'אופן ההצמדה': 'Linkage method',
+    'רק הפרש לתשלום — אם המדד ירד, התשלום נשאר הנומינלי':
+      'Amounts due only — if the index falls, the payment stays at the nominal rent',
+    'הצמדה מלאה — להתחשב גם בירידת המדד': 'Full linkage — a falling index reduces the payment too',
+    'טווח לייצוא': 'Export range',
+    'תקופה': 'Period',
+    'כל התקופות': 'All periods',
+    'להשמיט חודשים שההפרש בגינם כבר שולם': 'Leave out months whose difference has already been settled',
+    'נומינלי': 'Nominal',
+    'מדד בבסיס ההסכם': "Index in the agreement's base",
+    'מקדם': 'Coefficient',
+    'ממודד': 'Linked',
+    'שולם בפועל': 'Actually paid',
+    'הפרש לתשלום': 'Amount due',
+    'שולם': 'Settled',
+    'ההפרש שולם': 'Difference settled',
+    'סכום ששולם בפועל': 'Amount actually paid',
+    'סימון כל התקופה כשולמה': 'Mark the whole period as settled',
+    'סה״כ': 'Total',
+    'סה״כ תקופה': 'Period total',
+    'סה״כ לתשלום': 'Total due',
+    'סה״כ נומינלי': 'Total nominal',
+    'סה״כ ממודד': 'Total linked',
+    'סה״כ שולם בפועל': 'Total actually paid',
+    'יתרת הפרשים לתשלום': 'Outstanding difference',
+    'תקופת השכירות': 'Rental period',
+    'תקופות אופציה': 'Option periods',
+    'אין': 'None',
+    'ערך מדד הבסיס': 'Base index value',
+    'הצמדה מלאה לשני הכיוונים': 'Full linkage in both directions',
+    'רק הפרש לתשלום — ללא הפחתה בירידת מדד': 'Amounts due only — no reduction when the index falls',
+    'אין חודשים בטווח שנבחר לייצוא.': 'No months fall in the selected export range.',
+    'יש לבחור את מועד הסכם השכירות.': 'Choose the date of the rent agreement.',
+    'יש לבחור את חודשי תחילת וסיום השכירות.': 'Choose the first and last month of the tenancy.',
+    'חודש סיום השכירות מוקדם מחודש ההתחלה.': 'The last month comes before the first month.',
+    'יש להזין דמי שכירות חודשיים תקינים.': 'Enter a valid monthly rent.',
+
+    // --- shared results and errors -----------------------------------------
+    'יש להזין סכום תקין שאינו שלילי.': 'Enter a valid, non-negative amount.',
+    'יש לבחור תאריך.': 'Choose a date.',
+    'יש לבחור תאריך יעד.': 'Choose a target date.',
+    'טוען שערי חליפין…': 'Loading exchange rates…',
+    'שערי החליפין אינם זמינים.': 'Exchange rates are unavailable.',
+    'לא ניתן לטעון את שערי החליפין.': 'The exchange rates could not be loaded.',
+    'שערי החליפין אינם זמינים': 'Exchange rates are unavailable',
+    'המדד העדכני חסר': 'The latest index reading is missing',
+    'לא ניתן לחשב את השינוי במדד': 'The change in the index cannot be calculated',
+    'הריבית הנוכחית חסרה': 'The current rate is missing',
+    'מועד ההחלטה הבאה אינו זמין': 'The next decision date is unavailable',
+    'לא ניתן לחשב שינוי שנתי': 'The annual change cannot be calculated',
+    'הנתונים אינם זמינים כרגע': 'The data is unavailable right now',
+    'טבלת שערי החליפין ריקה': 'The exchange-rate table is empty',
+    'רשימת המטבעות ריקה': 'The currency list is empty',
+    'חוברת העבודה ריקה': 'The workbook is empty',
+
+    // --- export documents ---------------------------------------------------
+    'פריט': 'Item',
+    'ערך': 'Value',
+    'סכום מקורי (₪)': 'Original amount (₪)',
+    'סכום מקורי': 'Original amount',
+    'מקדם הצמדה': 'Linkage coefficient',
+    'סכום מוצמד (₪)': 'Linked amount (₪)',
+    'הפרש (₪)': 'Difference (₪)',
+    'בסיס החישוב': 'Basis',
+    'מדד הבסיס בפועל': 'Base index month used',
+    'מדד היעד בפועל': 'Target index month used',
+    'ערך מדד היעד (בבסיס מדד הבסיס)': "Target index value (in the base month's base)",
+    'הצמדה למדד המחירים לצרכן': 'Consumer price index linkage',
+    'שער בסיס': 'Base rate',
+    'שער יעד': 'Target rate',
+    'שער': 'Rate',
+    'הפרשי הצמדה': 'Linkage differences',
+    'נתוני חוזה': 'Agreement data',
+    'מדד היסטורי': 'Historical index',
+    'שערים יציגים של בנק ישראל': 'Bank of Israel representative rates',
+
+    // --- info pages ---------------------------------------------------------
+    'אודות': 'About',
+    'שיטת החישוב': 'Method',
+    'מדיניות פרטיות': 'Privacy policy',
+    'צור קשר': 'Contact',
+    '← חזרה לעמוד הבית': '← Back to the home page',
+    '← חזרה לכל המדריכים': '← Back to all guides',
+    'מקורות הנתונים': 'Data sources',
+    'מחשבון ההצמדה': 'The linkage calculator',
+    'פורמטים': 'Formats',
+    'אימייל לחזרה': 'Reply-to email',
+    'תוכן ההודעה': 'Message',
+    'השאירו שדה זה ריק': 'Leave this field empty',
+    'שלח': 'Send',
+
+    // --- currency names -----------------------------------------------------
+    'שקל חדש': 'New shekel',
+    'דולר ארה״ב': 'US dollar',
+    'אירו': 'Euro',
+    'ליש״ט': 'Pound sterling',
+    'פרנק שווייצרי': 'Swiss franc',
+    'ין יפני': 'Japanese yen',
+    'דולר קנדי': 'Canadian dollar',
+    'דולר אוסטרלי': 'Australian dollar',
+    'כתר דני': 'Danish krone',
+    'כתר נורווגי': 'Norwegian krone',
+    'כתר שוודי': 'Swedish krona',
+    'שקל חדש (ILS)': 'New shekel (ILS)',
+    'דולר ארה״ב (USD)': 'US dollar (USD)',
+    'אירו (EUR)': 'Euro (EUR)',
+    'ליש״ט (GBP)': 'Pound sterling (GBP)',
+    'פרנק שווייצרי (CHF)': 'Swiss franc (CHF)',
+    'ין יפני (JPY)': 'Japanese yen (JPY)',
+    'דולר קנדי (CAD)': 'Canadian dollar (CAD)',
+    'דולר אוסטרלי (AUD)': 'Australian dollar (AUD)',
+    'כתר דני (DKK)': 'Danish krone (DKK)',
+    'כתר נורווגי (NOK)': 'Norwegian krone (NOK)',
+    'כתר שוודי (SEK)': 'Swedish krona (SEK)',
+
+
+    // --- guide steps and diagrams -------------------------------------------
+    'פותחים חוברת עבודה חדשה ועוברים ללשונית Data / ״נתונים״.':
+      'Open a new workbook and go to the Data tab.',
+    'בוחרים Data ← Get Data ← From Web (בעברית: נתונים ← קבלת נתונים ← מהאינטרנט).':
+      'Choose Data → Get Data → From Web.',
+    'בוחרים Get Data ← From Other Sources ← From Web (בעברית: קבל נתונים ← ממקורות אחרים ← מהאינטרנט).':
+      'Choose Get Data → From Other Sources → From Web.',
+    'מדביקים את כתובת ה-CSV בתיבת URL ומאשרים ב-OK / ״אישור״.':
+      'Paste the CSV address into the URL box and confirm with OK.',
+    'בחלון Navigator / ״נווט״ לוחצים Load / ״טען״, או Transform Data / ״המר נתונים״ לעריכה לפני הטעינה.':
+      'In the Navigator window click Load, or Transform Data to edit before loading.',
+    'הטבלה נטענת לגיליון כטבלת Query.': 'The table loads into the sheet as a Query table.',
+    'לעדכון הנתונים בוחרים Data ← Refresh All (בעברית: נתונים ← רענן הכל).':
+      'To refresh the data choose Data → Refresh All.',
+    'פותחים את כתובת ה-CSV בדפדפן.': 'Open the CSV address in your browser.',
+    'פותחים את הקובץ באקסל דרך File ← Open / ״קובץ ← פתיחה״.':
+      'Open the file in Excel through File → Open.',
+    'הקבצים נשמרים ב-UTF-8 עם BOM, ולכן עברית תיפתח נכון בלי הגדרות מיוחדות. החיסרון: הנתונים קפואים ברגע ההורדה, וצריך לחזור על התהליך בכל עדכון.':
+      'The files are saved as UTF-8 with a BOM, so Hebrew opens correctly with no special settings. The drawback: the data is frozen at the moment of download, and the process has to be repeated on every update.',
+    'מזינים בתא את נוסחת WEBSERVICE עם כתובת ה-JSON. הפונקציה מחזירה את תוכן הקובץ כטקסט לתא.':
+      'Enter the WEBSERVICE formula in a cell with the JSON address. The function returns the file contents into that cell as text.',
+    'השיטה מתאימה לשליפת ערך בודד, למשל הריבית הנוכחית, ולא לטבלה שלמה. התוצאה חייבת להיכנס לתא אחד — עד 32,767 תווים.':
+      'This suits a single value, such as the current interest rate, rather than a whole table. The result must fit in one cell — up to 32,767 characters.',
+    'לקובצי המדד המלאים השיטה אינה מתאימה. משתמשים ב-Power Query, או בקובץ הקטן של החלטת הריבית הבאה.':
+      'It does not suit the full index files. Use Power Query, or the small next-rate-decision file.',
+    'WEBSERVICE אינה זמינה ב-Excel for Mac': 'WEBSERVICE is not available in Excel for Mac',
+    'אין צעדים להצגה עבור שילוב זה. אפשר לייבא את הנתונים באמצעות Power Query.':
+      'There are no steps to show for this combination. You can import the data with Power Query instead.',
+    '״From Web״ קיים ב-Excel for Mac מתוך Microsoft 365 בגרסאות מ-2022 ואילך. אם הוא לא מופיע — יש לעדכן את אקסל או להשתמש בשיטת ההורדה הידנית.':
+      '“From Web” exists in Excel for Mac from Microsoft 365, version 2022 and later. If you cannot see it, update Excel or use the manual download method.',
+    'שומרים את הדף כקובץ ‎.csv באמצעות': 'Save the page as a .csv file with',
+    'Cmd+S במק.': 'Cmd+S on a Mac.',
+    'Ctrl+S בווינדוס.': 'Ctrl+S on Windows.',
+    'קבל נתונים': 'Get Data', 'ממקורות אחרים': 'From Other Sources', 'מהאינטרנט': 'From Web',
+    'רענן הכל': 'Refresh All', 'כתובת URL': 'URL', 'אישור': 'OK', 'נווט': 'Navigator',
+    'טען': 'Load', 'קובץ': 'File', 'פתיחה': 'Open', 'שמירה': 'Save',
+    'שורת הנוסחאות': 'Formula bar', 'תצוגה מקדימה': 'Preview',
+    'חודש X': 'Month X', 'במהלך חודש X': 'During month X',
+    'מדד ידוע = מדד X-1': 'Known index = index X-1',
+    '15 בחודש X+1': '15th of month X+1', 'פרסום מדד בגין X': 'Index for X published',
+
+    // --- CPI concepts guide --------------------------------------------------
+    '1. שני שמות, אותו מדד': '1. Two names, one index',
+    '2. מתי מתפרסם המדד': '2. When the index is published',
+    '3. מה המדד כולל': '3. What the index covers',
+    '4. מדדים נגזרים': '4. Derived indices',
+    'מדד בגין חודש X': 'The index for month X',
+    'הוא המדד שמודד את המחירים בחודש X עצמו. הוא מתפרסם ב-15 בחודש X+1.':
+      'measures prices in month X itself. It is published on the 15th of month X+1.',
+    'מדד ידוע במועד מסוים': 'The known index at a given date',
+    'הוא המדד האחרון שפורסם עד אותו מועד — כלומר המדד של החודש הקודם.':
+      'is the last index published by that date — that is, the previous month\'s index.',
+    'לכן, לתשלום שחל בחודש X: מדד ידוע = המדד של חודש X-1; מדד בגין = המדד של חודש X.':
+      'So for a payment falling in month X: known index = the index of month X-1; index for the month = the index of month X.',
+    'אלה אותם מספרים בדיוק; ההבדל הוא רק לאיזה חודש מצמידים אותם. הפער ביניהם הוא חודש אחד.':
+      'These are exactly the same numbers; the only difference is which month they are attached to. The gap between them is one month.',
+    'המחשבון בדף הבית': 'The calculator on the home page',
+    'מיישם בדיוק את ההבחנה הזו.': 'applies exactly this distinction.',
+    'לפי הלמ״ס, הודעות מדדי המחירים מתפרסמות ב-15 בכל חודש בשעה 18:30, עבור החודש שקדם לו.':
+      'According to the CBS, price index releases are published on the 15th of each month at 18:30, covering the month before.',
+    'אם ה-15 בחודש נופל ביום שישי, בשבת, בערב חג או בחג — הפרסום מוקדם ליום שישי או לערב החג, בשעה 14:00.':
+      'If the 15th falls on a Friday, a Saturday, a holiday eve or a holiday, publication is brought forward to the Friday or holiday eve, at 14:00.',
+    'ציר הזמן של מדד בגין ומדד ידוע: פער קבוע של חודש אחד.':
+      'The timeline of the two readings: a fixed one-month gap.',
+    'לפי הלמ״ס, המדד מודד את שינוי העלות של סל הצריכה של משק בית ממוצע; הלמ״ס מתמחרת מדי חודש כ-1,300 מוצרים ושירותים מייצגים.':
+      'According to the CBS, the index measures the change in the cost of an average household\'s consumption basket; the CBS prices around 1,300 representative goods and services each month.',
+    'עשר קבוצות הצריכה הראשיות הן: מזון (ללא ירקות ופירות); ירקות ופירות; דיור; תחזוקת הדירה; ריהוט וציוד לבית; הלבשה והנעלה; בריאות; חינוך, תרבות ובידור; תחבורה ותקשורת; שונות.':
+      'The ten main consumption groups are: food (excluding fruit and vegetables); fruit and vegetables; housing; dwelling maintenance; furniture and household equipment; clothing and footwear; health; education, culture and entertainment; transport and communication; miscellaneous.',
+    'מה המדד לא כולל:': 'What the index leaves out:',
+    'רכישת דירה. קבוצת ״דיור״ במדד מודדת את שירותי הדיור — בעיקר שכר דירה — ולא את מחיר קניית הדירה. מחירי רכישת דירות נמדדים במדד נפרד של הלמ״ס, ״מדד ומחירים ממוצעים משוק הדירות״.':
+      'Buying a home. The “housing” group measures housing services — mainly rent — not the price of buying a dwelling. Home purchase prices are measured in a separate CBS index, the “Index and average prices of the dwellings market”.',
+    'הלמ״ס מפרסמת גם חתכים שמנטרלים רכיבים תנודתיים: המדד ללא ירקות ופירות; המדד ללא דיור; המדד ללא ירקות ופירות וללא דיור; המדד ללא אנרגיה.':
+      'The CBS also publishes cuts that strip out volatile components: the index excluding fruit and vegetables; excluding housing; excluding both; and excluding energy.',
+    'החתכים האלה משמשים כדי לראות מגמה בסיסית בלי רעש עונתי או תנודות אנרגיה.':
+      'These cuts are used to see the underlying trend without seasonal noise or energy swings.',
+    // --- guides -------------------------------------------------------------
+    'לומדים לעבוד עם הנתונים': 'Working with the data',
+    'הסברים מעשיים לשימוש בנתוני statso בכלים מוכרים.':
+      'Practical walkthroughs for using statso data in the tools you already have.',
+    'שאיבת נתונים מ-statso לתוך Excel': 'Pulling statso data into Excel',
+    'כך מייבאים ריבית או מדד לאקסל, עם הוראות מותאמות למחשב ולשיטת העבודה.':
+      'How to import the rate or the index into Excel, with steps matched to your machine and method.',
+    'מדד בגין מול מדד ידוע — ומה המדד בכלל מודד':
+      'Index for the month vs known index — and what the index actually measures',
+    'ההבדל בין שני המדדים, מתי הלמ״ס מפרסמת, ומה נכלל בסל.':
+      'The difference between the two, when the CBS publishes, and what the basket holds.',
+    'ההבדל בין שני המדדים, מועד הפרסום והרכב סל הצריכה.':
+      'The difference between the two, the publication date and what the consumption basket holds.',
+    'מדריך אינטראקטיבי': 'Interactive guide',
+    'בחרו את סביבת העבודה והנתונים, והשלבים יתעדכנו מיד.':
+      'Pick your environment and dataset, and the steps update instantly.',
+    'מושגים במדד המחירים לצרכן': 'Consumer price index concepts',
+    'מערכת הפעלה': 'Operating system',
+    'מק (macOS)': 'Mac (macOS)',
+    'ווינדוס': 'Windows',
+    'שיטה': 'Method',
+    'Power Query (מומלץ)': 'Power Query (recommended)',
+    'הורדה ידנית של CSV': 'Manual CSV download',
+    'נוסחת WEBSERVICE': 'WEBSERVICE formula',
+    'נתונים': 'Data',
+    'העתק': 'Copy',
+    'הועתק': 'Copied',
+    'אקסל בעברית': 'Excel in Hebrew',
+    'אקסל באנגלית': 'Excel in English',
+    'המדריך מסביר את ההבחנה': 'The guide explains the distinction',
+    'סכום מוצמד = הסכום × (מדד היעד ÷ מדד הבסיס).':
+      'Linked amount = amount × (target index ÷ base index).',
+    'שני שמות, אותו מדד': 'Two names, one index',
+    'מתי מתפרסם המדד': 'When the index is published',
+    'מה המדד כולל': 'What the index covers',
+    'מדדים נגזרים': 'Derived indices',
+    'דוגמה מהנתונים העדכניים': 'An example from the current data',
+    'לא ניתן להציג דוגמה מהנתונים כרגע': 'No example can be shown from the data right now',
+    'מעבר ל-Power Query': 'Switch to Power Query'
+  };
+
+  // Sentences the modules assemble at run time. First match wins.
+  const enPatterns = [
+    [/^בחודש (.+), מדד בגין הוא מדד (.+)\. מדד ידוע באותו חודש הוא מדד (.+)\. מדד בגין החודש מתפרסם ב-(.+)$/,
+      'In $1, the index for the month is the $2 reading. The known index that month is the $3 reading. The index for $1 is published on $4'],
+    [/^(.+)–(.+) · (.+) ₪ לחודש$/, '$1–$2 · $3 ₪ per month'],
+    [/^מדד (.+) = (.+) · מדד (.+) = (.+) \(באותו בסיס\) · מקדם (.+)$/,
+      'Index $1 = $2 · index $3 = $4 (same base) · coefficient $5'],
+    [/^שער (.+) · לפי השער שפורסם ל־(.+)$/, 'Rate $1 · using the rate published for $2'],
+    [/^שער (.+) ב־(.+) = (.+) · ב־(.+) = (.+) · הפרש (.+) ₪$/,
+      'Rate $1 on $2 = $3 · on $4 = $5 · difference $6 ₪'],
+    [/^(\d+(?:\.\d+)?) שערים שפורסמו$/, '$1 published rates'],
+    [/^המדד לחודש (.+) אינו זמין\. הטווח הוא (.+)\.$/,
+      'The index for $1 is not available. The available range is $2.'],
+    [/^המדד לחודש (.+) (אינו קיים בסדרה|מחוץ לטווח הנתונים)\. הטווח הזמין הוא (.+)\.$/,
+      'The index for $1 is unavailable. The available range is $3.'],
+    [/^מדד הבסיס לחודש (.+) אינו זמין בסדרה\.$/, 'The base index for $1 is not in the series.'],
+    [/^המדד לחודש (.+) טרם פורסם$/, 'The index for $1 has not been published yet'],
+    [/^יש להשלים את חודשי תקופת האופציה (\d+)\.$/, 'Complete the months of option period $1.'],
+    [/^בתקופת אופציה (\d+) חודש הסיום מוקדם מחודש ההתחלה\.$/,
+      'In option period $1 the last month comes before the first.'],
+    [/^יש להזין דמי שכירות חודשיים בתקופת אופציה (\d+)\.$/,
+      'Enter a monthly rent for option period $1.'],
+    [/^תקופת אופציה (\d+)$/, 'Option period $1'],
+    [/^לא ניתן לטעון את (.+)$/, 'Could not load $1'],
+    [/^אין שער ל(.+) לפני (.+)\.$/, 'No rate for $1 before $2.'],
+    [/^אין נתוני שער עבור (.+)\.$/, 'No rate data for $1.'],
+    [/^לפי השער שפורסם ל־(.+)$/, 'Using the rate published for $1'],
+    [/^מדד ידוע במועד ההסכם: (.+)$/, 'Known index at signing: $1'],
+    [/^מדד בסיס מוסכם: (.+)$/, 'Agreed base index: $1'],
+    [/^(\d+) חודשים בטווח שנבחר\..*$/,
+      '$1 months in the selected range. The chained index is expressed in the 9/1951 base, '
+      + 'and the published column is the reading in the base in force that month.'],
+    [/^שער ל־(.+)$/, 'Rate at $1'],
+    [/^שער סוף (\d+)$/, 'Year-end $1'],
+    [/^ממוצע (\d+)$/, '$1 average'],
+    [/^(\d+) שערים שפורסמו$/, '$1 published rates'],
+    [/^הופק ב־(.+?) · נתוני מקור: הלשכה המרכזית לסטטיסטיקה ובנק ישראל · statso$/,
+      'Produced $1 · Sources: Israel Central Bureau of Statistics and Bank of Israel · statso'],
+    [/^סך ההפרשים לתשלום:$/, 'Total amount due:'],
+    [/^שלב (\d+)$/, 'Step $1']
+  ];
+
+  Statso.lang = {en: en, enPatterns: enPatterns};
+})(window);

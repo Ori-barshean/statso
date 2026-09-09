@@ -83,6 +83,12 @@
   }
 
   // --- sheet XML ----------------------------------------------------------
+  // Cell values bypass the DOM, so they need the translator applied directly for
+  // exports to follow the site language.
+  function say(text) {
+    return Statso.i18n ? Statso.i18n.t(text) : text;
+  }
+
   function cellXml(cell, reference) {
     if (cell === null || cell === undefined || cell === '') { return ''; }
     const value = typeof cell === 'object' ? cell.v : cell;
@@ -92,7 +98,7 @@
       return '<c r="' + reference + '"' + style + '><v>' + value + '</v></c>';
     }
     return '<c r="' + reference + '"' + style + ' t="inlineStr"><is><t xml:space="preserve">'
-      + escapeXml(value) + '</t></is></c>';
+      + escapeXml(say(value)) + '</t></is></c>';
   }
 
   function sheetXml(sheet) {
@@ -182,7 +188,7 @@
         + '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '
         + 'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>'
         + list.map(function (sheet, index) {
-          return '<sheet name="' + escapeXml((sheet.name || ('גיליון' + (index + 1))).slice(0, 31))
+          return '<sheet name="' + escapeXml(say(sheet.name || ('גיליון' + (index + 1))).slice(0, 31))
             + '" sheetId="' + (index + 1) + '" r:id="rId' + (index + 1) + '"/>';
         }).join('')
         + '</sheets></workbook>')},

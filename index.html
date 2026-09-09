@@ -24,6 +24,7 @@
             <li><a href="#/tools/rent">הצמדת הסכם שכירות</a></li>
           </ul>
         </div>
+        <button type="button" class="nav-item nav-lang" id="lang-toggle" data-i18n-skip>EN</button>
       </nav>
       <a class="brand" href="index.html" aria-label="statso — דף הבית"><span class="brand-mark">s</span><span>statso</span></a>
     </div>
@@ -259,11 +260,18 @@
   <main class="shell info-view" id="info-view" hidden>
     <article class="info-page" id="about-page" hidden aria-labelledby="about-title">
       <header class="info-header"><h1 id="about-title">אודות</h1></header>
-      <div class="prose-guide">
+      <div class="prose-guide" data-lang="he">
         <section>
           <p>statso אוסף נתונים כלכליים ישראליים ממקורות רשמיים ומפרסם אותם כקבצים בכתובות קבועות, כדי שכלים אחרים — גיליונות אקסל, אתרים, מחשבונים — יוכלו למשוך מהם נתונים ישירות.</p>
           <p>כרגע נאספים שני מקורות: מדד המחירים לצרכן מהלשכה המרכזית לסטטיסטיקה, וריבית בנק ישראל.</p>
           <p>הנתונים מתרעננים אוטומטית כל לילה ב־<span dir="ltr">02:00</span> שעון ישראל. אם התוכן שנוצר זהה לקיים, לא נשמרת גרסה חדשה.</p>
+        </section>
+      </div>
+      <div class="prose-guide" data-lang="en" hidden>
+        <section>
+          <p>statso collects Israeli economic data from official sources and publishes it as files at stable addresses, so that other tools — spreadsheets, websites, calculators — can pull the numbers directly.</p>
+          <p>Two sources are collected today: the consumer price index from the Central Bureau of Statistics, and the Bank of Israel interest rate.</p>
+          <p>The data refreshes automatically every night at <span dir="ltr">02:00</span> Israel time. If the generated content is identical to what is already published, no new version is stored.</p>
         </section>
       </div>
       <a class="info-back" href="#/">← חזרה לעמוד הבית</a>
@@ -271,7 +279,7 @@
 
     <article class="info-page" id="method-page" hidden aria-labelledby="method-title">
       <header class="info-header"><h1 id="method-title">שיטת החישוב</h1></header>
-      <div class="prose-guide">
+      <div class="prose-guide" data-lang="he">
         <section>
           <h2>מקורות הנתונים</h2>
           <ul class="source-list">
@@ -302,12 +310,43 @@
           <p>הקבצים מתפרסמים ב־<span dir="ltr">JSON</span> וב־<span dir="ltr">CSV</span>. ה־<span dir="ltr">JSON</span> מקודד <span dir="ltr">UTF-8</span> בלי <span dir="ltr">BOM</span>; ה־<span dir="ltr">CSV</span> מקודד <span dir="ltr">UTF-8</span> עם <span dir="ltr">BOM</span>, כדי שעברית תיפתח נכון באקסל בלי הגדרות מיוחדות.</p>
         </section>
       </div>
+      <div class="prose-guide" data-lang="en" hidden>
+        <section>
+          <h2>Data sources</h2>
+          <ul class="source-list">
+            <li>CBS, consumer price index (series <span dir="ltr">120010</span>, “Consumer Price Index — General”): <a href="https://api.cbs.gov.il/index/data/price?id=120010&amp;format=json&amp;download=false&amp;coef=true" dir="ltr">api.cbs.gov.il</a></li>
+            <li>CBS, developers portal: <a href="https://www.cbs.gov.il/he/Pages/Developers-Portal.aspx" dir="ltr">cbs.gov.il</a></li>
+            <li>Bank of Israel, statistical <span dir="ltr">API</span> (<span dir="ltr">SDMX</span>), series <span dir="ltr">MNT_RIB_BOI_D “Bank Of Israel nominal interest rate”</span>: <a href="https://edge.boi.gov.il/FusionEdgeServer/sdmx/v2/" dir="ltr">edge.boi.gov.il</a></li>
+            <li>Bank of Israel, current rate and next decision date: <a href="https://boi.org.il/PublicApi/GetInterest" dir="ltr">boi.org.il/PublicApi/GetInterest</a></li>
+          </ul>
+        </section>
+        <section>
+          <h2>Consumer price index</h2>
+          <p>The series is monthly and starts in <span dir="ltr">09/1951</span>, with <span dir="ltr">899</span> observations at present.</p>
+          <p>Two values are published for each month: the reading as the CBS published it, in the base in force at the time; and a value chained to a single base — September 1951 = <span dir="ltr">100</span>.</p>
+          <p>The CBS replaces the index base every few years, and there have been <span dir="ltr">22</span> different bases over the history of the series. The chaining here is not a product of conversion coefficients: the CBS itself publishes each month's value in every earlier base, and we read the September 1951 value directly. No rounding error accumulates over hundreds of months.</p>
+        </section>
+        <section>
+          <h2>Bank of Israel rate</h2>
+          <p>The source is a continuous daily series starting <span dir="ltr">27/01/1994</span>.</p>
+          <p>We publish change points only: one row for every date on which the rate actually moved. They are derived by walking the daily series and recording a row whenever the value differs from the previous day. There are <span dir="ltr">159</span> change points at present.</p>
+        </section>
+        <section>
+          <h2>The linkage calculator</h2>
+          <p>Linked amount = amount × (target index ÷ base index).</p>
+          <p>In “known index” mode the reading taken for the chosen month is the previous month's; in “index for the month” mode it is that month's own reading. <a href="#/guides">The guide explains the distinction</a>.</p>
+        </section>
+        <section>
+          <h2>Formats</h2>
+          <p>Files are published as <span dir="ltr">JSON</span> and <span dir="ltr">CSV</span>. The <span dir="ltr">JSON</span> is encoded <span dir="ltr">UTF-8</span> without a <span dir="ltr">BOM</span>; the <span dir="ltr">CSV</span> carries one, so that Hebrew opens correctly in Excel with no special settings.</p>
+        </section>
+      </div>
       <a class="info-back" href="#/">← חזרה לעמוד הבית</a>
     </article>
 
     <article class="info-page" id="privacy-page" hidden aria-labelledby="privacy-title">
       <header class="info-header"><h1 id="privacy-title">מדיניות פרטיות</h1></header>
-      <div class="prose-guide">
+      <div class="prose-guide" data-lang="he">
         <section>
           <p>האתר אינו משתמש בעוגיות, אינו שומר דבר בדפדפן שלך, ואין בו כלי אנליטיקה או מעקב כלשהו.</p>
           <p>בדף ״צור קשר״ יש טופס. השדות שתמלאו — שם, כתובת מייל להחזרה ותוכן ההודעה — נשלחים ישירות דרך טופס ייעודי של צד שלישי, שמעביר אותם אלינו בדואר אלקטרוני. איננו מפעילים מסד נתונים ואיננו שומרים את ההודעות באתר עצמו.</p>
@@ -315,6 +354,16 @@
           <p>האתר מתארח ב־<span dir="ltr">GitHub Pages</span>. כמו כל שרת אינטרנט, <span dir="ltr">GitHub</span> מקבל את הבקשות לדפים ורואה נתוני בקשה סטנדרטיים כגון כתובת <span dir="ltr">IP</span> וסוג הדפדפן.</p>
           <p>ספריית התרשימים <span dir="ltr">Chart.js</span> נטענת מרשת ההפצה <span dir="ltr">cdnjs.cloudflare.com</span>. לכן <span dir="ltr">Cloudflare</span> מקבלת גם היא את כתובת ה־<span dir="ltr">IP</span> וסוג הדפדפן, במסגרת אותה בקשה בלבד.</p>
           <p>הגרסה המקומית של האתר, קובץ ה־<span dir="ltr">HTML</span> העצמאי, אינה מבצעת שום בקשת רשת.</p>
+        </section>
+      </div>
+      <div class="prose-guide" data-lang="en" hidden>
+        <section>
+          <p>This site uses no cookies, stores nothing in your browser, and carries no analytics or tracking of any kind.</p>
+          <p>The contact page has a form. The fields you fill in — name, reply address and message — are sent directly through a dedicated third-party form service, which forwards them to us by email. We run no database and store no messages on the site itself.</p>
+          <p>Apart from that form there is no other way to send us information through the site.</p>
+          <p>The site is hosted on <span dir="ltr">GitHub Pages</span>. Like any web server, <span dir="ltr">GitHub</span> receives the page requests and sees standard request data such as the <span dir="ltr">IP</span> address and browser type.</p>
+          <p>The charting library <span dir="ltr">Chart.js</span> is loaded from the <span dir="ltr">cdnjs.cloudflare.com</span> delivery network, so <span dir="ltr">Cloudflare</span> also receives the <span dir="ltr">IP</span> address and browser type, as part of that request alone.</p>
+          <p>The local copy of the site, the standalone <span dir="ltr">HTML</span> file, makes no network requests at all.</p>
         </section>
       </div>
       <a class="info-back" href="#/">← חזרה לעמוד הבית</a>
@@ -360,6 +409,8 @@
   <script type="application/json" id="data-fx-daily" data-inline="json" data-src="data/fx_daily.json" data-label="שערי חליפין יומיים"></script>
   <script type="text/plain" id="version-source" data-inline="text" data-src="VERSION"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.1/chart.umd.min.js" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous" referrerpolicy="no-referrer" data-inline="script" data-offline-src="assets/vendor/chart-4.5.1.umd.min.js"></script>
+  <script src="assets/statso-lang-en.js" data-inline="script"></script>
+  <script src="assets/statso-i18n.js" data-inline="script"></script>
   <script src="assets/statso-core.js" data-inline="script"></script>
   <script src="assets/statso-data.js" data-inline="script"></script>
   <script src="assets/statso-collapse.js" data-inline="script"></script>

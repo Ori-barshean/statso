@@ -98,7 +98,7 @@
         sheet.rows.push([{v: row[0], s: S().header},
           typeof row[1] === 'number' ? {v: row[1], s: S().money} : {v: row[1], s: S().boxed}]);
       });
-      Statso.exporter.downloadWorkbook('statso-הצמדה-למדד-' + Statso.exporter.stamp() + '.xlsx', [sheet]);
+      Statso.exporter.downloadWorkbook('statso-' + Statso.i18n.t('הצמדה למדד') + '-' + Statso.exporter.stamp() + '.xlsx', [sheet]);
       return;
     }
     Statso.exporter.printDocument('הצמדה למדד המחירים לצרכן',
@@ -201,7 +201,7 @@
         sheet.rows.push([{v: row[0], s: S().header},
           typeof row[1] === 'number' ? {v: row[1], s: S().money} : {v: row[1], s: S().boxed}]);
       });
-      Statso.exporter.downloadWorkbook('statso-' + title + '-' + Statso.exporter.stamp() + '.xlsx', [sheet]);
+      Statso.exporter.downloadWorkbook('statso-' + Statso.i18n.t(title) + '-' + Statso.exporter.stamp() + '.xlsx', [sheet]);
       return;
     }
     Statso.exporter.printDocument(title,
@@ -285,7 +285,7 @@
         sheet.rows.push([{v: row[0], s: S().boxed}, {v: row[1], s: S().money}, {v: row[2], s: S().money},
           row[3] === '' ? '' : {v: row[3], s: S().money}, row[4] === '' ? '' : {v: row[4], s: S().money}]);
       });
-      Statso.exporter.downloadWorkbook('statso-מדד-' + Statso.exporter.stamp() + '.xlsx', [sheet]);
+      Statso.exporter.downloadWorkbook('statso-' + Statso.i18n.t('מדד היסטורי') + '-' + Statso.exporter.stamp() + '.xlsx', [sheet]);
       return;
     }
     Statso.exporter.printDocument('מדד המחירים לצרכן — ' + subtitle,

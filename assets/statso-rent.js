@@ -309,7 +309,7 @@
       sheet.rows.push([{v: 'סה״כ לתשלום', s: S().header}, {v: '', s: S().header}, {v: '', s: S().header},
         {v: '', s: S().header}, {v: '', s: S().header}, {v: '', s: S().header}, {v: '', s: S().header},
         {v: grand.payable, s: S().moneyBold}]);
-      Statso.exporter.downloadWorkbook('statso-הפרשי-שכירות-' + Statso.exporter.stamp() + '.xlsx',
+      Statso.exporter.downloadWorkbook('statso-' + Statso.i18n.t('הפרשי הצמדה') + '-' + Statso.exporter.stamp() + '.xlsx',
         [details, sheet]);
       return;
     }
