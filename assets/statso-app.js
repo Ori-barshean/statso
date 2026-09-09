@@ -23,6 +23,7 @@
     Statso.data.setState(document.getElementById('cpi-kpi'), 'ready');
     Statso.data.setState(document.getElementById('calculator-section'), 'ready');
     Statso.calculator.init(doc, map);
+    if (Statso.tools) { Statso.tools.init(doc, map); }
     if (typeof root.Chart === 'function') { Statso.chart.init(doc.observations); Statso.data.setState(document.getElementById('chart-section'), 'ready'); }
     else { Statso.chart.showUnavailable(); }
   }
@@ -47,6 +48,7 @@
     Statso.data.setState(document.getElementById('fx-kpi'), 'ready');
     Statso.fxtable.init(doc);
     Statso.calculator.initFx(doc);
+    if (Statso.tools) { Statso.tools.initFx(doc); }
   }
   function failFx(message) {
     failCard('fx-kpi', 'kpi-fx-error', message, ['kpi-fx-usd', 'kpi-fx-eur']);

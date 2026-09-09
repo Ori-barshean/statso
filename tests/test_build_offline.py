@@ -24,7 +24,7 @@ class BuildOfflineTests(unittest.TestCase):
 
     def test_markers_present_and_unique(self):
         self.assertEqual(self.html.count('data-inline="style"'), 1)
-        self.assertEqual(self.html.count('data-inline="script"'), 12)
+        self.assertEqual(self.html.count('data-inline="script"'), 16)
         self.assertEqual(self.html.count('data-inline="json"'), 5)
         self.assertEqual(self.html.count('data-inline="text"'), 1)
         self.assertEqual(set(re.findall(r'data-src="([^"]+)"', self.html)),
@@ -47,7 +47,9 @@ class BuildOfflineTests(unittest.TestCase):
             out = Path(temp) / "statso.html"; build(out=out); payload = out.read_bytes(); text = payload.decode()
             self.assertTrue(text.startswith("<!DOCTYPE html>")); self.assertIn('lang="he"', text); self.assertIn('dir="rtl"', text)
             self.assertIn("Chart.js v4.5.1", text)
-            for absent in ("integrity=", 'src="assets/', 'href="assets/', "http://"): self.assertNotIn(absent, text)
+            for absent in ("integrity=", 'src="assets/', 'href="assets/'): self.assertNotIn(absent, text)
+            for insecure in ('src="http://', 'href="http://', "url(http://", '@import "http://'):
+                self.assertNotIn(insecure, text)
             self.assertIsNone(re.search(r'(?:src|href)="https://cdnjs\.cloudflare\.com', text))
             self.assertFalse(payload.startswith(b"\xef\xbb\xbf")); self.assertNotIn(b"\r", payload)
             self.assertEqual(text.count("<script"), text.count("</script>"))

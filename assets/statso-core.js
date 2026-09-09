@@ -44,6 +44,16 @@
     return {amount: amount * rate, rate: rate};
   }
 
+  // The CBS rebases the index every few years, so two published readings are only
+  // comparable once both are expressed in the same base. coef=true gives us the
+  // chained series precisely so this is a lookup: restate `month` in the base that
+  // was in force at `baseMonth`, which is the number a contract actually cites.
+  function readingInBase(map, baseMonth, month) {
+    const base = map.get(baseMonth); const target = map.get(month);
+    if (!base || !target) { return null; }
+    return base.value * (target.chained_1951_09 / base.chained_1951_09);
+  }
+
   function indexAmount(amount, baseChained, targetChained) {
     const indexed = amount * (targetChained / baseChained);
     return {indexed: indexed, difference: indexed - amount};
@@ -68,7 +78,7 @@
 
   Statso.core = {monthToOrdinal: monthToOrdinal, ordinalToMonth: ordinalToMonth, shiftMonth: shiftMonth,
     buildIndexMap: buildIndexMap, resolveIndexMonth: resolveIndexMonth, lookupChained: lookupChained,
-    indexAmount: indexAmount, lookupRateAt: lookupRateAt, convertAmount: convertAmount,
+    indexAmount: indexAmount, readingInBase: readingInBase, lookupRateAt: lookupRateAt, convertAmount: convertAmount,
     yearOverYear: yearOverYear, monthOverMonth: monthOverMonth,
     primeRate: primeRate, PRIME_SPREAD: PRIME_SPREAD, formatRate: formatRate,
     CURRENCY_NAMES: CURRENCY_NAMES, latestObservation: latestObservation,

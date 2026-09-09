@@ -103,11 +103,15 @@ class UiSourceTests(unittest.TestCase):
         self.assertIn('input[name="calc-kind"]', init_body)
         self.assertIn("showKind(currentKind());", init_body)
 
-    def test_top_nav_remains_minimal(self):
+    def test_top_nav_is_three_destinations_plus_the_tools_menu(self):
         nav = re.search(r'<nav class="site-nav".*?</nav>', self.html, re.DOTALL).group(0)
-        self.assertEqual(nav.count("<a "), 2)
-        self.assertIn('href="#/"', nav)
-        self.assertIn('href="#/guides"', nav)
+        self.assertEqual(nav.count('class="nav-item"'), 2)
+        for href in ('href="#/"', 'href="#/guides"', 'href="#/tools"'):
+            self.assertIn(href, nav)
+        submenu = re.search(r'<ul class="nav-submenu".*?</ul>', nav, re.DOTALL).group(0)
+        self.assertEqual(submenu.count("<a "), 4)
+        for route in ("index", "fx", "history", "rent"):
+            self.assertIn(f'href="#/tools/{route}"', submenu)
 
 
 if __name__ == "__main__": unittest.main()

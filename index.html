@@ -15,6 +15,15 @@
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.2 12 4l9 7.2v8.3a.5.5 0 0 1-.5.5H15v-6H9v6H3.5a.5.5 0 0 1-.5-.5z"/></svg>
         </a>
         <a class="nav-item" href="#/guides">מדריכים</a>
+        <div class="nav-group">
+          <a class="nav-item" href="#/tools" aria-haspopup="true">כלים</a>
+          <ul class="nav-submenu" aria-label="כלים">
+            <li><a href="#/tools/index">הצמדה למדדים</a></li>
+            <li><a href="#/tools/fx">הצמדה למטבע</a></li>
+            <li><a href="#/tools/history">נתוני מדד היסטוריים</a></li>
+            <li><a href="#/tools/rent">הצמדת הסכם שכירות</a></li>
+          </ul>
+        </div>
       </nav>
       <a class="brand" href="index.html" aria-label="statso — דף הבית"><span class="brand-mark">s</span><span>statso</span></a>
     </div>
@@ -60,7 +69,7 @@
             <div><strong class="kpi-value" id="kpi-fx-usd" dir="ltr">—</strong><span class="kpi-meta">דולר / שקל</span></div>
             <div><strong class="kpi-value" id="kpi-fx-eur" dir="ltr">—</strong><span class="kpi-meta">אירו / שקל</span></div>
           </div>
-          <span class="kpi-footnote">עדכני ל־<strong id="kpi-fx-date" dir="ltr">—</strong></span>
+          <span class="kpi-footnote">עדכני ל־<strong id="kpi-fx-date" dir="ltr">—</strong><span class="kpi-footnote-sub">מעודכן לסוף יום המסחר האחרון</span></span>
         </div>
       </article>
       <article class="kpi-card accent-orange" id="brand-kpi">
@@ -120,6 +129,131 @@
       <button class="guide-back" id="guide-back" type="button">← חזרה לכל המדריכים</button>
       <div id="guide-content"></div>
     </article>
+  </main>
+
+  <main class="shell tools-view" id="tools-view" hidden>
+    <section class="hero tools-hero">
+      <p class="eyebrow">כלים</p>
+      <h1>כלי חישוב</h1>
+      <p>מחשבוני הצמדה, נתוני מדד היסטוריים והצמדת הסכמי שכירות — כולם על בסיס הנתונים הרשמיים של הלמ״ס ובנק ישראל. כל כלי מייצא לאקסל או ל־PDF מעוצב.</p>
+    </section>
+
+    <div class="tool-cards" id="tools-index">
+      <a class="tool-card" href="#/tools/index"><span class="tool-card-mark">₪</span><strong>הצמדה למדדים</strong><span>הצמדת סכום בין שני חודשים לפי מדד המחירים לצרכן.</span></a>
+      <a class="tool-card" href="#/tools/fx"><span class="tool-card-mark">$</span><strong>הצמדה למטבע</strong><span>המרה לפי שער יציג, או הצמדה לפי שינוי השער בין שני תאריכים.</span></a>
+      <a class="tool-card" href="#/tools/history"><span class="tool-card-mark">☰</span><strong>נתוני מדד היסטוריים</strong><span>טבלת מדד לטווח שתבחר, עם העתקה ישירה לאקסל.</span></a>
+      <a class="tool-card" href="#/tools/rent"><span class="tool-card-mark">⌂</span><strong>הצמדת הסכם שכירות</strong><span>חישוב הפרשי הצמדה לכל תקופות השכירות והאופציה, לשליחה לשוכר.</span></a>
+    </div>
+
+    <section class="panel tool-page" id="tool-index-page" hidden aria-labelledby="tool-index-title">
+      <div class="section-heading"><div><p class="eyebrow">כלי 1</p><h2 id="tool-index-title">הצמדה למדדים</h2></div><a class="tool-back" href="#/tools">← לכל הכלים</a></div>
+      <div class="tool-layout">
+        <form class="calc-form" onsubmit="return false">
+          <label class="wide">סכום בשקלים <input id="ti-amount" type="number" min="0" step="any" value="1000" inputmode="decimal"></label>
+          <label class="wide">סוג המדד <select id="ti-index"><option value="cpi">מדד המחירים לצרכן</option></select></label>
+          <fieldset class="wide"><legend>סוג המדד לחישוב</legend><label><input type="radio" name="ti-mode" value="known" checked> מדד ידוע</label><label><input type="radio" name="ti-mode" value="for"> מדד בגין</label></fieldset>
+          <div class="date-group"><span>חודש בסיס</span><label>שנה <select id="ti-base-year"></select></label><label>חודש <select id="ti-base-month"></select></label></div>
+          <div class="date-group"><span>חודש יעד</span><label>שנה <select id="ti-target-year"></select></label><label>חודש <select id="ti-target-month"></select></label></div>
+        </form>
+        <div class="calc-output">
+          <p class="inline-error" id="ti-error" role="alert"></p>
+          <div class="calc-result" id="ti-result">
+            <span>סכום מוצמד</span><strong id="ti-indexed" dir="ltr">—</strong><small>₪</small>
+            <hr><span>הפרש</span><strong id="ti-difference" dir="ltr">—</strong><small>₪</small>
+            <hr><span class="calc-note" id="ti-detail"></span>
+          </div>
+        </div>
+      </div>
+        <div class="tool-actions"><button type="button" class="btn-ghost" id="ti-xlsx">ייצוא לאקסל</button><button type="button" class="btn-ghost" id="ti-pdf">ייצוא ל־PDF</button></div>
+    </section>
+
+    <section class="panel tool-page" id="tool-fx-page" hidden aria-labelledby="tool-fx-title">
+      <div class="section-heading"><div><p class="eyebrow">כלי 2</p><h2 id="tool-fx-title">הצמדה למטבע</h2></div><a class="tool-back" href="#/tools">← לכל הכלים</a></div>
+      <div class="tool-layout">
+        <form class="calc-form" onsubmit="return false">
+          <fieldset class="wide"><legend>סוג החישוב</legend><label><input type="radio" name="tf-kind" value="convert" checked> המרה לפי שער</label><label><input type="radio" name="tf-kind" value="link"> הצמדה בין תאריכים</label></fieldset>
+          <label class="wide">סכום <input id="tf-amount" type="number" min="0" step="any" value="1000" inputmode="decimal"></label>
+          <label class="tf-convert-only">ממטבע <select id="tf-from"></select></label>
+          <label class="tf-convert-only">למטבע <select id="tf-to"></select></label>
+          <label class="tf-link-only wide" hidden>מטבע ההצמדה <select id="tf-currency"></select></label>
+          <label class="wide" id="tf-date-label">תאריך השער <input id="tf-date" type="date"></label>
+          <label class="tf-link-only wide" hidden>תאריך יעד <input id="tf-date-target" type="date"></label>
+        </form>
+        <div class="calc-output">
+          <p class="inline-error" id="tf-error" role="alert"></p>
+          <div class="calc-result" id="tf-result">
+            <span id="tf-result-label">סכום ממומר</span><strong id="tf-value" dir="ltr">—</strong><small id="tf-unit"></small>
+            <hr><span class="calc-note" id="tf-detail"></span>
+          </div>
+        </div>
+      </div>
+        <div class="tool-actions"><button type="button" class="btn-ghost" id="tf-xlsx">ייצוא לאקסל</button><button type="button" class="btn-ghost" id="tf-pdf">ייצוא ל־PDF</button></div>
+    </section>
+
+    <section class="panel tool-page" id="tool-history-page" hidden aria-labelledby="tool-history-title">
+      <div class="section-heading"><div><p class="eyebrow">כלי 3</p><h2 id="tool-history-title">נתוני מדד היסטוריים</h2></div><a class="tool-back" href="#/tools">← לכל הכלים</a></div>
+      <form class="range-controls" onsubmit="return false">
+        <span>מ־</span><label>שנה <select id="th-start-year"></select></label><label>חודש <select id="th-start-month"></select></label>
+        <span>עד</span><label>שנה <select id="th-end-year"></select></label><label>חודש <select id="th-end-month"></select></label>
+      </form>
+      <p class="inline-error" id="th-error" role="alert"></p>
+        <div class="tool-actions"><button type="button" class="btn-ghost btn-copy" id="th-copy">העתקה לאקסל</button><button type="button" class="btn-ghost" id="th-xlsx">ייצוא לאקסל</button><button type="button" class="btn-ghost" id="th-pdf">ייצוא ל־PDF</button></div>
+      <div class="table-wrap"><table class="data-table" id="th-table"><thead><tr><th scope="col">חודש</th><th scope="col">מדד משורשר</th><th scope="col">מדד מקורי</th><th scope="col">שינוי חודשי</th><th scope="col">שינוי שנתי</th></tr></thead><tbody id="th-body"></tbody></table></div>
+      <p class="table-note" id="th-note"></p>
+    </section>
+
+    <section class="panel tool-page" id="tool-rent-page" hidden aria-labelledby="tool-rent-title">
+      <div class="section-heading"><div><p class="eyebrow">כלי 4</p><h2 id="tool-rent-title">הצמדת הסכם שכירות למדד</h2></div><a class="tool-back" href="#/tools">← לכל הכלים</a></div>
+      <form class="rent-form" onsubmit="return false">
+        <fieldset class="rent-block"><legend>פרטי ההסכם</legend>
+          <div class="rent-grid">
+            <label>מועד הסכם השכירות <input id="tr-contract-date" type="date"></label>
+            <label>שם המשכיר <input id="tr-landlord" type="text" placeholder="שם מלא"></label>
+            <label>שם השוכר <input id="tr-tenant" type="text" placeholder="שם מלא"></label>
+          </div>
+        </fieldset>
+        <fieldset class="rent-block"><legend>תקופת השכירות הבסיסית</legend>
+          <div class="rent-grid">
+            <label>מחודש <input id="tr-base-start" type="month"></label>
+            <label>עד חודש <input id="tr-base-end" type="month"></label>
+            <label>דמי שכירות חודשיים (₪) <input id="tr-base-rent" type="number" min="0" step="any" value="5000" inputmode="decimal"></label>
+          </div>
+        </fieldset>
+        <fieldset class="rent-block"><legend>תקופות אופציה והארכה</legend>
+          <label class="rent-inline"><input id="tr-has-options" type="checkbox"> קיימות תקופות אופציה</label>
+          <div id="tr-options" hidden>
+            <div id="tr-option-rows"></div>
+            <button type="button" class="btn-ghost" id="tr-add-option">הוספת תקופה</button>
+          </div>
+        </fieldset>
+        <fieldset class="rent-block"><legend>מדד הבסיס</legend>
+          <label class="rent-inline"><input id="tr-custom-base" type="checkbox"> מדד בסיס מוסכם אחר (במקום המדד הידוע במועד ההסכם)</label>
+          <div class="rent-grid" id="tr-custom-base-fields" hidden>
+            <label>שנה <select id="tr-base-index-year"></select></label>
+            <label>חודש <select id="tr-base-index-month"></select></label>
+          </div>
+          <p class="rent-hint" id="tr-base-index-note"></p>
+        </fieldset>
+        <fieldset class="rent-block"><legend>אופן ההצמדה</legend>
+          <label class="rent-inline"><input type="radio" name="tr-floor" value="floor" checked> רק הפרש לתשלום — אם המדד ירד, התשלום נשאר הנומינלי</label>
+          <label class="rent-inline"><input type="radio" name="tr-floor" value="full"> הצמדה מלאה — להתחשב גם בירידת המדד</label>
+        </fieldset>
+      </form>
+      <p class="inline-error" id="tr-error" role="alert"></p>
+      <div id="tr-output" hidden>
+        <div class="rent-summary" id="tr-summary"></div>
+        <div id="tr-periods"></div>
+        <fieldset class="rent-block"><legend>טווח לייצוא</legend>
+          <div class="rent-grid">
+            <label>תקופה <select id="tr-export-period"><option value="all">כל התקופות</option></select></label>
+            <label>מחודש <input id="tr-export-from" type="month"></label>
+            <label>עד חודש <input id="tr-export-to" type="month"></label>
+          </div>
+          <label class="rent-inline"><input id="tr-exclude-paid" type="checkbox" checked> להשמיט חודשים שההפרש בגינם כבר שולם</label>
+        </fieldset>
+        <div class="tool-actions"><button type="button" class="btn-ghost" id="tr-xlsx">ייצוא לאקסל</button><button type="button" class="btn-ghost" id="tr-pdf">ייצוא ל־PDF</button></div>
+      </div>
+    </section>
   </main>
 
   <main class="shell info-view" id="info-view" hidden>
@@ -235,7 +369,12 @@
   <script src="assets/statso-guide-art.js" data-inline="script"></script>
   <script src="assets/statso-guides.js" data-inline="script"></script>
   <script src="assets/statso-contact.js" data-inline="script"></script>
+  <script src="assets/statso-xlsx.js" data-inline="script"></script>
+  <script src="assets/statso-export.js" data-inline="script"></script>
+  <script src="assets/statso-tools.js" data-inline="script"></script>
+  <script src="assets/statso-rent.js" data-inline="script"></script>
   <script src="assets/statso-nav.js" data-inline="script"></script>
   <script src="assets/statso-app.js" data-inline="script"></script>
+  <div id="print-root" aria-hidden="true"></div>
 </body>
 </html>
