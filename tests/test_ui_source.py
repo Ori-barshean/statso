@@ -106,7 +106,6 @@ class UiSourceTests(unittest.TestCase):
     def test_top_nav_is_three_destinations_plus_the_tools_menu(self):
         nav = re.search(r'<nav class="site-nav".*?</nav>', self.html, re.DOTALL).group(0)
         self.assertEqual(nav.count('class="nav-item"'), 2)
-        self.assertIn('id="lang-toggle"', nav)
         for href in ('href="#/"', 'href="#/guides"', 'href="#/tools"'):
             self.assertIn(href, nav)
         submenu = re.search(r'<ul class="nav-submenu".*?</ul>', nav, re.DOTALL).group(0)

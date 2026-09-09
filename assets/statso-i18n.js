@@ -129,12 +129,10 @@
     const html = document.documentElement;
     html.setAttribute('lang', lang);
     html.setAttribute('dir', lang === 'he' ? 'rtl' : 'ltr');
-    const button = document.getElementById('lang-toggle');
-    if (button) {
-      button.textContent = lang === 'he' ? 'EN' : 'עב';
-      button.setAttribute('aria-label', lang === 'he' ? 'Switch to English' : 'מעבר לעברית');
-      button.setAttribute('title', button.getAttribute('aria-label'));
-    }
+    document.querySelectorAll('.lang-choice').forEach(function (choice) {
+      const active = choice.getAttribute('data-lang-choice') === lang;
+      if (active) { choice.setAttribute('aria-current', 'true'); } else { choice.removeAttribute('aria-current'); }
+    });
     const title = document.querySelector('title');
     if (title) { translateTextNode(title.firstChild || title.appendChild(document.createTextNode(''))); }
     apply(document.body);
@@ -154,11 +152,35 @@
   function current() { return lang; }
   function locale() { return lang === 'he' ? 'he-IL' : 'en-GB'; }
 
+  function closeMenu() {
+    const menu = document.getElementById('lang-menu');
+    const button = document.getElementById('lang-toggle');
+    if (menu) { menu.hidden = true; }
+    if (button) { button.setAttribute('aria-expanded', 'false'); }
+  }
+
   function init() {
     lang = readInitial();
     const button = document.getElementById('lang-toggle');
-    if (button) { button.addEventListener('click', function () { set(lang === 'he' ? 'en' : 'he'); }); }
-    // The toggle's own label must not be swapped by the text walker.
+    const menu = document.getElementById('lang-menu');
+    if (button && menu) {
+      button.addEventListener('click', function (event) {
+        event.stopPropagation();
+        const open = menu.hidden;
+        menu.hidden = !open;
+        button.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+      menu.querySelectorAll('.lang-choice').forEach(function (choice) {
+        choice.addEventListener('click', function () {
+          set(choice.getAttribute('data-lang-choice'));
+          closeMenu();
+        });
+      });
+      document.addEventListener('click', function (event) {
+        if (!menu.hidden && !document.getElementById('lang-picker').contains(event.target)) { closeMenu(); }
+      });
+      document.addEventListener('keydown', function (event) { if (event.key === 'Escape') { closeMenu(); } });
+    }
     paint();
     startObserver();
   }

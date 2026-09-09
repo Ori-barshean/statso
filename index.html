@@ -24,16 +24,23 @@
             <li><a href="#/tools/rent">הצמדת הסכם שכירות</a></li>
           </ul>
         </div>
-        <button type="button" class="nav-item nav-lang" id="lang-toggle" data-i18n-skip>EN</button>
       </nav>
-      <a class="brand" href="index.html" aria-label="statso — דף הבית"><span class="brand-mark">s</span><span>statso</span></a>
+      <div class="brand-group">
+        <a class="brand" href="index.html" aria-label="statso — דף הבית"><span class="brand-mark">s</span><span>statso</span></a>
+        <div class="lang-picker" id="lang-picker" data-i18n-skip>
+          <button type="button" class="lang-button" id="lang-toggle" aria-haspopup="true" aria-expanded="false" aria-controls="lang-menu">Switch Language</button>
+          <ul class="lang-menu" id="lang-menu" hidden>
+            <li><button type="button" class="lang-choice" data-lang-choice="he">עברית</button></li>
+            <li><button type="button" class="lang-choice" data-lang-choice="en">English</button></li>
+          </ul>
+        </div>
+      </div>
     </div>
   </header>
 
   <main class="shell" id="dashboard-view">
     <section class="hero" aria-labelledby="page-title">
-      <p class="eyebrow">תמונת מצב עדכנית</p>
-      <h1 id="page-title">נתונים בזריזות - ישראל</h1>
+      <h1 class="eyebrow" id="page-title">תמונת מצב עדכנית</h1>
       <p>מדד המחירים לצרכן, ריבית בנק ישראל וכלי הצמדה — על בסיס מקורות רשמיים.</p>
     </section>
 

@@ -20,6 +20,7 @@ def page_strings():
     """Hebrew text nodes and attributes the page ships, minus the he-only blocks."""
     html = (ROOT / "index.html").read_text(encoding="utf-8")
     html = re.sub(r'<script\b.*?</script>', '', html, flags=re.DOTALL)
+    html = re.sub(r'<div class="lang-picker".*?</div>\s*</div>', '', html, flags=re.DOTALL)
     # the information pages carry a full English sibling instead of per-string keys
     html = re.sub(r'<div class="prose-guide" data-lang="he">.*?</div>\s*(?=<div class="prose-guide" data-lang="en")',
                   '', html, flags=re.DOTALL)
@@ -64,11 +65,22 @@ class EngineTests(unittest.TestCase):
         self.assertIn("MutationObserver", self.engine)
         self.assertIn("characterData: true", self.engine)
 
-    def test_the_toggle_is_in_the_nav_and_excluded_from_translation(self):
-        nav = re.search(r'<nav class="site-nav".*?</nav>', self.html, re.DOTALL).group(0)
-        self.assertIn('id="lang-toggle"', nav)
-        self.assertIn("data-i18n-skip", nav)
+    def test_the_language_picker_sits_beside_the_brand(self):
+        group = re.search(r'<div class="brand-group">.*?</div>\s*</div>', self.html, re.DOTALL).group(0)
+        self.assertIn('id="lang-picker"', group)
+        self.assertIn("data-i18n-skip", group)
+        self.assertIn('class="brand"', group)
+        self.assertLess(group.index('class="brand"'), group.index("lang-picker"),
+                        "brand first, so in RTL statso sits on the right and the picker to its left")
+        for choice in ('data-lang-choice="he"', 'data-lang-choice="en"'):
+            self.assertIn(choice, group)
+        self.assertIn(">Switch Language<", group)
         self.assertIn("node.hasAttribute('data-i18n-skip')", self.engine)
+
+    def test_the_picker_opens_a_menu_and_closes_again(self):
+        self.assertIn("aria-expanded", self.engine)
+        self.assertIn("function closeMenu()", self.engine)
+        self.assertIn("event.key === 'Escape'", self.engine)
 
     def test_exports_follow_the_language(self):
         xlsx = (ROOT / "assets/statso-xlsx.js").read_text(encoding="utf-8")
