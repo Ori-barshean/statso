@@ -5,7 +5,8 @@ from pathlib import Path
 ROOT = Path(__file__).parent.parent
 
 TOOLS = [("index", "tool-index-page", "ti"), ("fx", "tool-fx-page", "tf"),
-         ("history", "tool-history-page", "th"), ("rent", "tool-rent-page", "tr")]
+         ("history", "tool-history-page", "th"),
+         ("fx-history", "tool-fx-history-page", "fxh"), ("rent", "tool-rent-page", "tr")]
 
 
 class ToolsSourceTests(unittest.TestCase):
@@ -31,6 +32,27 @@ class ToolsSourceTests(unittest.TestCase):
         self.assertIn("if (restored) { return; }", text)
         self.assertNotIn("setTimeout(restore", text)
         self.assertLess(text.index("root.print();"), text.index("restore();\n    return true;"))
+
+    def test_fx_history_offers_currencies_a_range_and_a_resolution(self):
+        for field in ('id="fxh-currencies"', 'id="fxh-from"', 'id="fxh-to"',
+                      'id="fxh-resolution"', 'id="fxh-copy"', 'id="fxh-averages"'):
+            self.assertIn(field, self.html)
+        for value in ('value="daily"', 'value="weekly"', 'value="monthly"', 'value="yearly"'):
+            self.assertIn(value, self.html)
+
+    def test_fx_history_averages_the_period_and_never_truncates_the_export(self):
+        text = self.scripts["statso-fxhistory.js"]
+        self.assertIn("cell.sum / cell.count", text)
+        self.assertIn("count ? total / count : null", text)
+        self.assertIn("rows.slice(0, MAX_RENDERED_ROWS)", text)
+        matrix = text.split("function matrix()")[1].split("function subtitle()")[0]
+        self.assertNotIn("MAX_RENDERED_ROWS", matrix, "the export must cover the whole range")
+
+    def test_old_rates_are_not_rounded_away(self):
+        core = self.scripts["statso-core.js"]
+        self.assertIn("function formatRateSmart(x)", core)
+        self.assertIn("formatRateSmart: formatRateSmart", core)
+        self.assertIn("Statso.core.formatRateSmart", self.scripts["statso-fxhistory.js"])
 
     def test_the_dashboard_calculator_is_still_there(self):
         for marker in ('id="calculator-section"', 'name="calc-kind"', 'id="calc-amount"'):

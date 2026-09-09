@@ -130,11 +130,35 @@
     'שינוי שנתי %': 'Year over year %',
     'חודש ההתחלה חייב להיות מוקדם מחודש הסיום.': 'The start month must come before the end month.',
 
+
+    // --- historical exchange rates tool --------------------------------------
+    'נתוני שער חליפין היסטוריים': 'Historical exchange rate data',
+    'שערי חליפין היסטוריים': 'Historical exchange rates',
+    'שערים יציגים לטווח ולמטבעות שתבחר, יומי או כממוצע תקופתי.':
+      'Representative rates for the range and currencies you pick, daily or as a period average.',
+    'כלי 5': 'Tool 5',
+    'מטבעות': 'Currencies',
+    'טווח ורזולוציה': 'Range and resolution',
+    'מתאריך': 'From date',
+    'עד תאריך': 'To date',
+    'רזולוציה': 'Resolution',
+    'יומי — כל שער שפורסם': 'Daily — every published rate',
+    'שבועי — ממוצע': 'Weekly — average',
+    'חודשי — ממוצע': 'Monthly — average',
+    'שנתי — ממוצע': 'Yearly — average',
+    'ממוצע לתקופה': 'Period average',
+    'ממוצע לתקופה ·': 'Period average ·',
+    'יש לבחור מטבע אחד לפחות.': 'Choose at least one currency.',
+    'יש לבחור טווח תאריכים.': 'Choose a date range.',
+    'תאריך ההתחלה חייב להיות מוקדם מתאריך הסיום.': 'The start date must come before the end date.',
+    'אין שערים שפורסמו בטווח שנבחר.': 'No rates were published in the selected range.',
     // --- rent tool ----------------------------------------------------------
     'הצמדת הסכם שכירות למדד': 'Rent agreement index linkage',
     'פרטי ההסכם': 'Agreement details',
     'מועד הסכם השכירות': 'Date of the rent agreement',
     'שם המשכיר': 'Landlord',
+    'משכיר': 'Landlord',
+    'שוכר': 'Tenant',
     'שם השוכר': 'Tenant',
     'שם מלא': 'Full name',
     'תקופת השכירות הבסיסית': 'Base rental period',
@@ -383,6 +407,17 @@
 
   // Sentences the modules assemble at run time. First match wins.
   const enPatterns = [
+    [/^סכום ממומר \((.+)\)$/, 'Converted amount ($1)'],
+    [/^(.+) \(מוסכם\)$/, '$1 (agreed)'],
+    [/^(.+) \(מדד ידוע במועד ההסכם\)$/, '$1 (known index at signing)'],
+    [/^(.+) ← (.+) · מדד בסיס (.+)$/, '$1 → $2 · base index $3'],
+    [/^שבוע של (.+)$/, 'Week of $1'],
+    [/^(\d+) שורות בטווח שנבחר\. כל שער שפורסם בטווח\. הסדרות אינן רציפות — אין פרסום בסופי שבוע ובחלק מהחגים\.(.*)$/,
+      '$1 rows in the selected range. Every rate published in it; the series are not continuous — nothing is published at weekends or on some holidays.$2'],
+    [/^(\d+) שורות בטווח שנבחר\. כל שורה היא ממוצע השערים שפורסמו באותה תקופה\.(.*)$/,
+      '$1 rows in the selected range. Each row is the average of the rates published in that period.$2'],
+    [/^ מוצגות (\d+) השורות הראשונות; הייצוא וההעתקה כוללים את כל הטווח\.$/,
+      ' Showing the first $1 rows; the export and the copy cover the whole range.'],
     [/^בחודש (.+), מדד בגין הוא מדד (.+)\. מדד ידוע באותו חודש הוא מדד (.+)\. מדד בגין החודש מתפרסם ב-(.+)$/,
       'In $1, the index for the month is the $2 reading. The known index that month is the $3 reading. The index for $1 is published on $4'],
     [/^(.+)–(.+) · (.+) ₪ לחודש$/, '$1–$2 · $3 ₪ per month'],

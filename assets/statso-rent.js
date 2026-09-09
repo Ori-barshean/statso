@@ -10,6 +10,7 @@
   let rangeTouched = false;   // once the user picks an export range, stop widening it
 
   function el(id) { return document.getElementById(id); }
+  function say(text) { return Statso.i18n ? Statso.i18n.t(text) : text; }
   function on(id, event, handler) { const node = el(id); if (node) { node.addEventListener(event, handler); } }
   function monthsBetween(start, end) {
     const out = [];
@@ -277,7 +278,7 @@
     if (!selection.length) { el('tr-error').textContent = 'אין חודשים בטווח שנבחר לייצוא.'; return; }
     el('tr-error').textContent = '';
     const grand = totalsOf(selection.reduce(function (acc, period) { return acc.concat(period.rows); }, []));
-    const subtitle = (model.form.landlord || 'משכיר') + ' ← ' + (model.form.tenant || 'שוכר')
+    const subtitle = (model.form.landlord || say('משכיר')) + ' ← ' + (model.form.tenant || say('שוכר'))
       + ' · מדד בסיס ' + Statso.core.formatMonthHe(model.baseIndexMonth);
 
     if (kind === 'xlsx') {
@@ -289,9 +290,9 @@
       });
       const sheet = {name: 'הפרשי הצמדה',
         columns: [{width: 12}, {width: 13}, {width: 14}, {width: 10}, {width: 13}, {width: 13}, {width: 13}, {width: 15}],
-        merges: ['A1:H1'], rows: [[{v: 'הפרשי הצמדה — ' + subtitle, s: S().title}], []]};
+        merges: ['A1:H1'], rows: [[{v: say('הפרשי הצמדה') + ' — ' + subtitle, s: S().title}], []]};
       selection.forEach(function (period) {
-        sheet.rows.push([{v: period.label + ' · ' + Statso.core.formatMonthHe(period.start) + '–'
+        sheet.rows.push([{v: say(period.label) + ' · ' + Statso.core.formatMonthHe(period.start) + '–'
           + Statso.core.formatMonthHe(period.end), s: S().title}]);
         sheet.rows.push(HEAD.map(function (text) { return {v: text, s: S().header}; }));
         matrix(period.rows).forEach(function (row) {

@@ -109,8 +109,8 @@ class UiSourceTests(unittest.TestCase):
         for href in ('href="#/"', 'href="#/guides"', 'href="#/tools"'):
             self.assertIn(href, nav)
         submenu = re.search(r'<ul class="nav-submenu".*?</ul>', nav, re.DOTALL).group(0)
-        self.assertEqual(submenu.count("<a "), 4)
-        for route in ("index", "fx", "history", "rent"):
+        self.assertEqual(submenu.count("<a "), 5)
+        for route in ("index", "fx", "history", "fx-history", "rent"):
             self.assertIn(f'href="#/tools/{route}"', submenu)
 
 

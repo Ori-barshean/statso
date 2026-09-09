@@ -11,6 +11,7 @@
     '#/tools/index': 'tool-index-page',
     '#/tools/fx': 'tool-fx-page',
     '#/tools/history': 'tool-history-page',
+    '#/tools/fx-history': 'tool-fx-history-page',
     '#/tools/rent': 'tool-rent-page'
   };
 

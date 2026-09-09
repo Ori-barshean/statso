@@ -72,6 +72,15 @@
   function latestObservation(cpiDoc, map) { return map.get(cpiDoc.last_month); }
   function formatNumber(x, digits) { return new Intl.NumberFormat('he-IL', {minimumFractionDigits: digits, maximumFractionDigits: digits}).format(x); }
   function formatPercent(x) { return formatNumber(x, 2) + '%'; }
+  // Rates reach back to 1948, when a dollar cost 0.000025 lira. A fixed four
+  // decimals would render those as 0.0000, so widen the window for small values.
+  function formatRateSmart(x) {
+    const size = Math.abs(x);
+    let digits = 4;
+    if (size > 0 && size < 1) { digits = Math.min(10, Math.max(4, 4 + Math.ceil(-Math.log10(size)))); }
+    return new Intl.NumberFormat('he-IL', {minimumFractionDigits: 2, maximumFractionDigits: digits}).format(x);
+  }
+
   function formatRate(x) { return new Intl.NumberFormat('he-IL', {minimumFractionDigits: 2, maximumFractionDigits: 4}).format(x); }
   function formatMonthHe(key) { const p = key.split('-'); return p[1] + '/' + p[0]; }
   function formatIsoDateHe(value) { const p = value.split('-'); return p[2] + '/' + p[1] + '/' + p[0]; }
@@ -81,6 +90,7 @@
     indexAmount: indexAmount, readingInBase: readingInBase, lookupRateAt: lookupRateAt, convertAmount: convertAmount,
     yearOverYear: yearOverYear, monthOverMonth: monthOverMonth,
     primeRate: primeRate, PRIME_SPREAD: PRIME_SPREAD, formatRate: formatRate,
+    formatRateSmart: formatRateSmart,
     CURRENCY_NAMES: CURRENCY_NAMES, latestObservation: latestObservation,
     formatNumber: formatNumber, formatPercent: formatPercent, formatMonthHe: formatMonthHe,
     formatIsoDateHe: formatIsoDateHe};

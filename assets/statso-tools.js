@@ -6,6 +6,7 @@
   let fxSummary = null, fxDaily = null, fxPending = false;
 
   function el(id) { return document.getElementById(id); }
+  function say(text) { return Statso.i18n ? Statso.i18n.t(text) : text; }
   function on(id, event, handler) { const node = el(id); if (node) { node.addEventListener(event, handler); } }
   function options(from, to, pad) {
     let out = '';
@@ -196,7 +197,7 @@
     const title = fxResult.kind === 'link' ? 'הצמדה למטבע' : 'המרת מטבע';
     if (kind === 'xlsx') {
       const sheet = {name: title, columns: [{width: 26}, {width: 22}], merges: ['A1:B1'],
-        rows: [[{v: title + ' — שערים יציגים של בנק ישראל', s: S().title}], []]};
+        rows: [[{v: say(title) + ' — ' + say('שערים יציגים של בנק ישראל'), s: S().title}], []]};
       rows.forEach(function (row) {
         sheet.rows.push([{v: row[0], s: S().header},
           typeof row[1] === 'number' ? {v: row[1], s: S().money} : {v: row[1], s: S().boxed}]);
@@ -279,7 +280,7 @@
       const sheet = {name: 'מדד היסטורי',
         columns: [{width: 12}, {width: 15}, {width: 14}, {width: 15}, {width: 15}],
         merges: ['A1:E1'],
-        rows: [[{v: 'מדד המחירים לצרכן — ' + subtitle, s: S().title}], [],
+        rows: [[{v: say('מדד המחירים לצרכן') + ' — ' + subtitle, s: S().title}], [],
           HISTORY_HEAD.map(function (text) { return {v: text, s: S().header}; })]};
       historyMatrix().forEach(function (row) {
         sheet.rows.push([{v: row[0], s: S().boxed}, {v: row[1], s: S().money}, {v: row[2], s: S().money},
@@ -359,6 +360,7 @@
     on('tf-xlsx', 'click', function () { exportFx('xlsx'); });
     on('tf-pdf', 'click', function () { exportFx('pdf'); });
     showFxKind();
+    if (Statso.fxhistory) { Statso.fxhistory.init(summary); }
   }
 
   Statso.tools = {init: init, initFx: initFx, computeIndex: computeIndex, computeFx: computeFx,
