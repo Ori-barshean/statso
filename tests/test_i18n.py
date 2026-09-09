@@ -89,6 +89,23 @@ class EngineTests(unittest.TestCase):
         export = (ROOT / "assets/statso-export.js").read_text(encoding="utf-8")
         self.assertLess(export.index("Statso.i18n.apply(container)"), export.index("root.print();"))
 
+    def test_guides_show_one_screenshot_in_english(self):
+        guides = (ROOT / "assets/statso-guides.js").read_text(encoding="utf-8")
+        self.assertIn("function artSlots(step, number)", guides)
+        block = guides.split("function artSlots(step, number)")[1].split("function renderSteps()")[0]
+        self.assertIn("if (site === 'en') { return artSlot(step, 'en', number); }", block)
+        self.assertIn("artSlot(step, 'he', number) + artSlot(step, 'en', number)", block)
+        # the step markup must go through the chooser, never call both directly
+        steps = guides.split("function renderSteps()")[1]
+        self.assertIn("artSlots(step, number)", steps)
+        self.assertNotIn("artSlot(step, 'he'", steps)
+
+    def test_an_open_guide_is_rebuilt_when_the_language_changes(self):
+        guides = (ROOT / "assets/statso-guides.js").read_text(encoding="utf-8")
+        self.assertIn("currentGuide = guideId", guides)
+        self.assertIn("Statso.i18n.onChange", guides)
+        self.assertIn("renderGuide(currentGuide)", guides)
+
     def test_the_header_stays_reachable_on_every_page(self):
         css = (ROOT / "assets/statso.css").read_text(encoding="utf-8")
         header = re.search(r"\.site-header \{[^}]*\}", css).group(0)

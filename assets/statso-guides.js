@@ -55,6 +55,14 @@
     else { visual = Statso.guideArt.render(source.art, {lang: lang, platform: state.platform, url: source.url || URLS[state.dataset].csv, dataset: state.dataset, step: stepNumber}); }
     return '<figure><div class="art-scroll art-scroll-' + (lang === 'he' ? 'rtl' : 'ltr') + '">' + visual + '</div><figcaption>' + caption + '</figcaption></figure>';
   }
+  // A Hebrew reader may be running Excel in either language, so both screenshots
+  // earn their place. An English reader has no use for the Hebrew Excel UI.
+  function artSlots(step, number) {
+    const site = Statso.i18n ? Statso.i18n.current() : 'he';
+    if (site === 'en') { return artSlot(step, 'en', number); }
+    return artSlot(step, 'he', number) + artSlot(step, 'en', number);
+  }
+
   function renderSteps() {
     const target = document.querySelector('.guide-steps-host');
     if (state.platform === 'mac' && state.method === 'webservice') {
@@ -66,7 +74,7 @@
     const note = state.platform === 'mac' && state.method === 'power' ? '<aside class="guide-note">״From Web״ קיים ב-Excel for Mac מתוך Microsoft 365 בגרסאות מ-2022 ואילך. אם הוא לא מופיע — יש לעדכן את אקסל או להשתמש בשיטת ההורדה הידנית.</aside>' : '';
     target.innerHTML = note + '<ol class="guide-steps">' + steps.map(function (step, index) {
       const number = index + 1;
-      return '<li><div class="step-copy"><h2>שלב ' + number + '</h2><p>' + step.text + '</p>' + (step.formula ? '<p><code dir="ltr">=WEBSERVICE(&quot;&lt;JSON URL&gt;&quot;)</code></p>' : '') + (step.url ? urlBlock(step.url) : '') + '</div><div class="step-art">' + artSlot(step, 'he', number) + artSlot(step, 'en', number) + '</div></li>';
+      return '<li><div class="step-copy"><h2>שלב ' + number + '</h2><p>' + step.text + '</p>' + (step.formula ? '<p><code dir="ltr">=WEBSERVICE(&quot;&lt;JSON URL&gt;&quot;)</code></p>' : '') + (step.url ? urlBlock(step.url) : '') + '</div><div class="step-art">' + artSlots(step, number) + '</div></li>';
     }).join('') + '</ol>';
     attachCopyButtons();
   }
@@ -108,7 +116,11 @@
       '<section><h2>4. מדדים נגזרים</h2><p>הלמ״ס מפרסמת גם חתכים שמנטרלים רכיבים תנודתיים: המדד ללא ירקות ופירות; המדד ללא דיור; המדד ללא ירקות ופירות וללא דיור; המדד ללא אנרגיה.</p><p>החתכים האלה משמשים כדי לראות מגמה בסיסית בלי רעש עונתי או תנודות אנרגיה.</p></section></div>';
     fillCpiExample();
   }
-  function renderGuide(guideId) { if (guideId === 'cpi-terms') { renderCpiGuide(); } else { renderExcelGuide(); } }
+  let currentGuide = null;
+  function renderGuide(guideId) {
+    currentGuide = guideId;
+    if (guideId === 'cpi-terms') { renderCpiGuide(); } else { renderExcelGuide(); }
+  }
   function showGuide(eventOrId) {
     const guideId = typeof eventOrId === 'string' ? eventOrId : eventOrId && eventOrId.currentTarget ? eventOrId.currentTarget.dataset.guide : 'excel';
     document.getElementById('guides-index').hidden = true; document.getElementById('guide-detail').hidden = false; renderGuide(guideId); root.scrollTo(0, 0);
@@ -130,5 +142,12 @@
   function attachCopyButtons() { document.querySelectorAll('.copy-url').forEach(function (button) { button.addEventListener('click', function () { copy(button); }); }); }
   function init() { renderIndex(); document.getElementById('guide-back').addEventListener('click', showIndex); }
   document.addEventListener('DOMContentLoaded', init);
+  if (root.Statso.i18n) {
+    root.Statso.i18n.onChange(function () {
+      const detail = document.getElementById('guide-detail');
+      if (detail && !detail.hidden && currentGuide) { renderGuide(currentGuide); }
+    });
+  }
+
   Statso.guides = {URLS: URLS, guides: guides, state: state, getSteps: getSteps, renderGuide: renderGuide, renderExcelGuide: renderExcelGuide, renderCpiGuide: renderCpiGuide, showGuide: showGuide, showIndex: showIndex};
 })(window);
