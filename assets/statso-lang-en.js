@@ -292,6 +292,10 @@
     // --- guide steps and diagrams -------------------------------------------
     'פותחים חוברת עבודה חדשה ועוברים ללשונית Data / ״נתונים״.':
       'Open a new workbook and go to the Data tab.',
+    'פותחים חוברת עבודה חדשה, עוברים ללשונית Data / ״נתונים״ ולוחצים על ״יבא נתונים (Power Query)״.':
+      'Open a new workbook, go to the Data tab, and click Get Data (Power Query).',
+    'אקסל למק בעברית: לשונית נתונים והכפתור ״יבא נתונים (Power Query)״.':
+      'Excel for Mac in Hebrew: the Data tab and the Get Data (Power Query) button.',
     'בוחרים Data ← Get Data ← From Web (בעברית: נתונים ← קבלת נתונים ← מהאינטרנט).':
       'Choose Data → Get Data → From Web.',
     'בוחרים Get Data ← From Other Sources ← From Web (בעברית: קבל נתונים ← ממקורות אחרים ← מהאינטרנט).':

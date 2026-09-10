@@ -232,7 +232,9 @@ footer { margin-top: 42px; background: white; border-top: 1px solid var(--line);
 .art-scroll { max-width: 100%; overflow-x: auto; }
 .art-scroll-rtl { direction: rtl; }
 .art-scroll-ltr { direction: ltr; }
-.guide-svg, .step-art img { display: block; width: 100%; min-width: 470px; height: auto; }
+.guide-svg, .step-art img, .guide-real-shot { display: block; width: 100%; min-width: 470px; height: auto; }
+.guide-real-shot { position: relative; }
+.guide-shot-arrow { position: absolute; inset: 0; display: block; width: 100%; height: 100%; pointer-events: none; }
 .step-art figcaption { padding-top: 7px; color: var(--muted); text-align: center; font-size: .78rem; font-weight: 700; }
 .prose-guide { display: grid; gap: 18px; }
 .prose-guide > section { padding: clamp(20px,3vw,30px); border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: 0 8px 28px rgba(30,50,80,.05); }
@@ -269,4 +271,4 @@ footer { margin-top: 42px; background: white; border-top: 1px solid var(--line);
 
 @media (max-width: 900px) { .kpi-grid { grid-template-columns: 1fr 1fr; } .calc-layout { grid-template-columns: 1fr; } .guide-selectors { grid-template-columns: 1fr; } }
 @media (max-width: 700px) { .step-art, .guide-cards { grid-template-columns: 1fr; } }
-@media (max-width: 600px) { .shell { width: min(100% - 22px, 1180px); } .header-inner { gap: 12px; } .brand { font-size: 1.08rem; } .nav-item { padding-inline: 10px; } .hero, .guide-hero { padding-top: 38px; } .kpi-grid { grid-template-columns: 1fr; } .section-heading { align-items: stretch; flex-direction: column; } .range-controls { justify-content: space-between; } .calc-form { grid-template-columns: minmax(0, 1fr); } .date-group { grid-column: 1; } .guide-svg, .step-art img { min-width: 430px; } footer .shell { align-items: flex-start; flex-direction: column; justify-content: center; padding-block: 16px; gap: 12px; } .footer-meta { width: 100%; flex-wrap: wrap; gap: 8px 16px; } .footer-links { justify-content: flex-start; gap: 6px; } }
+@media (max-width: 600px) { .shell { width: min(100% - 22px, 1180px); } .header-inner { gap: 12px; } .brand { font-size: 1.08rem; } .nav-item { padding-inline: 10px; } .hero, .guide-hero { padding-top: 38px; } .kpi-grid { grid-template-columns: 1fr; } .section-heading { align-items: stretch; flex-direction: column; } .range-controls { justify-content: space-between; } .calc-form { grid-template-columns: minmax(0, 1fr); } .date-group { grid-column: 1; } .guide-svg, .step-art img, .guide-real-shot { min-width: 430px; } footer .shell { align-items: flex-start; flex-direction: column; justify-content: center; padding-block: 16px; gap: 12px; } .footer-meta { width: 100%; flex-wrap: wrap; gap: 8px 16px; } .footer-links { justify-content: flex-start; gap: 6px; } }

@@ -1,4 +1,5 @@
 import argparse
+import base64
 import pathlib
 import re
 import sys
@@ -14,6 +15,9 @@ _ATTR_RE = re.compile(r'\b([\w-]+)="([^"]*)"')
 _FORBIDDEN = ("</script", "</style", "<!--", "-->")
 _JSON_MARKERS = 5
 _SCRIPT_MARKERS = 19
+_IMAGE_RE = re.compile(r"assets/images/[A-Za-z0-9_-]+\.(png|jpe?g|webp|svg|gif)(?![\w.-])", re.IGNORECASE)
+_IMAGE_MIME = {"png": "image/png", "jpg": "image/jpeg", "jpeg": "image/jpeg",
+               "webp": "image/webp", "svg": "image/svg+xml", "gif": "image/gif"}
 
 
 def escape_json_for_html(text: str) -> str:
@@ -40,6 +44,27 @@ def _read_source(relative_path, kind):
         if found:
             raise StatsoError(f"unsafe token {found!r} in {relative_path}")
     return text
+
+
+def _inline_images(html):
+    cache = {}
+
+    def image_replace(match):
+        relative_path = match.group(0)
+        if relative_path not in cache:
+            try:
+                payload = (REPO_ROOT / relative_path).read_bytes()
+            except OSError as exc:
+                raise StatsoError(f"cannot inline {relative_path}: {exc}") from exc
+            mime = _IMAGE_MIME[match.group(1).lower()]
+            cache[relative_path] = f"data:{mime};base64," + base64.b64encode(payload).decode("ascii")
+        return cache[relative_path]
+
+    html = _IMAGE_RE.sub(image_replace, html)
+    # an unsupported extension or an odd file name would otherwise ship as a broken relative path
+    if "assets/images/" in html:
+        raise StatsoError("offline transform left an assets/images/ reference behind")
+    return html
 
 
 def build(*, out=None, source=None):
@@ -91,6 +116,7 @@ def build(*, out=None, source=None):
     transformed = _SCRIPT_RE.sub(script_replace, transformed)
     transformed = _JSON_RE.sub(json_replace, transformed)
     transformed = _TEXT_RE.sub(text_replace, transformed)
+    transformed = _inline_images(transformed)
     if 'data-inline="style"' in transformed or 'data-inline="script"' in transformed:
         raise StatsoError("offline transform left asset markers behind")
     if transformed.count('data-inline="json"') != _JSON_MARKERS:

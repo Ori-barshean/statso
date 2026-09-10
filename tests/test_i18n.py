@@ -46,6 +46,11 @@ class DictionaryCoverageTests(unittest.TestCase):
         self.assertEqual(html.count('data-lang="he"'), html.count('data-lang="en"'))
         self.assertEqual(html.count('data-lang="he"'), 3)
 
+    def test_mac_power_step_and_image_alt_have_english_entries(self):
+        keys = dictionary_keys()
+        self.assertIn('פותחים חוברת עבודה חדשה, עוברים ללשונית Data / ״נתונים״ ולוחצים על ״יבא נתונים (Power Query)״.', keys)
+        self.assertIn('אקסל למק בעברית: לשונית נתונים והכפתור ״יבא נתונים (Power Query)״.', keys)
+
 
 class EngineTests(unittest.TestCase):
     @classmethod

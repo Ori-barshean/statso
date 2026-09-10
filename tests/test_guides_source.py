@@ -1,6 +1,7 @@
 import re
 import json
 import subprocess
+import struct
 import unittest
 from pathlib import Path
 
@@ -40,8 +41,85 @@ class GuidesSourceTests(unittest.TestCase):
         for name in ("ribbon-data", "menu-getdata", "dialog-fromweb", "dialog-navigator",
                      "sheet-loaded", "ribbon-refresh", "browser-save", "dialog-open-file", "cell-formula"):
             self.assertIn(name, self.art)
-        self.assertIn("source.img", self.guides)
         self.assertIn("rtl-art", self.art)
+
+    def test_mac_power_step_one_renders_the_hebrew_screenshot(self):
+        script = """
+global.window = {};
+const host = {innerHTML: ''};
+const stub = {setAttribute() {}, addEventListener() {}, innerHTML: ''};
+global.document = {addEventListener() {}, getElementById() { return stub; },
+  querySelector(s) { return s === '.guide-steps-host' ? host : stub; }, querySelectorAll() { return []; }};
+require(%s);
+require(%s);
+const S = window.Statso, out = {};
+for (const site of ['he', 'en']) {
+  S.i18n = {current: () => site, onChange() {}};
+  for (const platform of ['mac', 'win']) for (const dataset of ['boi', 'cpi']) {
+    Object.assign(S.guides.state, {platform, method: 'power', dataset});
+    S.guides.renderExcelGuide();
+    out[site + '/' + platform + '/' + dataset] = host.innerHTML;
+  }
+}
+out.shot = S.guides.getSteps('mac', 'power', 'boi')[0].shots.he;
+out.win = S.guides.getSteps('win', 'power', 'boi')[0];
+process.stdout.write(JSON.stringify(out));
+""" % (json.dumps(str(ROOT / "assets/statso-guide-art.js")), json.dumps(str(ROOT / "assets/statso-guides.js")))
+        out = json.loads(subprocess.run(
+            ["node", "-e", script], check=True, capture_output=True, text=True, encoding="utf-8"
+        ).stdout)
+        old_text = 'פותחים חוברת עבודה חדשה ועוברים ללשונית Data / ״נתונים״.'
+        new_text = 'פותחים חוברת עבודה חדשה, עוברים ללשונית Data / ״נתונים״ ולוחצים על ״יבא נתונים (Power Query)״.'
+        alt = 'אקסל למק בעברית: לשונית נתונים והכפתור ״יבא נתונים (Power Query)״.'
+
+        def steps(key):
+            return re.findall(r"<li>(.*?)</li>", out[key], re.S)
+
+        def figures(step):
+            return re.findall(r"<figure>.*?</figure>", step, re.S)
+
+        for dataset in ("boi", "cpi"):
+            mac = steps("he/mac/" + dataset)
+            self.assertEqual(len(mac), 6)
+            self.assertIn(new_text, mac[0])
+            pair = figures(mac[0])
+            self.assertEqual(len(pair), 2)
+            shot, drawn = pair
+            for expected in ('<img src="assets/images/excel-mac-power-query-he.png"', f'alt="{alt}"',
+                             'class="guide-shot-arrow"', 'viewBox="0 0 542 260"',
+                             'points="386,212 366.2,229.4 359.9,208.7"'):
+                self.assertIn(expected, shot)
+            for absent in ("guide-svg", ' id="', "<marker"):
+                self.assertNotIn(absent, shot)
+            self.assertIn('class="guide-svg', drawn)
+            self.assertNotIn("<img", drawn)
+            for later in mac[1:]:
+                self.assertNotIn("<img", later)
+                self.assertNotIn("guide-real-shot", later)
+
+            win = steps("he/win/" + dataset)
+            self.assertIn(old_text, win[0])
+            self.assertEqual(len(figures(win[0])), 2)
+            for figure in figures(win[0]):
+                self.assertIn('class="guide-svg', figure)
+
+            # the English site shows the English Excel figure only, so no Hebrew screenshot
+            for page in ("he/win/", "en/mac/", "en/win/"):
+                self.assertNotIn("<img", out[page + dataset])
+                self.assertNotIn("guide-real-shot", out[page + dataset])
+            for page in ("en/mac/", "en/win/"):
+                for step in steps(page + dataset):
+                    only = figures(step)
+                    self.assertEqual(len(only), 1)
+                    self.assertIn('class="guide-svg', only[0])
+
+        self.assertEqual(out["win"], {"text": old_text, "art": "ribbon-data"})
+        with (ROOT / out["shot"]["src"]).open("rb") as handle:
+            self.assertEqual(handle.read(8), b"\x89PNG\r\n\x1a\n")
+            length = struct.unpack(">I", handle.read(4))[0]
+            self.assertEqual(handle.read(4), b"IHDR")
+            width, height = struct.unpack(">II", handle.read(length)[:8])
+        self.assertEqual((width, height), (out["shot"]["width"], out["shot"]["height"]))
 
     def test_second_guide_and_id_dispatch(self):
         self.assertIn("id: 'cpi-terms'", self.guides)

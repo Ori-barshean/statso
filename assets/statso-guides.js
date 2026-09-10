@@ -16,7 +16,14 @@
     const csv = URLS[dataset].csv; const json = URLS[dataset].json;
     if (method === 'power') {
       return [
-        {text: 'פותחים חוברת עבודה חדשה ועוברים ללשונית Data / ״נתונים״.', art: 'ribbon-data'},
+        platform === 'mac' ? {
+          text: 'פותחים חוברת עבודה חדשה, עוברים ללשונית Data / ״נתונים״ ולוחצים על ״יבא נתונים (Power Query)״.',
+          art: 'ribbon-data',
+          shots: {he: {src: 'assets/images/excel-mac-power-query-he.png',
+                       alt: 'אקסל למק בעברית: לשונית נתונים והכפתור ״יבא נתונים (Power Query)״.',
+                       width: 542, height: 260,
+                       arrow: {from: [240, 240], c1: [280, 250], c2: [334, 228], to: [386, 212], width: 7, head: 24}}}
+        } : {text: 'פותחים חוברת עבודה חדשה ועוברים ללשונית Data / ״נתונים״.', art: 'ribbon-data'},
         {text: platform === 'mac' ? 'בוחרים Data ← Get Data ← From Web (בעברית: נתונים ← קבלת נתונים ← מהאינטרנט).' : 'בוחרים Get Data ← From Other Sources ← From Web (בעברית: קבל נתונים ← ממקורות אחרים ← מהאינטרנט).', art: 'menu-getdata'},
         {text: 'מדביקים את כתובת ה-CSV בתיבת URL ומאשרים ב-OK / ״אישור״.', art: 'dialog-fromweb', url: csv},
         {text: 'בחלון Navigator / ״נווט״ לוחצים Load / ״טען״, או Transform Data / ״המר נתונים״ לעריכה לפני הטעינה.', art: 'dialog-navigator'},
@@ -48,10 +55,28 @@
   function urlBlock(url) {
     return '<div class="url-block"><code dir="ltr">' + url + '</code><button class="copy-url" type="button" data-url="' + url + '">העתק</button></div>';
   }
+  function escAttr(value) { return String(value == null ? '' : value).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function round1(value) { return Math.round(value * 10) / 10; }
+  // The arrowhead is its own polygon laid along the curve's final tangent, not a <marker>,
+  // so any number of screenshots can share a page without clashing ids. Needs |to - c2| > head.
+  function arrowMarkup(arrow) {
+    const dx = arrow.to[0] - arrow.c2[0]; const dy = arrow.to[1] - arrow.c2[1]; const length = Math.hypot(dx, dy);
+    const ux = dx / length; const uy = dy / length; const half = 0.45 * arrow.head;
+    const base = [arrow.to[0] - arrow.head * ux, arrow.to[1] - arrow.head * uy];
+    const left = [base[0] - uy * half, base[1] + ux * half]; const right = [base[0] + uy * half, base[1] - ux * half];
+    const point = function (p, sep) { return round1(p[0]) + sep + round1(p[1]); };
+    return '<path d="M' + point(arrow.from, ' ') + ' C' + point(arrow.c1, ' ') + ' ' + point(arrow.c2, ' ') + ' ' + point(base, ' ') + '" fill="none" stroke="#f97316" stroke-width="' + arrow.width + '" stroke-linecap="round" stroke-linejoin="round"></path>' +
+      '<polygon points="' + point(arrow.to, ',') + ' ' + point(left, ',') + ' ' + point(right, ',') + '" fill="#f97316"></polygon>';
+  }
+  function shotMarkup(shot) {
+    const overlay = shot.arrow ? '<svg class="guide-shot-arrow" viewBox="0 0 ' + shot.width + ' ' + shot.height + '" aria-hidden="true" focusable="false">' + arrowMarkup(shot.arrow) + '</svg>' : '';
+    return '<div class="guide-real-shot"><img src="' + escAttr(shot.src) + '" alt="' + escAttr(shot.alt) + '" width="' + shot.width + '" height="' + shot.height + '">' + overlay + '</div>';
+  }
   function artSlot(source, lang, stepNumber) {
     const caption = lang === 'he' ? 'אקסל בעברית' : 'אקסל באנגלית';
     let visual;
-    if (source.img) { visual = '<img src="' + source.img + '" alt="' + source.alt + '">'; }
+    const shot = source.shots && source.shots[lang];
+    if (shot) { visual = shotMarkup(shot); }
     else { visual = Statso.guideArt.render(source.art, {lang: lang, platform: state.platform, url: source.url || URLS[state.dataset].csv, dataset: state.dataset, step: stepNumber}); }
     return '<figure><div class="art-scroll art-scroll-' + (lang === 'he' ? 'rtl' : 'ltr') + '">' + visual + '</div><figcaption>' + caption + '</figcaption></figure>';
   }

@@ -58,6 +58,9 @@ class BuildOfflineTests(unittest.TestCase):
             self.assertIn("Statso.guides", text)
             self.assertIn("מדד בגין מול מדד ידוע — ומה המדד בכלל מודד", text)
             self.assertIn("timeline-publication", text)
+            self.assertIn("data:image/png;base64,", text)
+            self.assertNotIn("assets/images/excel-mac-power-query-he.png", text)
+            self.assertNotIn("assets/images/", text)
             for route, title in (("about", "אודות"), ("method", "שיטת החישוב"),
                                  ("privacy", "מדיניות פרטיות"), ("contact", "צור קשר")):
                 self.assertIn(f'href="#/{route}"', text)
@@ -99,6 +102,20 @@ class BuildOfflineTests(unittest.TestCase):
             source.write_text(re.sub(r'<script[^>]*chart\.umd\.min\.js[^>]*>\s*</script>', '', self.html), encoding="utf-8")
             with self.assertRaises(StatsoError): build(out=out, source=source)
             self.assertFalse(out.exists())
+
+    def _assert_image_reference_fails_closed(self, reference):
+        with tempfile.TemporaryDirectory() as temp:
+            source = Path(temp) / "index.html"; out = Path(temp) / "out.html"
+            source.write_text(self.html.replace("</body>", f'<img src="{reference}" alt="">\n</body>', 1),
+                              encoding="utf-8")
+            with self.assertRaises(StatsoError): build(out=out, source=source)
+            self.assertFalse(out.exists())
+
+    def test_missing_image_fails_closed(self):
+        self._assert_image_reference_fails_closed("assets/images/does-not-exist.png")
+
+    def test_unsupported_image_reference_fails_closed(self):
+        self._assert_image_reference_fails_closed("assets/images/foo.bmp")
 
     def test_version_has_a_single_source(self):
         version = (ROOT / "VERSION").read_text().strip()
