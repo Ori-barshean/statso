@@ -185,7 +185,11 @@ class FxRatesTests(unittest.TestCase):
                 "observations"])
             self.assertEqual(obj["currency"], code)
             self.assertEqual(obj["unit"], 100 if code == "JPY" else 1)
-            self.assertEqual(obj["count"], fx_rates.MIN_COUNTS[code])
+            # The series gains a row every trading day, so the published count is a floor,
+            # not a match: asserting equality froze the nightly job the first time a new
+            # rate arrived, because the tests gate the refresh step.
+            self.assertEqual(obj["count"], len(obj["observations"]))
+            self.assertGreaterEqual(obj["count"], fx_rates.MIN_COUNTS[code])
             self.assertEqual(obj["first_date"], fx_rates.FIRST_DATES[code])
             self.assertEqual((data / "fx" / f"{code.lower()}_ils.csv").read_bytes(),
                              fx_rates.to_csv_bytes(obj["observations"]))
