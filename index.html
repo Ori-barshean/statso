@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="assets/statso.css" data-inline="style">
 </head>
 <body>
+  <button type="button" class="skip-link" id="skip-link">דילוג לתוכן המרכזי</button>
   <header class="site-header">
     <div class="shell header-inner">
       <nav class="site-nav" aria-label="ניווט ראשי">
@@ -16,8 +17,8 @@
         </a>
         <a class="nav-item" href="#/guides">מדריכים</a>
         <div class="nav-group">
-          <a class="nav-item" href="#/tools" aria-haspopup="true">כלים</a>
-          <ul class="nav-submenu" aria-label="כלים">
+          <a class="nav-item" href="#/tools" aria-haspopup="true" aria-expanded="false" aria-controls="tools-submenu" id="tools-trigger">כלים</a>
+          <ul class="nav-submenu" id="tools-submenu" aria-label="כלים">
             <li><a href="#/tools/index">הצמדה למדדים</a></li>
             <li><a href="#/tools/fx">הצמדה למטבע</a></li>
             <li><a href="#/tools/history">נתוני מדד היסטוריים</a></li>
@@ -25,6 +26,7 @@
             <li><a href="#/tools/rent">הצמדת הסכם שכירות</a></li>
           </ul>
         </div>
+        <a class="nav-item nav-item-stacked" href="#/mcode">קודים לייצוא (Power Query)</a>
       </nav>
       <div class="brand-group">
         <a class="brand" href="index.html" aria-label="statso — דף הבית"><span class="brand-mark">s</span><span>statso</span></a>
@@ -66,7 +68,7 @@
             <div><strong class="kpi-value" id="kpi-boi-rate" dir="ltr">—</strong><span class="kpi-meta">ריבית נוכחית</span></div>
             <div><strong class="kpi-value" id="kpi-boi-prime" dir="ltr">—</strong><span class="kpi-meta">ריבית פריים</span></div>
           </div>
-          <span class="kpi-footnote">החלטת הריבית הבאה: <strong id="kpi-next-decision" dir="ltr">—</strong></span>
+          <span class="kpi-footnote">החלטת הריבית הבאה: <strong id="kpi-next-decision" dir="ltr">—</strong><span class="kpi-footnote-sub">המועד עשוי להשתנות בהתאם להודעות בנק ישראל</span></span>
         </div>
       </article>
       <article class="kpi-card accent-cyan" id="fx-kpi" data-state="loading">
@@ -92,6 +94,7 @@
       <div class="state-error" id="fx-table-error"></div>
       <div class="state-ready">
         <div class="table-wrap"><table class="data-table" id="fx-table">
+          <caption class="sr-only">שערי חליפין נבחרים מול השקל, לפי מטבע</caption>
           <thead><tr id="fx-table-head"></tr></thead>
           <tbody id="fx-table-body"></tbody>
         </table></div>
@@ -104,7 +107,7 @@
         <div class="range-controls"><label>משנה <select id="chart-start-year"></select></label><label>עד <select id="chart-end-year"></select></label></div>
       </div>
       <div class="state-loading">טוען תרשים…</div><div class="state-error"></div>
-      <div class="state-ready"><p class="inline-error" id="chart-range-error" role="alert"></p><div class="chart-wrap"><canvas id="cpi-chart" aria-label="תרשים מדד המחירים לצרכן" role="img"></canvas></div></div>
+      <div class="state-ready"><p class="inline-error" id="chart-range-error" role="alert"></p><div class="chart-wrap"><canvas id="cpi-chart" aria-label="תרשים מדד המחירים לצרכן" role="img" aria-describedby="chart-alt-text"></canvas></div><p class="chart-alt" id="chart-alt-text">התרשים מציג את מגמת מדד המחירים לצרכן המשורשר לאורך הטווח שנבחר. <a href="#/tools/history">לצפייה בנתונים כטבלה</a></p></div>
     </section>
 
     <section class="panel calculator-panel" id="calculator-section" data-state="loading" aria-labelledby="calculator-title">
@@ -122,8 +125,8 @@
         </form>
         <div class="calc-output">
           <p class="inline-error" id="calc-error" role="alert"></p>
-          <div class="calc-result" id="calc-result"><span>סכום מוצמד</span><strong id="calc-result-indexed" dir="ltr">—</strong><small>₪</small><hr><span>הפרש</span><strong id="calc-result-difference" dir="ltr">—</strong><small>₪</small></div>
-          <div class="calc-result" id="calc-fx-result" hidden><span>סכום מומר</span><strong id="calc-fx-converted" dir="ltr">—</strong><small id="calc-fx-unit">—</small><hr><span>שער ההמרה</span><strong id="calc-fx-rate" dir="ltr">—</strong><small id="calc-fx-used-date"></small></div>
+          <div class="calc-result" id="calc-result"><span>סכום מוצמד</span><strong id="calc-result-indexed" dir="ltr">—</strong><small>₪</small><hr><span>הפרש</span><strong id="calc-result-difference" dir="ltr">—</strong><small>₪</small><p class="result-disclaimer">התוצאה מיועדת להמחשה בלבד. לפני שימוש כספי או משפטי יש לאמת את הנתונים ואת שיטת החישוב.</p></div>
+          <div class="calc-result" id="calc-fx-result" hidden><span>סכום מומר</span><strong id="calc-fx-converted" dir="ltr">—</strong><small id="calc-fx-unit">—</small><hr><span>שער ההמרה</span><strong id="calc-fx-rate" dir="ltr">—</strong><small id="calc-fx-used-date"></small><p class="result-disclaimer">התוצאה מיועדת להמחשה בלבד. לפני שימוש כספי או משפטי יש לאמת את הנתונים ואת שיטת החישוב.</p></div>
         </div>
       </div>
     </section>
@@ -138,6 +141,31 @@
       <button class="guide-back" id="guide-back" type="button">← חזרה לכל המדריכים</button>
       <div id="guide-content"></div>
     </article>
+  </main>
+
+  <main class="shell mcode-view" id="mcode-view" hidden>
+    <section class="hero guide-hero">
+      <h1>קודים לייצוא (Power Query)</h1>
+      <p>בוחרים סדרת נתונים וטווח תאריכים, ומעתיקים קוד מוכן להדבקה בעורך המתקדם של Power Query באקסל.</p>
+    </section>
+    <form class="mcode-form">
+      <fieldset><legend>סדרת נתונים</legend><div class="radio-options">
+        <label><input type="radio" name="mc-series" value="boi" checked> <span>ריבית בנק ישראל</span></label>
+        <label><input type="radio" name="mc-series" value="cpi"> <span>מדד המחירים לצרכן (משורשר)</span></label>
+        <label><input type="radio" name="mc-series" value="fx"> <span>שערי חליפין יציגים</span></label>
+      </div></fieldset>
+      <fieldset id="mc-currencies-block" hidden><legend>מטבעות</legend><div class="fxh-currencies" id="mc-currencies"></div></fieldset>
+      <fieldset><legend>טווח תאריכים</legend>
+        <div class="rent-grid">
+          <label for="mc-from">תאריך התחלה<input id="mc-from" type="date"></label>
+          <label for="mc-to">תאריך סיום<input id="mc-to" type="date"></label>
+        </div>
+        <label class="rent-inline"><input id="mc-average" type="checkbox"> <span>להוסיף שורת ממוצע בסוף הטבלה</span></label>
+      </fieldset>
+    </form>
+    <p id="mc-error" role="alert"></p>
+    <div class="code-block mcode-output"><pre dir="ltr" data-i18n-skip><code id="mc-code"></code></pre><button type="button" id="mc-copy">העתקת הקוד</button></div>
+    <aside class="guide-note"><p>הסבר שלב-אחר-שלב איך מדביקים את הקוד באקסל נמצא בעמוד <a href="#/guides">מדריכים</a>.</p></aside>
   </main>
 
   <main class="shell tools-view" id="tools-view" hidden>
@@ -171,6 +199,7 @@
             <span>סכום מוצמד</span><strong id="ti-indexed" dir="ltr">—</strong><small>₪</small>
             <hr><span>הפרש</span><strong id="ti-difference" dir="ltr">—</strong><small>₪</small>
             <hr><span class="calc-note" id="ti-detail"></span>
+            <p class="result-disclaimer">התוצאה מיועדת להמחשה בלבד. לפני שימוש כספי או משפטי יש לאמת את הנתונים ואת שיטת החישוב.</p>
           </div>
         </div>
       </div>
@@ -194,6 +223,7 @@
           <div class="calc-result" id="tf-result">
             <span id="tf-result-label">סכום ממומר</span><strong id="tf-value" dir="ltr">—</strong><small id="tf-unit"></small>
             <hr><span class="calc-note" id="tf-detail"></span>
+            <p class="result-disclaimer">התוצאה מיועדת להמחשה בלבד. לפני שימוש כספי או משפטי יש לאמת את הנתונים ואת שיטת החישוב.</p>
           </div>
         </div>
       </div>
@@ -208,7 +238,7 @@
       </form>
       <p class="inline-error" id="th-error" role="alert"></p>
         <div class="tool-actions"><button type="button" class="btn-ghost btn-copy" id="th-copy">העתקה לאקסל</button><button type="button" class="btn-ghost" id="th-xlsx">ייצוא לאקסל</button><button type="button" class="btn-ghost" id="th-pdf">ייצוא ל־PDF</button></div>
-      <div class="table-wrap"><table class="data-table" id="th-table"><thead><tr><th scope="col">חודש</th><th scope="col">מדד משורשר</th><th scope="col">מדד מקורי</th><th scope="col">שינוי חודשי</th><th scope="col">שינוי שנתי</th></tr></thead><tbody id="th-body"></tbody></table></div>
+      <div class="table-wrap"><table class="data-table" id="th-table"><caption class="sr-only">נתוני מדד המחירים לצרכן ההיסטוריים, לפי חודש</caption><thead><tr><th scope="col">חודש</th><th scope="col">מדד משורשר</th><th scope="col">מדד מקורי</th><th scope="col">שינוי חודשי</th><th scope="col">שינוי שנתי</th></tr></thead><tbody id="th-body"></tbody></table></div>
       <p class="table-note" id="th-note"></p>
     </section>
 
@@ -234,7 +264,7 @@
       <p class="inline-error" id="fxh-error" role="alert"></p>
       <div class="rent-summary" id="fxh-averages"></div>
       <div class="tool-actions"><button type="button" class="btn-ghost btn-copy" id="fxh-copy">העתקה לאקסל</button><button type="button" class="btn-ghost" id="fxh-xlsx">ייצוא לאקסל</button><button type="button" class="btn-ghost" id="fxh-pdf">ייצוא ל־PDF</button></div>
-      <div class="table-wrap"><table class="data-table" id="fxh-table"><thead><tr id="fxh-head"></tr></thead><tbody id="fxh-body"></tbody></table></div>
+      <div class="table-wrap"><table class="data-table" id="fxh-table"><caption class="sr-only">נתוני שערי חליפין היסטוריים, לפי מטבע ותאריך</caption><thead><tr id="fxh-head"></tr></thead><tbody id="fxh-body"></tbody></table></div>
       <p class="table-note" id="fxh-note"></p>
     </section>
 
@@ -278,6 +308,7 @@
       <p class="inline-error" id="tr-error" role="alert"></p>
       <div id="tr-output" hidden>
         <div class="rent-summary" id="tr-summary"></div>
+        <p class="result-disclaimer">התוצאה מיועדת להמחשה בלבד. לפני שימוש כספי או משפטי יש לאמת את הנתונים ואת שיטת החישוב.</p>
         <div id="tr-periods"></div>
         <fieldset class="rent-block"><legend>טווח לייצוא</legend>
           <div class="rent-grid">
@@ -301,12 +332,24 @@
           <p>כרגע נאספים שני מקורות: מדד המחירים לצרכן מהלשכה המרכזית לסטטיסטיקה, וריבית בנק ישראל.</p>
           <p>הנתונים מתרעננים אוטומטית כל לילה ב־<span dir="ltr">02:00</span> שעון ישראל. אם התוכן שנוצר זהה לקיים, לא נשמרת גרסה חדשה.</p>
         </section>
+        <section>
+          <p>statso הוא מיזם אישי וחובבני של מפעיל האתר, לא חברה או שירות מסחרי. השימוש באתר חינמי לחלוטין.</p>
+          <p>statso הוא אתר אישי וחובבני, שאינו מופעל מטעם הלשכה המרכזית לסטטיסטיקה, בנק ישראל או גוף ממשלתי אחר.</p>
+          <p>אפשר לפנות למפעיל האתר בכתובת <a href="mailto:ori.cpa.il@gmail.com" dir="ltr">ori.cpa.il@gmail.com</a>, או דרך <a href="#/contact">טופס יצירת הקשר</a>. פירוט מלא של מקורות הנתונים ושיטת החישוב מופיע ב<a href="#/method">עמוד שיטת החישוב</a>.</p>
+          <p>עדכון אחרון לעמוד זה: 11/09/2026.</p>
+        </section>
       </div>
       <div class="prose-guide" data-lang="en" hidden>
         <section>
           <p>statso collects Israeli economic data from official sources and publishes it as files at stable addresses, so that other tools — spreadsheets, websites, calculators — can pull the numbers directly.</p>
           <p>Two sources are collected today: the consumer price index from the Central Bureau of Statistics, and the Bank of Israel interest rate.</p>
           <p>The data refreshes automatically every night at <span dir="ltr">02:00</span> Israel time. If the generated content is identical to what is already published, no new version is stored.</p>
+        </section>
+        <section>
+          <p>statso is a personal hobby project of the site operator, not a company or a commercial service. Using the site is completely free.</p>
+          <p>statso is a personal, hobby website, not operated on behalf of the Central Bureau of Statistics, the Bank of Israel, or any other government body.</p>
+          <p>You can contact the site operator at <a href="mailto:ori.cpa.il@gmail.com" dir="ltr">ori.cpa.il@gmail.com</a>, or through the <a href="#/contact">contact form</a>. Full details of the data sources and calculation method are on the <a href="#/method">method page</a>.</p>
+          <p>This page was last updated on 11 September 2026.</p>
         </section>
       </div>
       <a class="info-back" href="#/">← חזרה לעמוד הבית</a>
@@ -319,21 +362,21 @@
           <h2>מקורות הנתונים</h2>
           <ul class="source-list">
             <li>הלמ״ס, מדד המחירים לצרכן (סדרה <span dir="ltr">120010</span>, ״מדד המחירים לצרכן - כללי״): <a href="https://api.cbs.gov.il/index/data/price?id=120010&amp;format=json&amp;download=false&amp;coef=true" dir="ltr">api.cbs.gov.il</a></li>
-            <li>הלמ״ס, פורטל המפתחים: <a href="https://www.cbs.gov.il/he/Pages/Developers-Portal.aspx" dir="ltr">cbs.gov.il</a></li>
+            <li>הלמ״ס, פורטל המפתחים: <a href="https://www.cbs.gov.il/he/Pages/%D7%9E%D7%9E%D7%A9%D7%A7-API.aspx" dir="ltr">cbs.gov.il</a></li>
             <li>בנק ישראל, ה־<span dir="ltr">API</span> הסטטיסטי (<span dir="ltr">SDMX</span>), סדרה <span dir="ltr">MNT_RIB_BOI_D “Bank Of Israel nominal interest rate”</span>: <a href="https://edge.boi.gov.il/FusionEdgeServer/sdmx/v2/" dir="ltr">edge.boi.gov.il</a></li>
             <li>בנק ישראל, ריבית נוכחית ומועד ההחלטה הבאה: <a href="https://boi.org.il/PublicApi/GetInterest" dir="ltr">boi.org.il/PublicApi/GetInterest</a></li>
           </ul>
         </section>
         <section>
           <h2>מדד המחירים לצרכן</h2>
-          <p>הסדרה חודשית ומתחילה ב־<span dir="ltr">09/1951</span>. כרגע <span dir="ltr">899</span> תצפיות.</p>
+          <p>הסדרה חודשית ומתחילה ב־<span dir="ltr">09/1951</span>. כרגע יש בה מאות תצפיות.</p>
           <p>לכל חודש מתפרסמים שני ערכים: הערך כפי שהלמ״ס פרסמה אותו, בבסיס שהיה בתוקף באותה תקופה; וערך משורשר לבסיס אחיד — ספטמבר 1951 = <span dir="ltr">100</span>.</p>
           <p>הלמ״ס מחליפה את בסיס המדד כל כמה שנים, ולאורך ההיסטוריה היו <span dir="ltr">22</span> בסיסים שונים. השרשור כאן אינו מכפלה של מקדמי המרה: הלמ״ס עצמה מפרסמת לכל חודש את ערכו בכל אחד מהבסיסים הקודמים, ואנחנו קוראים ישירות את הערך בבסיס ספטמבר 1951. כך לא מצטברת שגיאת עיגול לאורך מאות חודשים.</p>
         </section>
         <section>
           <h2>ריבית בנק ישראל</h2>
           <p>המקור הוא סדרה יומית רציפה שמתחילה ב־<span dir="ltr">27/01/1994</span>.</p>
-          <p>אנחנו מפרסמים נקודות שינוי בלבד: שורה אחת לכל תאריך שבו הריבית באמת השתנתה. הן נגזרות במעבר על הסדרה היומית ורישום שורה בכל פעם שהערך שונה מזה של היום הקודם. כרגע <span dir="ltr">159</span> נקודות שינוי.</p>
+          <p>אנחנו מפרסמים נקודות שינוי בלבד: שורה אחת לכל תאריך שבו הריבית באמת השתנתה. הן נגזרות במעבר על הסדרה היומית ורישום שורה בכל פעם שהערך שונה מזה של היום הקודם. כרגע יש עשרות נקודות שינוי.</p>
         </section>
         <section>
           <h2>מחשבון ההצמדה</h2>
@@ -350,21 +393,21 @@
           <h2>Data sources</h2>
           <ul class="source-list">
             <li>CBS, consumer price index (series <span dir="ltr">120010</span>, “Consumer Price Index — General”): <a href="https://api.cbs.gov.il/index/data/price?id=120010&amp;format=json&amp;download=false&amp;coef=true" dir="ltr">api.cbs.gov.il</a></li>
-            <li>CBS, developers portal: <a href="https://www.cbs.gov.il/he/Pages/Developers-Portal.aspx" dir="ltr">cbs.gov.il</a></li>
+            <li>CBS, developers portal: <a href="https://www.cbs.gov.il/he/Pages/%D7%9E%D7%9E%D7%A9%D7%A7-API.aspx" dir="ltr">cbs.gov.il</a></li>
             <li>Bank of Israel, statistical <span dir="ltr">API</span> (<span dir="ltr">SDMX</span>), series <span dir="ltr">MNT_RIB_BOI_D “Bank Of Israel nominal interest rate”</span>: <a href="https://edge.boi.gov.il/FusionEdgeServer/sdmx/v2/" dir="ltr">edge.boi.gov.il</a></li>
             <li>Bank of Israel, current rate and next decision date: <a href="https://boi.org.il/PublicApi/GetInterest" dir="ltr">boi.org.il/PublicApi/GetInterest</a></li>
           </ul>
         </section>
         <section>
           <h2>Consumer price index</h2>
-          <p>The series is monthly and starts in <span dir="ltr">09/1951</span>, with <span dir="ltr">899</span> observations at present.</p>
+          <p>The series is monthly and starts in <span dir="ltr">09/1951</span>, with hundreds of observations at present.</p>
           <p>Two values are published for each month: the reading as the CBS published it, in the base in force at the time; and a value chained to a single base — September 1951 = <span dir="ltr">100</span>.</p>
           <p>The CBS replaces the index base every few years, and there have been <span dir="ltr">22</span> different bases over the history of the series. The chaining here is not a product of conversion coefficients: the CBS itself publishes each month's value in every earlier base, and we read the September 1951 value directly. No rounding error accumulates over hundreds of months.</p>
         </section>
         <section>
           <h2>Bank of Israel rate</h2>
           <p>The source is a continuous daily series starting <span dir="ltr">27/01/1994</span>.</p>
-          <p>We publish change points only: one row for every date on which the rate actually moved. They are derived by walking the daily series and recording a row whenever the value differs from the previous day. There are <span dir="ltr">159</span> change points at present.</p>
+          <p>We publish change points only: one row for every date on which the rate actually moved. They are derived by walking the daily series and recording a row whenever the value differs from the previous day. There are dozens of change points at present.</p>
         </section>
         <section>
           <h2>The linkage calculator</h2>
@@ -383,9 +426,12 @@
       <header class="info-header"><h1 id="privacy-title">מדיניות פרטיות</h1></header>
       <div class="prose-guide" data-lang="he">
         <section>
-          <p>האתר אינו משתמש בעוגיות, אינו שומר דבר בדפדפן שלך, ואין בו כלי אנליטיקה או מעקב כלשהו.</p>
+          <p>האתר אינו משתמש בעוגיות ואין בו כלי אנליטיקה או מעקב מכל סוג. הוא כן שומר בדפדפן שלך — באחסון מקומי (<span dir="ltr">localStorage</span>) בלבד — שני פרטי העדפה קטנים: השפה שבה מוצג האתר (עברית/אנגלית), והאם אזורים מסוימים בעמוד מוצגים פתוחים או מקופלים. שני הפרטים האלה נשארים במכשיר שלך בלבד, אינם מועברים לשום שרת, ואינם עוגייה ואינם אמצעי מעקב.</p>
           <p>בדף ״צור קשר״ יש טופס. השדות שתמלאו — שם, כתובת מייל להחזרה ותוכן ההודעה — נשלחים ישירות דרך טופס ייעודי של צד שלישי, שמעביר אותם אלינו בדואר אלקטרוני. איננו מפעילים מסד נתונים ואיננו שומרים את ההודעות באתר עצמו.</p>
+          <p>הטופס פועל באמצעות השירות <span dir="ltr">Web3Forms</span>. שרתי השירות ממוקמים באזור <span dir="ltr">US-East</span> בארצות הברית, והחברה המפעילה אותו רשומה בהודו — כלומר תוכן הפנייה מעובד מחוץ לישראל. לפי המדיניות המתועדת של <span dir="ltr">Web3Forms</span>, פניות נשמרות אצלם עד שלוש שנים ממועד השליחה, אלא אם תוכנית האירוח קובעת תקופה קצרה יותר או שהמידע נמחק קודם לכן. מדיניות הפרטיות המלאה של השירות זמינה בכתובת <a href="https://web3forms.com/privacy" dir="ltr">web3forms.com/privacy</a>.</p>
+          <p>מפעיל האתר שומר פניות שנענו בתיבת הדואר האלקטרוני שלו עד 45 יום ממועד מתן המענה, ולאחר מכן מוחק אותן.</p>
           <p>מלבד הטופס אין באתר דרך אחרת לשלוח אלינו מידע.</p>
+          <p>בכל שאלה על מדיניות זו, או בקשה לעיין במידע שמסרתם או לתקן אותו, אפשר לפנות למפעיל האתר בכתובת <a href="mailto:ori.cpa.il@gmail.com" dir="ltr">ori.cpa.il@gmail.com</a>.</p>
           <p>האתר מתארח ב־<span dir="ltr">GitHub Pages</span>. כמו כל שרת אינטרנט, <span dir="ltr">GitHub</span> מקבל את הבקשות לדפים ורואה נתוני בקשה סטנדרטיים כגון כתובת <span dir="ltr">IP</span> וסוג הדפדפן.</p>
           <p>ספריית התרשימים <span dir="ltr">Chart.js</span> נטענת מרשת ההפצה <span dir="ltr">cdnjs.cloudflare.com</span>. לכן <span dir="ltr">Cloudflare</span> מקבלת גם היא את כתובת ה־<span dir="ltr">IP</span> וסוג הדפדפן, במסגרת אותה בקשה בלבד.</p>
           <p>הגרסה המקומית של האתר, קובץ ה־<span dir="ltr">HTML</span> העצמאי, אינה מבצעת שום בקשת רשת.</p>
@@ -393,12 +439,69 @@
       </div>
       <div class="prose-guide" data-lang="en" hidden>
         <section>
-          <p>This site uses no cookies, stores nothing in your browser, and carries no analytics or tracking of any kind.</p>
+          <p>This site uses no cookies and carries no analytics or tracking of any kind. It does store, in your browser's local storage (<span dir="ltr">localStorage</span>) only, two small preferences: the display language you chose (Hebrew/English), and whether certain page sections are shown expanded or collapsed. Both stay on your own device, are never transmitted to any server, and are neither a cookie nor a tracking mechanism.</p>
           <p>The contact page has a form. The fields you fill in — name, reply address and message — are sent directly through a dedicated third-party form service, which forwards them to us by email. We run no database and store no messages on the site itself.</p>
+          <p>The form runs on the <span dir="ltr">Web3Forms</span> service. Its servers are located in the <span dir="ltr">US-East</span> region of the United States, and the company operating it is registered in India — meaning the content of your message is processed outside Israel. Per Web3Forms' documented policy, submissions are retained on their end for up to three years from submission, unless a shorter plan applies or the data is deleted earlier. Web3Forms' full privacy policy is available at <a href="https://web3forms.com/privacy" dir="ltr">web3forms.com/privacy</a>.</p>
+          <p>The site operator keeps inquiries that have been answered in their email inbox for up to 45 days from the date of the reply, after which they are deleted.</p>
           <p>Apart from that form there is no other way to send us information through the site.</p>
+          <p>For any question about this policy, or a request to review or correct information you provided, you can contact the site operator at <a href="mailto:ori.cpa.il@gmail.com" dir="ltr">ori.cpa.il@gmail.com</a>.</p>
           <p>The site is hosted on <span dir="ltr">GitHub Pages</span>. Like any web server, <span dir="ltr">GitHub</span> receives the page requests and sees standard request data such as the <span dir="ltr">IP</span> address and browser type.</p>
           <p>The charting library <span dir="ltr">Chart.js</span> is loaded from the <span dir="ltr">cdnjs.cloudflare.com</span> delivery network, so <span dir="ltr">Cloudflare</span> also receives the <span dir="ltr">IP</span> address and browser type, as part of that request alone.</p>
           <p>The local copy of the site, the standalone <span dir="ltr">HTML</span> file, makes no network requests at all.</p>
+        </section>
+      </div>
+      <a class="info-back" href="#/">← חזרה לעמוד הבית</a>
+    </article>
+
+    <article class="info-page" id="terms-page" hidden aria-labelledby="terms-title">
+      <header class="info-header"><h1 id="terms-title">תנאי שימוש והבהרות</h1></header>
+      <div class="prose-guide" data-lang="he">
+        <section>
+          <p>עמוד זה נועד להבהיר את אופי השימוש באתר statso ואת מגבלות האחריות שלו. הוא כתוב בשפה פשוטה, כמתאים לאתר מידע אישי וחינמי — ולא כתקנון של חנות מקוונת.</p>
+          <p>האתר נועד למידע כללי ולהמחשה בלבד. הנתונים המוצגים בו נאספים ממקורות רשמיים, אך ייתכנו בהם עיכובים, טעויות העתקה, תקלות טכניות, שינויים, חוסרים או תקופות של אי־זמינות.</p>
+          <p>אין לראות באתר תחליף לפרסום הרשמי של הלשכה המרכזית לסטטיסטיקה, בנק ישראל, או כל גוף מוסמך אחר. במקרה של סתירה בין הנתונים באתר לבין הפרסום הרשמי — הפרסום הרשמי והדין החל גוברים.</p>
+          <p>תוצאות המחשבונים באתר (הצמדה למדד, המרת מטבע, הצמדת הסכם שכירות וכדומה) הן תוצאות עזר בלבד, ואינן מהוות ייעוץ חשבונאי, משפטי, פיננסי, השקעות, מס או אשראי.</p>
+          <p>לפני קבלת החלטה, ביצוע תשלום, או חישוב בעל משמעות משפטית או כספית — יש לאמת את הנתונים ואת דרך החישוב מול המקור הרשמי, או להיוועץ באיש מקצוע מתאים.</p>
+          <p>האתר עשוי להשתנות, להתעדכן, או להפסיק לפעול ללא הודעה מוקדמת.</p>
+          <p>אין באמור לעיל כדי לפטור את מפעיל האתר מאחריות באופן גורף או בלתי חוקי, ואין בו כדי לשלול מהמשתמש זכות שאינה ניתנת לוויתור לפי דין.</p>
+        </section>
+      </div>
+      <div class="prose-guide" data-lang="en" hidden>
+        <section>
+          <p>This page explains the nature of using the statso site and the limits of its liability. It is written in plain language, as fits a free, personal information site — not as an online store's terms of service.</p>
+          <p>The site is intended for general information and illustration only. The data shown here is collected from official sources, but delays, copying errors, technical issues, changes, gaps, or periods of unavailability may occur.</p>
+          <p>The site is not a substitute for the official publications of the Central Bureau of Statistics, the Bank of Israel, or any other authorized body. In case of a contradiction between the data on this site and an official publication, the official publication and applicable law prevail.</p>
+          <p>The site's calculator results (index linkage, currency conversion, rent-agreement linkage, and similar tools) are auxiliary results only, and do not constitute accounting, legal, financial, investment, tax, or credit advice.</p>
+          <p>Before making a decision, making a payment, or performing a calculation with legal or financial significance, verify the data and the calculation method against the official source, or consult an appropriate professional.</p>
+          <p>The site may change, be updated, or cease operating without prior notice.</p>
+          <p>Nothing above releases the site operator from liability in a sweeping or unlawful manner, and nothing here denies a user any right that cannot be waived under law.</p>
+        </section>
+      </div>
+      <a class="info-back" href="#/">← חזרה לעמוד הבית</a>
+    </article>
+
+    <article class="info-page" id="accessibility-page" hidden aria-labelledby="accessibility-title">
+      <header class="info-header"><h1 id="accessibility-title">הצהרת נגישות</h1></header>
+      <div class="prose-guide" data-lang="he">
+        <section>
+          <p>מפעיל האתר מחויב לאפשר שימוש נוח ככל האפשר באתר לאנשים עם מוגבלות, וממשיך לעבוד על שיפור הנגישות לאורך זמן.</p>
+          <p>האתר נבנה תוך התייחסות לתקן הישראלי הרלוונטי (ת"י 5568) ולהנחיות <span dir="ltr">WCAG</span>.</p>
+          <p>בין ההתאמות שבוצעו בפועל: כפתור דילוג לתוכן המרכזי בתחילת כל עמוד; העברת פוקוס לכותרת העמוד החדש בכל מעבר בין עמודים, כך שקורא מסך מכריז עליה; תפריט "כלים" בניווט שפועל גם במקלדת, כולל סגירה במקש <span dir="ltr">Escape</span>; חלופה נגישה לתרשים המדד ההיסטורי — תיאור טקסטואלי וקישור לטבלת נתונים מקבילה; כותרות (<span dir="ltr">captions</span>) לטבלאות הנתונים; וכיבוד הגדרת "הפחתת תנועה" (<span dir="ltr">prefers-reduced-motion</span>) של המשתמש.</p>
+          <p>מגבלות ידועות: טבלאות רחבות מסוימות נגללות אופקית, ואזור הגלילה עצמו אינו בר־מיקוד עצמאי במקלדת; פרטי התרשים החזותי (<span dir="ltr">Canvas</span>) זמינים רק דרך התיאור הטקסטואלי והטבלה המקושרת אליו, לא מתוך הגרף עצמו; קובצי ה־<span dir="ltr">PDF</span> המיוצאים מהכלים אינם מתויגים לקורא מסך; מעבר בין השפות דורש <span dir="ltr">JavaScript</span> פעיל בדפדפן.</p>
+          <p>נגישות האתר נבדקה באופן אוטומטי וידני באמצעות דפדפן מבוסס <span dir="ltr">Chromium</span> ללא ממשק גרפי (<span dir="ltr">headless</span>) וניווט מקלדת מלא בכל הנתיבים באתר. בדיקה עם קורא מסך <span dir="ltr">VoiceOver</span> לא בוצעה בשלב זה.</p>
+          <p>נתקלתם בבעיית נגישות? אפשר לדווח למפעיל האתר בכתובת <a href="mailto:ori.cpa.il@gmail.com" dir="ltr">ori.cpa.il@gmail.com</a>.</p>
+          <p>תאריך בדיקת הנגישות האחרונה: 11/09/2026.</p>
+        </section>
+      </div>
+      <div class="prose-guide" data-lang="en" hidden>
+        <section>
+          <p>The site operator is committed to making the site as usable as reasonably possible for people with disabilities, and continues working to improve its accessibility over time.</p>
+          <p>The site was built with attention to the relevant Israeli standard (IS 5568) and to the <span dir="ltr">WCAG</span> guidelines.</p>
+          <p>Accommodations actually implemented include: a "skip to main content" button at the start of every page; moving focus to the new page's heading on every page transition, so screen readers announce it; a "Tools" navigation menu that is fully keyboard-operable, including closing with the <span dir="ltr">Escape</span> key; an accessible alternative for the historical index chart — a text description plus a link to an equivalent data table; captions on the data tables; and respecting the user's "reduce motion" (<span dir="ltr">prefers-reduced-motion</span>) preference.</p>
+          <p>Known limitations: some wide data tables scroll horizontally, and the scroll container itself is not independently keyboard-focusable; the visual detail of the canvas-based chart is available only through its text description and the linked table, not from the chart itself; <span dir="ltr">PDF</span> files exported from the tools are not tagged for screen readers; switching languages requires <span dir="ltr">JavaScript</span> to be enabled in the browser.</p>
+          <p>The site's accessibility was tested automatically and manually using a headless <span dir="ltr">Chromium</span>-based browser and full keyboard-only navigation across every route on the site. Testing with the <span dir="ltr">VoiceOver</span> screen reader was not performed at this stage.</p>
+          <p>Found an accessibility issue? You can report it to the site operator at <a href="mailto:ori.cpa.il@gmail.com" dir="ltr">ori.cpa.il@gmail.com</a>.</p>
+          <p>Last accessibility review date: 11 September 2026.</p>
         </section>
       </div>
       <a class="info-back" href="#/">← חזרה לעמוד הבית</a>
@@ -410,12 +513,12 @@
         <form class="contact-form" id="contact-form" novalidate>
           <div class="contact-field">
             <label for="contact-name">שם מלא</label>
-            <input id="contact-name" name="name" type="text" required aria-describedby="contact-name-error">
+            <input id="contact-name" name="name" type="text" required autocomplete="name" aria-describedby="contact-name-error">
             <p class="field-error" id="contact-name-error"></p>
           </div>
           <div class="contact-field">
             <label for="contact-email">אימייל לחזרה</label>
-            <input id="contact-email" name="email" type="email" dir="ltr" required aria-describedby="contact-email-error">
+            <input id="contact-email" name="email" type="email" dir="ltr" required autocomplete="email" aria-describedby="contact-email-error">
             <p class="field-error" id="contact-email-error"></p>
           </div>
           <div class="contact-field">
@@ -427,6 +530,7 @@
             </div>
           </div>
           <div class="contact-honeypot" aria-hidden="true"><label>השאירו שדה זה ריק <input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off"></label></div>
+          <p class="contact-disclosure">פרטי הפנייה יישלחו אלינו באמצעות Web3Forms וישמשו לצורך טיפול בפנייה ומתן תשובה. מידע נוסף ב<a href="#/privacy">מדיניות הפרטיות</a>.</p>
           <p class="contact-status" id="contact-status" role="alert"></p>
           <button class="contact-submit" id="contact-submit" type="submit">שלח</button>
         </form>
@@ -435,7 +539,7 @@
     </article>
   </main>
 
-  <footer><div class="shell footer-inner"><div class="footer-meta"><span class="brand"><span class="brand-mark">s</span><span>statso</span></span><span>נתונים ממקורות רשמיים<span id="app-version-line" hidden> · גרסה <span id="app-version" dir="ltr"></span></span></span></div><nav class="footer-links" aria-label="מידע"><a href="#/about">אודות</a><span aria-hidden="true">·</span><a href="#/method">שיטת החישוב</a><span aria-hidden="true">·</span><a href="#/privacy">מדיניות פרטיות</a><span aria-hidden="true">·</span><a href="#/contact">צור קשר</a></nav></div></footer>
+  <footer><div class="shell footer-inner"><div class="footer-meta"><span class="brand"><span class="brand-mark">s</span><span>statso</span></span><span>נתונים ממקורות רשמיים<span id="app-version-line" hidden> · גרסה <span id="app-version" dir="ltr"></span></span></span></div><nav class="footer-links" aria-label="מידע"><a href="#/about">אודות</a><span aria-hidden="true">·</span><a href="#/method">שיטת החישוב</a><span aria-hidden="true">·</span><a href="#/terms">תנאי שימוש והבהרות</a><span aria-hidden="true">·</span><a href="#/privacy">מדיניות פרטיות</a><span aria-hidden="true">·</span><a href="#/accessibility">הצהרת נגישות</a><span aria-hidden="true">·</span><a href="#/contact">צור קשר</a></nav></div><div class="shell footer-legal"><p>statso הוא אתר אישי וחובבני, שאינו מופעל מטעם הלשכה המרכזית לסטטיסטיקה, בנק ישראל או גוף ממשלתי אחר.</p><p>© 2026 מפעיל האתר. נתוני המקור שייכים לגופים המפרסמים.</p></div></footer>
 
   <script type="application/json" id="data-cpi" data-inline="json" data-src="data/cpi.json" data-label="מדד המחירים לצרכן"></script>
   <script type="application/json" id="data-boi" data-inline="json" data-src="data/boi_interest_rate.json" data-label="ריבית בנק ישראל"></script>
@@ -453,6 +557,7 @@
   <script src="assets/statso-fxtable.js" data-inline="script"></script>
   <script src="assets/statso-calculator.js" data-inline="script"></script>
   <script src="assets/statso-guide-art.js" data-inline="script"></script>
+  <script src="assets/statso-mcode.js" data-inline="script"></script>
   <script src="assets/statso-guides.js" data-inline="script"></script>
   <script src="assets/statso-contact.js" data-inline="script"></script>
   <script src="assets/statso-xlsx.js" data-inline="script"></script>

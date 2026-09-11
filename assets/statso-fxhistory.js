@@ -100,17 +100,17 @@
       + selected.map(function (code) {
         const entry = daily.currencies[code];
         const unit = entry && entry.unit !== 1 ? ' ×' + entry.unit : '';
-        return '<th scope="col">' + name(code) + ' <span class="currency-code">' + code + unit + '</span></th>';
+        return '<th scope="col">' + Statso.core.escapeHtml(name(code)) + ' <span class="currency-code">' + Statso.core.escapeHtml(code + unit) + '</span></th>';
       }).join('');
     const shown = rows.slice(0, MAX_RENDERED_ROWS);
     el('fxh-body').innerHTML = shown.map(function (row) {
-      return '<tr><th scope="row" dir="ltr">' + row.label + '</th>'
+      return '<tr><th scope="row" dir="ltr">' + Statso.core.escapeHtml(row.label) + '</th>'
         + row.values.map(function (value) {
           return '<td dir="ltr">' + (value ? Statso.core.formatRateSmart(value.rate) : '—') + '</td>';
         }).join('') + '</tr>';
     }).join('');
     el('fxh-averages').innerHTML = '<div class="rent-summary-grid">' + averages.map(function (item) {
-      return '<div><span>ממוצע לתקופה · <span>' + name(item.code) + '</span></span><strong dir="ltr">'
+      return '<div><span>ממוצע לתקופה · <span>' + Statso.core.escapeHtml(name(item.code)) + '</span></span><strong dir="ltr">'
         + (item.average === null ? '—' : Statso.core.formatRateSmart(item.average)) + '</strong></div>';
     }).join('') + '</div>';
     const note = resolution === 'daily'
@@ -190,8 +190,8 @@
     const rates = summary.rates || [];
     el('fxh-currencies').innerHTML = rates.map(function (row, index) {
       const checked = index < 2 ? ' checked' : '';
-      return '<label class="fxh-currency"><input type="checkbox" value="' + row.code + '"' + checked + '> '
-        + name(row.code) + ' <span class="currency-code">' + row.code + '</span></label>';
+      return '<label class="fxh-currency"><input type="checkbox" value="' + Statso.core.escapeHtml(row.code) + '"' + checked + '> '
+        + Statso.core.escapeHtml(name(row.code)) + ' <span class="currency-code">' + Statso.core.escapeHtml(row.code) + '</span></label>';
     }).join('');
     const latest = rates.map(function (row) { return row.latest.date; }).sort();
     const starts = rates.map(function (row) { return row.first_date; }).sort();

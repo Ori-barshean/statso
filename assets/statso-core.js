@@ -85,6 +85,13 @@
   function formatMonthHe(key) { const p = key.split('-'); return p[1] + '/' + p[0]; }
   function formatIsoDateHe(value) { const p = value.split('-'); return p[2] + '/' + p[1] + '/' + p[0]; }
 
+  const ESCAPE_MAP = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'};
+  // Safe for HTML text content and for double-quoted HTML attribute values —
+  // every call site that uses this only needs those two contexts.
+  function escapeHtml(value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, function (ch) { return ESCAPE_MAP[ch]; });
+  }
+
   Statso.core = {monthToOrdinal: monthToOrdinal, ordinalToMonth: ordinalToMonth, shiftMonth: shiftMonth,
     buildIndexMap: buildIndexMap, resolveIndexMonth: resolveIndexMonth, lookupChained: lookupChained,
     indexAmount: indexAmount, readingInBase: readingInBase, lookupRateAt: lookupRateAt, convertAmount: convertAmount,
@@ -93,5 +100,5 @@
     formatRateSmart: formatRateSmart,
     CURRENCY_NAMES: CURRENCY_NAMES, latestObservation: latestObservation,
     formatNumber: formatNumber, formatPercent: formatPercent, formatMonthHe: formatMonthHe,
-    formatIsoDateHe: formatIsoDateHe};
+    formatIsoDateHe: formatIsoDateHe, escapeHtml: escapeHtml};
 })(window);

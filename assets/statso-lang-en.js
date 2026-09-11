@@ -6,6 +6,43 @@
   // reaches the DOM, so anything a module renders is covered without the module
   // itself knowing about languages.
   const en = {
+    // --- Power Query exports -----------------------------------------------
+    'קודים לייצוא (Power Query)': 'Export code (Power Query)',
+    'בוחרים סדרת נתונים וטווח תאריכים, ומעתיקים קוד מוכן להדבקה בעורך המתקדם של Power Query באקסל.': 'Choose a data series and date range, then copy code into the Power Query Advanced Editor in Excel.',
+    'סדרת נתונים': 'Data series',
+    'מדד המחירים לצרכן (משורשר)': 'Consumer price index (chained)',
+    'שערי חליפין יציגים': 'Representative exchange rates',
+    'טווח תאריכים': 'Date range',
+    'תאריך התחלה': 'Start date',
+    'תאריך סיום': 'End date',
+    'להוסיף שורת ממוצע בסוף הטבלה': 'Add an average row at the end of the table',
+    'העתקת הקוד': 'Copy code',
+    'הסבר שלב-אחר-שלב איך מדביקים את הקוד באקסל נמצא בעמוד': 'For step-by-step instructions on pasting the code into Excel, see',
+    'יש לבחור תאריך התחלה ותאריך סיום.': 'Choose a start date and an end date.',
+    'תאריך ההתחלה חייב להיות לפני תאריך הסיום.': 'The start date must be before the end date.',
+    'בחלון ״בחר מקור נתונים״ (Choose data source) בוחרים ״שאילתה ריקה״ (Blank Query).': 'In Choose data source, select Blank Query.',
+    'בעורך Power Query לוחצים על ״עורך מתקדם״ (Advanced Editor), מוחקים את כל מה שכתוב שם, מדביקים במקומו את הקוד הבא ומאשרים.': 'In Power Query, click Advanced Editor, delete all existing content, paste the following code, and confirm.',
+    'אם מופיעה הודעה כתומה ״לא היתה אפשרות להעריך שאילתה זו עקב אישורים לא חוקיים או חסרים״ — לוחצים על ״קבע תצורה של חיבור״ (Configure connection), בוחרים ״אנונימי״ (Anonymous) ומתחברים.': 'If an orange warning says the query could not be evaluated because of invalid or missing credentials, click Configure connection, choose Anonymous access, and connect.',
+    'הטבלה מופיעה בתצוגה המקדימה של העורך. לוחצים על ״סגור וטען״ (Close & Load) כדי לטעון אותה לגיליון.': 'The table appears in the editor preview. Click Close & Load to load it into the worksheet.',
+    'אקסל למק בעברית: חלון ״בחר מקור נתונים״ (Choose data source) והכרטיס הנבחר ״שאילתה ריקה״ (Blank Query).': 'Excel for Mac in Hebrew: Choose data source and the selected Blank Query card.',
+    'אקסל למק בעברית: הודעת האישורים והכפתור ״קבע תצורה של חיבור״.': 'Excel for Mac in Hebrew: the credentials warning and Configure connection button.',
+    'אקסל למק בעברית: הטבלה בעורך Power Query והכפתור ״סגור וטען״.': 'Excel for Mac in Hebrew: the table in Power Query and the Close & Load button.',
+    'שליפת נתונים חיה — בקרוב': 'Live data pull — coming soon',
+    'מדריך לשליפה אוטומטית של נתוני statso לכלים נוספים. בהכנה.': 'A guide to automatically pulling statso data into other tools. In preparation.',
+    'בחר מקור נתונים': 'Choose data source',
+    'שאילתה ריקה': 'Blank Query',
+    'טקסט/CSV': 'Text/CSV',
+    'עורך מתקדם': 'Advanced Editor',
+    'קבע תצורה של חיבור': 'Configure connection',
+    'אישורים לא חוקיים או חסרים': 'Invalid or missing credentials',
+    'סגור וטען': 'Close & Load',
+
+    'לעדכון הנתונים עוברים ללשונית Data / ״נתונים״ ולוחצים על ״רענן את הכל״ (Refresh All).': 'To update the data, open the Data tab and click Refresh All.',
+    'אקסל למק בעברית: לשונית נתונים והכפתור ״רענן את הכל״ (Refresh All).': 'Excel for Mac in Hebrew: the Data tab and Refresh All button.',
+    'הקוד שלמעלה הוא דוגמה מוכנה למדד המחירים לצרכן לטווח 2022-12-01 עד 2025-12-31.': 'The code above is a ready-made consumer price index example for 2022-12-01 to 2025-12-31.',
+    'הקוד שלמעלה הוא דוגמה מוכנה לריבית בנק ישראל לטווח 2022-12-01 עד 2025-12-31.': 'The code above is a ready-made Bank of Israel interest rate example for 2022-12-01 to 2025-12-31.',
+    'בעמוד ״קודים לייצוא (Power Query)״ אפשר לבחור כל סדרה, טווח תאריכים והשוואה שהאתר מציע, להוסיף שורת ממוצע לפי הצורך ולקבל קוד M מוכן להעתקה למקרה שלכם.': 'On the Export code (Power Query) page, choose any series, date range, and comparison the site offers, optionally add an average row, and get copy-ready M code for your own case.',
+
     // --- chrome -----------------------------------------------------------
     'statso — נתונים בזריזות - ישראל': 'statso — Israeli economic data, fast',
     'נתונים בזריזות - ישראל': 'Israeli economic data, fast',
@@ -20,6 +57,7 @@
     'מידע': 'Information',
     'נתונים ממקורות רשמיים': 'Data from official sources',
     '· גרסה': '· version',
+    'דילוג לתוכן המרכזי': 'Skip to main content',
 
     // --- dashboard cards ---------------------------------------------------
     'נתונים מרכזיים': 'Headline figures',
@@ -31,6 +69,7 @@
     'ריבית נוכחית': 'Current rate',
     'ריבית פריים': 'Prime rate',
     'החלטת הריבית הבאה:': 'Next rate decision:',
+    'המועד עשוי להשתנות בהתאם להודעות בנק ישראל': 'The date may change based on Bank of Israel announcements',
     'שערי חליפין נבחרים': 'Selected exchange rates',
     'דולר / שקל': 'USD / ILS',
     'אירו / שקל': 'EUR / ILS',
@@ -46,11 +85,15 @@
     'שער עדכני': 'Latest rate',
     'שערים יציגים של בנק ישראל מול השקל החדש. שער סוף שנה הוא השער האחרון שפורסם באותה שנה, והממוצע הוא ממוצע כל השערים שפורסמו בה. ×100 מציין ציטוט ל־100 יחידות מטבע.':
       'Bank of Israel representative rates against the new shekel. The year-end rate is the last rate published that year, and the average covers every rate published in it. ×100 marks a quote per 100 units of the currency.',
+    'שערי חליפין נבחרים מול השקל, לפי מטבע': 'Selected exchange rates against the shekel, by currency',
 
     // --- chart --------------------------------------------------------------
     'מגמה היסטורית': 'Historical trend',
     'המדד המשורשר לאורך זמן': 'The chained index over time',
     'תרשים מדד המחירים לצרכן': 'Consumer price index chart',
+    'התרשים מציג את מגמת מדד המחירים לצרכן המשורשר לאורך הטווח שנבחר.':
+      'The chart shows the trend of the chained consumer price index over the selected range.',
+    'לצפייה בנתונים כטבלה': 'View as a table',
     'משנה': 'From year',
     'עד': 'to',
     'טוען תרשים…': 'Loading chart…',
@@ -89,6 +132,8 @@
     'סכום ממומר': 'Converted amount',
     'שער ההמרה': 'Rate used',
     'סכום': 'Amount',
+    'התוצאה מיועדת להמחשה בלבד. לפני שימוש כספי או משפטי יש לאמת את הנתונים ואת שיטת החישוב.':
+      'The result is for illustration only. Before financial or legal use, verify the data and the calculation method.',
 
     // --- tools index --------------------------------------------------------
     'כלי חישוב': 'Calculation tools',
@@ -129,6 +174,7 @@
     'שינוי חודשי %': 'Month over month %',
     'שינוי שנתי %': 'Year over year %',
     'חודש ההתחלה חייב להיות מוקדם מחודש הסיום.': 'The start month must come before the end month.',
+    'נתוני מדד המחירים לצרכן ההיסטוריים, לפי חודש': 'Historical consumer price index data, by month',
 
 
     // --- historical exchange rates tool --------------------------------------
@@ -136,6 +182,7 @@
     'שערי חליפין היסטוריים': 'Historical exchange rates',
     'שערים יציגים לטווח ולמטבעות שתבחר, יומי או כממוצע תקופתי.':
       'Representative rates for the range and currencies you pick, daily or as a period average.',
+    'נתוני שערי חליפין היסטוריים, לפי מטבע ותאריך': 'Historical exchange rate data, by currency and date',
     'כלי 5': 'Tool 5',
     'מטבעות': 'Currencies',
     'טווח ורזולוציה': 'Range and resolution',
@@ -252,7 +299,9 @@
     // --- info pages ---------------------------------------------------------
     'אודות': 'About',
     'שיטת החישוב': 'Method',
+    'תנאי שימוש והבהרות': 'Terms of Use & Disclaimers',
     'מדיניות פרטיות': 'Privacy policy',
+    'הצהרת נגישות': 'Accessibility Statement',
     'צור קשר': 'Contact',
     '← חזרה לעמוד הבית': '← Back to the home page',
     '← חזרה לכל המדריכים': '← Back to all guides',
@@ -263,6 +312,13 @@
     'תוכן ההודעה': 'Message',
     'השאירו שדה זה ריק': 'Leave this field empty',
     'שלח': 'Send',
+    'פרטי הפנייה יישלחו אלינו באמצעות Web3Forms וישמשו לצורך טיפול בפנייה ומתן תשובה. מידע נוסף ב':
+      'Your details will be sent to us via Web3Forms and used to handle your inquiry and reply. More information in the ',
+    'מדיניות הפרטיות': 'privacy policy',
+    'statso הוא אתר אישי וחובבני, שאינו מופעל מטעם הלשכה המרכזית לסטטיסטיקה, בנק ישראל או גוף ממשלתי אחר.':
+      'statso is a personal, hobby website, not operated on behalf of the Central Bureau of Statistics, the Bank of Israel, or any other government body.',
+    '© 2026 מפעיל האתר. נתוני המקור שייכים לגופים המפרסמים.':
+      '© 2026 Site operator. Source data belongs to the publishing bodies.',
 
     // --- currency names -----------------------------------------------------
     'שקל חדש': 'New shekel',
@@ -296,8 +352,6 @@
       'Open a new workbook, go to the Data tab, and click Get Data (Power Query).',
     'אקסל למק בעברית: לשונית נתונים והכפתור ״יבא נתונים (Power Query)״.':
       'Excel for Mac in Hebrew: the Data tab and the Get Data (Power Query) button.',
-    'בוחרים Data ← Get Data ← From Web (בעברית: נתונים ← קבלת נתונים ← מהאינטרנט).':
-      'Choose Data → Get Data → From Web.',
     'בוחרים Get Data ← From Other Sources ← From Web (בעברית: קבל נתונים ← ממקורות אחרים ← מהאינטרנט).':
       'Choose Get Data → From Other Sources → From Web.',
     'מדביקים את כתובת ה-CSV בתיבת URL ומאשרים ב-OK / ״אישור״.':
@@ -321,8 +375,6 @@
     'WEBSERVICE אינה זמינה ב-Excel for Mac': 'WEBSERVICE is not available in Excel for Mac',
     'אין צעדים להצגה עבור שילוב זה. אפשר לייבא את הנתונים באמצעות Power Query.':
       'There are no steps to show for this combination. You can import the data with Power Query instead.',
-    '״From Web״ קיים ב-Excel for Mac מתוך Microsoft 365 בגרסאות מ-2022 ואילך. אם הוא לא מופיע — יש לעדכן את אקסל או להשתמש בשיטת ההורדה הידנית.':
-      '“From Web” exists in Excel for Mac from Microsoft 365, version 2022 and later. If you cannot see it, update Excel or use the manual download method.',
     'שומרים את הדף כקובץ ‎.csv באמצעות': 'Save the page as a .csv file with',
     'Cmd+S במק.': 'Cmd+S on a Mac.',
     'Ctrl+S בווינדוס.': 'Ctrl+S on Windows.',

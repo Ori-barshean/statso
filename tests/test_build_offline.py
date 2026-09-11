@@ -24,7 +24,7 @@ class BuildOfflineTests(unittest.TestCase):
 
     def test_markers_present_and_unique(self):
         self.assertEqual(self.html.count('data-inline="style"'), 1)
-        self.assertEqual(self.html.count('data-inline="script"'), 19)
+        self.assertEqual(self.html.count('data-inline="script"'), 20)
         self.assertEqual(self.html.count('data-inline="json"'), 5)
         self.assertEqual(self.html.count('data-inline="text"'), 1)
         self.assertEqual(set(re.findall(r'data-src="([^"]+)"', self.html)),
@@ -54,6 +54,8 @@ class BuildOfflineTests(unittest.TestCase):
             self.assertFalse(payload.startswith(b"\xef\xbb\xbf")); self.assertNotIn(b"\r", payload)
             self.assertEqual(text.count("<script"), text.count("</script>"))
             self.assertIn('id="guides-view"', text)
+            self.assertIn('id="mcode-view"', text)
+            self.assertEqual(len(set(re.findall(r'data:image/png;base64,[A-Za-z0-9+/=]+', text))), 5)
             self.assertIn('class="site-nav"', text)
             self.assertIn("Statso.guides", text)
             self.assertIn("מדד בגין מול מדד ידוע — ומה המדד בכלל מודד", text)
@@ -62,13 +64,15 @@ class BuildOfflineTests(unittest.TestCase):
             self.assertNotIn("assets/images/excel-mac-power-query-he.png", text)
             self.assertNotIn("assets/images/", text)
             for route, title in (("about", "אודות"), ("method", "שיטת החישוב"),
-                                 ("privacy", "מדיניות פרטיות"), ("contact", "צור קשר")):
+                                 ("terms", "תנאי שימוש והבהרות"), ("privacy", "מדיניות פרטיות"),
+                                 ("accessibility", "הצהרת נגישות"), ("contact", "צור קשר")):
                 self.assertIn(f'href="#/{route}"', text)
                 self.assertIn(f'id="{route}-page"', text)
                 self.assertIn(title, text)
-            for content in (">899</span> תצפיות", ">159</span> נקודות שינוי",
-                            "אינה מבצעת שום בקשת רשת"):
+            for content in (">22</span> בסיסים", "אינה מבצעת שום בקשת רשת"):
                 self.assertIn(content, text)
+            for stale in (">899</span> תצפיות", ">159</span> נקודות שינוי"):
+                self.assertNotIn(stale, text)
 
     def test_artifact_contact_form_and_privacy(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -77,7 +81,8 @@ class BuildOfflineTests(unittest.TestCase):
                 self.assertIn(field, text)
             self.assertRegex(text, r'<button[^>]*id="contact-submit"[^>]*>שלח</button>')
             self.assertNotIn("רמת גן", text)
-            self.assertIsNone(re.search(r'[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}', text))
+            emails = set(re.findall(r'[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}', text))
+            self.assertEqual(emails, {"ori.cpa.il@gmail.com"})
             self.assertNotIn("אין באתר טפסים", text)
             self.assertIn("בדף ״צור קשר״ יש טופס", text)
 

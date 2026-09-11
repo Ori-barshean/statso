@@ -44,12 +44,35 @@ class DictionaryCoverageTests(unittest.TestCase):
     def test_information_pages_ship_both_languages(self):
         html = (ROOT / "index.html").read_text(encoding="utf-8")
         self.assertEqual(html.count('data-lang="he"'), html.count('data-lang="en"'))
-        self.assertEqual(html.count('data-lang="he"'), 3)
+        self.assertEqual(html.count('data-lang="he"'), 5)
 
     def test_mac_power_step_and_image_alt_have_english_entries(self):
         keys = dictionary_keys()
         self.assertIn('פותחים חוברת עבודה חדשה, עוברים ללשונית Data / ״נתונים״ ולוחצים על ״יבא נתונים (Power Query)״.', keys)
         self.assertIn('אקסל למק בעברית: לשונית נתונים והכפתור ״יבא נתונים (Power Query)״.', keys)
+
+    def test_new_mac_steps_alts_labels_and_errors_have_translations(self):
+        keys = dictionary_keys()
+        for name in ("statso-guides.js", "statso-mcode.js"):
+            source = (ROOT / "assets" / name).read_text()
+            if name == "statso-guides.js":
+                source = source.split("if (method === 'power')")[1].split("if (method === 'manual')")[0]
+                texts = re.findall(r"(?:text|alt): '([^']+)'", source)
+            else:
+                texts = re.findall(r"error = '([^']+)'", source)
+            for text in texts:
+                self.assertIn(text, keys)
+        for text in ('בחר מקור נתונים', 'שאילתה ריקה', 'טקסט/CSV', 'עורך מתקדם', 'קבע תצורה של חיבור', 'אישורים לא חוקיים או חסרים', 'סגור וטען', 'שליפת נתונים חיה — בקרוב'):
+            self.assertIn(text, keys)
+        self.assertFalse(any('בוחרים Data ← Get Data ← From Web' in key or '״From Web״ קיים' in key for key in keys))
+
+    def test_mac_code_cta_literals_have_translations(self):
+        source = (ROOT / 'assets/statso-guides.js').read_text()
+        cta = source.split('function mcodeCta() {')[1].split('\n  }')[0]
+        literals = [text for text in re.findall(r"'([^']+)'", cta) if HEBREW.search(text)]
+        self.assertEqual(len(literals), 4)
+        for text in literals:
+            self.assertIn(text, dictionary_keys())
 
 
 class EngineTests(unittest.TestCase):

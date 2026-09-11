@@ -22,7 +22,7 @@
     if (!rows.length) { throw new Error('רשימת המטבעות ריקה'); }
     const codes = ['ILS'].concat(rows.map(function (row) { return row.code; }));
     const html = codes.map(function (code) {
-      return '<option value="' + code + '">' + (Statso.core.CURRENCY_NAMES[code] || code) + ' (' + code + ')</option>';
+      return '<option value="' + Statso.core.escapeHtml(code) + '">' + Statso.core.escapeHtml(Statso.core.CURRENCY_NAMES[code] || code) + ' (' + Statso.core.escapeHtml(code) + ')</option>';
     }).join('');
     const from = document.getElementById('calc-fx-from'); const to = document.getElementById('calc-fx-to');
     from.innerHTML = html; to.innerHTML = html; from.value = 'ILS'; to.value = 'USD';

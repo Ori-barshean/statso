@@ -2,8 +2,8 @@
   'use strict';
   const Statso = root.Statso = root.Statso || {};
   const words = {
-    he: {excel: 'Excel', data: 'נתונים', getData: 'קבל נתונים', other: 'ממקורות אחרים', web: 'מהאינטרנט', refresh: 'רענן הכל', url: 'כתובת URL', ok: 'אישור', navigator: 'נווט', load: 'טען', file: 'קובץ', open: 'פתיחה', save: 'שמירה', formula: 'שורת הנוסחאות', preview: 'תצוגה מקדימה'},
-    en: {excel: 'Excel', data: 'Data', getData: 'Get Data', other: 'From Other Sources', web: 'From Web', refresh: 'Refresh All', url: 'URL', ok: 'OK', navigator: 'Navigator', load: 'Load', file: 'File', open: 'Open', save: 'Save', formula: 'Formula bar', preview: 'Preview'}
+    he: {excel: 'Excel', data: 'נתונים', getData: 'קבל נתונים', other: 'ממקורות אחרים', web: 'מהאינטרנט', refresh: 'רענן הכל', url: 'כתובת URL', ok: 'אישור', navigator: 'נווט', load: 'טען', file: 'קובץ', open: 'פתיחה', save: 'שמירה', formula: 'שורת הנוסחאות', preview: 'תצוגה מקדימה', chooseSource: 'בחר מקור נתונים', blankQuery: 'שאילתה ריקה', textCsv: 'טקסט/CSV', advancedEditor: 'עורך מתקדם', configureConnection: 'קבע תצורה של חיבור', credentialsWarning: 'אישורים לא חוקיים או חסרים', closeLoad: 'סגור וטען'},
+    en: {excel: 'Excel', data: 'Data', getData: 'Get Data', other: 'From Other Sources', web: 'From Web', refresh: 'Refresh All', url: 'URL', ok: 'OK', navigator: 'Navigator', load: 'Load', file: 'File', open: 'Open', save: 'Save', formula: 'Formula bar', preview: 'Preview', chooseSource: 'Choose data source', blankQuery: 'Blank Query', textCsv: 'Text/CSV', advancedEditor: 'Advanced Editor', configureConnection: 'Configure connection', credentialsWarning: 'Invalid or missing credentials', closeLoad: 'Close & Load'}
   };
   function esc(value) { return String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
   function text(x, y, value, cls) { return '<text x="' + x + '" y="' + y + '" class="' + (cls || '') + '">' + esc(value) + '</text>'; }
@@ -34,6 +34,22 @@
     } else if (archetype === 'menu-getdata') {
       const mx = rtl ? 302 : 28;
       body = '<rect x="18" y="53" width="564" height="54" fill="#f1f5f9"/>' + text(rtl ? 530 : 42, 84, w.getData, 'button-label') + '<rect x="' + mx + '" y="101" width="270" height="142" rx="7" fill="#fff" stroke="#94a3b8"/>' + text(mx + 18, 135, w.other, 'menu') + text(mx + 18, 187, w.web, 'menu') + '<rect x="' + (mx + 8) + '" y="155" width="254" height="48" rx="4" class="highlight"/>' + marker(rtl ? 286 : 314, 178, step);
+    } else if (archetype === 'dialog-choose-source') {
+      body = '<rect x="40" y="52" width="520" height="244" rx="9" fill="#fff" stroke="#94a3b8"/>' + text(rtl ? 532 : 68, 85, w.chooseSource, 'dialog-title');
+      [w.textCsv, 'OData', w.blankQuery, 'JSON', 'XML', 'Excel Workbook'].forEach(function (label, index) {
+        const x = rtl ? 382 - (index % 3) * 156 : 62 + (index % 3) * 156; const y = 108 + Math.floor(index / 3) * 82;
+        body += '<rect x="' + x + '" y="' + y + '" width="144" height="66" rx="6" class="' + (index === 2 ? 'highlight' : 'window') + '"/>' + text(x + 72, y + 38, label, 'small center');
+        if (index === 2) { body += marker(x + 132, y + 7, step); }
+      });
+    } else if (archetype === 'editor-advanced') {
+      body = text(rtl ? 555 : 28, 62, w.advancedEditor, 'dialog-title') + '<rect x="28" y="84" width="544" height="207" rx="6" fill="#f8fafc" stroke="#94a3b8"/>' +
+        '<rect x="40" y="99" width="518" height="171" rx="5" class="highlight"/>' +
+        text(56, 125, 'let', 'mono') + text(56, 151, '    Source = Csv.Document(Web.Contents("...")),', 'mono') +
+        text(56, 177, '    Promoted = Table.PromoteHeaders(Source)', 'mono') + text(56, 203, 'in', 'mono') + text(56, 229, '    Promoted', 'mono') + marker(553, 101, step);
+    } else if (archetype === 'dialog-credentials') {
+      body = text(rtl ? 555 : 28, 64, w.advancedEditor, 'dialog-title') + '<rect x="26" y="92" width="548" height="65" rx="5" fill="#fff7ed" stroke="#fdba74"/>' +
+        text(rtl ? 550 : 48, 128, w.credentialsWarning, 'small') +
+        '<rect x="170" y="186" width="260" height="48" rx="6" class="highlight"/>' + text(300, 215, w.configureConnection, 'button-label center') + marker(rtl ? 446 : 154, 210, step);
     } else if (archetype === 'dialog-fromweb') {
       body = '<rect x="70" y="65" width="460" height="210" rx="9" fill="#fff" stroke="#94a3b8"/>' + text(rtl ? 480 : 95, 96, w.web, 'dialog-title') + text(rtl ? 480 : 95, 132, w.url, 'small') + '<rect x="95" y="145" width="410" height="43" rx="5" fill="#fff" stroke="#64748b"/>' + text(107, 171, url, 'url') + '<rect x="405" y="216" width="100" height="36" rx="5" class="primary"/>' + text(455, 240, w.ok, 'white center') + marker(390, 234, step);
     } else if (archetype === 'dialog-navigator') {

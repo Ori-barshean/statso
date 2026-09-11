@@ -253,7 +253,7 @@
         mom: mom.ok ? mom.percent : null, yoy: yoy.ok ? yoy.percent : null};
     });
     el('th-body').innerHTML = historyRows.map(function (row) {
-      return '<tr><th scope="row" dir="ltr">' + Statso.core.formatMonthHe(row.month) + '</th>'
+      return '<tr><th scope="row" dir="ltr">' + Statso.core.escapeHtml(Statso.core.formatMonthHe(row.month)) + '</th>'
         + '<td dir="ltr">' + Statso.core.formatNumber(row.chained, 2) + '</td>'
         + '<td dir="ltr">' + Statso.core.formatNumber(row.value, 1) + '</td>'
         + '<td dir="ltr">' + (row.mom === null ? '—' : Statso.core.formatPercent(row.mom)) + '</td>'
@@ -336,12 +336,12 @@
     const rows = summary.rates || [];
     const codes = ['ILS'].concat(rows.map(function (row) { return row.code; }));
     const html = codes.map(function (code) {
-      return '<option value="' + code + '">' + (Statso.core.CURRENCY_NAMES[code] || code) + ' (' + code + ')</option>';
+      return '<option value="' + Statso.core.escapeHtml(code) + '">' + Statso.core.escapeHtml(Statso.core.CURRENCY_NAMES[code] || code) + ' (' + Statso.core.escapeHtml(code) + ')</option>';
     }).join('');
     el('tf-from').innerHTML = html; el('tf-to').innerHTML = html;
     el('tf-from').value = 'ILS'; el('tf-to').value = 'USD';
     el('tf-currency').innerHTML = rows.map(function (row) {
-      return '<option value="' + row.code + '">' + (Statso.core.CURRENCY_NAMES[row.code] || row.code) + ' (' + row.code + ')</option>';
+      return '<option value="' + Statso.core.escapeHtml(row.code) + '">' + Statso.core.escapeHtml(Statso.core.CURRENCY_NAMES[row.code] || row.code) + ' (' + Statso.core.escapeHtml(row.code) + ')</option>';
     }).join('');
     el('tf-currency').value = 'USD';
     const latest = rows.map(function (row) { return row.latest.date; }).sort();

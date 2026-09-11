@@ -14,7 +14,7 @@ _TEXT_RE = re.compile(r'(<script\b[^>]*\bdata-inline="text"[^>]*>)(\s*)(</script
 _ATTR_RE = re.compile(r'\b([\w-]+)="([^"]*)"')
 _FORBIDDEN = ("</script", "</style", "<!--", "-->")
 _JSON_MARKERS = 5
-_SCRIPT_MARKERS = 19
+_SCRIPT_MARKERS = 20
 _IMAGE_RE = re.compile(r"assets/images/[A-Za-z0-9_-]+\.(png|jpe?g|webp|svg|gif)(?![\w.-])", re.IGNORECASE)
 _IMAGE_MIME = {"png": "image/png", "jpg": "image/jpeg", "jpeg": "image/jpeg",
                "webp": "image/webp", "svg": "image/svg+xml", "gif": "image/gif"}

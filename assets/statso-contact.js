@@ -62,6 +62,7 @@ const WEB3FORMS_ACCESS_KEY = '3524f864-d933-41b9-862c-79f6b1d5b281';  // public 
     const form = event.currentTarget;
     const payload = new FormData(form);
     payload.set('access_key', WEB3FORMS_ACCESS_KEY);
+    payload.set('subject', 'פנייה חדשה מאתר statso');
     if (root.location.protocol === 'file:') {
       showFailure('לא ניתן היה לשלוח את ההודעה כרגע. התוכן נשמר בטופס ואפשר לנסות שוב.');
       return;
@@ -75,8 +76,9 @@ const WEB3FORMS_ACCESS_KEY = '3524f864-d933-41b9-862c-79f6b1d5b281';  // public 
       area.textContent = '';
       const success = document.createElement('p');
       success.className = 'contact-success';
-      success.textContent = SUCCESS_MESSAGE;
+      success.setAttribute('role', 'status');
       area.appendChild(success);
+      success.textContent = SUCCESS_MESSAGE;
     }).catch(function () {
       showFailure('לא ניתן היה לשלוח את ההודעה כרגע. התוכן נשמר בטופס ואפשר לנסות שוב.');
     });

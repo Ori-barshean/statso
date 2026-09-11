@@ -1,6 +1,7 @@
 (function (root) {
   'use strict';
   const Statso = root.Statso = root.Statso || {};
+  const CHIP_HEIGHT = 17;
   let chartInstance = null;
   // Months whose CPI reading is worth calling out on the trend line.
   const EVENTS = [
@@ -27,8 +28,12 @@
       const rows = chart.$statsoRows || [];
       const area = chart.chartArea;
       const scale = chart.scales.x;
+      const yScale = chart.scales.y;
+      const values = (chart.data.datasets[0] || {}).data || [];
+      const middle = (area.top + area.bottom) / 2;
       const ctx = chart.ctx;
-      let lane = 0;
+      let topLane = 0;
+      let bottomLane = 0;
       EVENTS.forEach(function (event) {
         const index = eventIndex(rows, event.month);
         if (index < 0) { return; }
@@ -41,15 +46,21 @@
         ctx.beginPath(); ctx.moveTo(x, area.top); ctx.lineTo(x, area.bottom); ctx.stroke();
         ctx.setLineDash([]);
         ctx.font = '600 11px -apple-system, Segoe UI, Roboto, sans-serif';
-        const width = ctx.measureText(event.label).width + 12;
-        const top = area.top + 4 + (lane % 2) * 21;
+        const label = Statso.i18n.t(event.label);
+        const width = ctx.measureText(label).width + 12;
+        // The line sits high here, so drop the chip to the floor of the plot, and the other way round.
+        const valueY = yScale ? yScale.getPixelForValue(values[index]) : NaN;
+        const placeAtBottom = isFinite(valueY) && valueY < middle;
+        const top = placeAtBottom
+          ? area.bottom - 4 - CHIP_HEIGHT - (bottomLane % 2) * 21
+          : area.top + 4 + (topLane % 2) * 21;
         ctx.fillStyle = '#e8590c';
-        chip(ctx, Math.min(Math.max(x - width / 2, area.left), area.right - width), top, width, 17);
+        chip(ctx, Math.min(Math.max(x - width / 2, area.left), area.right - width), top, width, CHIP_HEIGHT);
         ctx.fillStyle = '#ffffff';
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText(event.label, Math.min(Math.max(x, area.left + width / 2), area.right - width / 2), top + 9);
+        ctx.fillText(label, Math.min(Math.max(x, area.left + width / 2), area.right - width / 2), top + 9);
         ctx.restore();
-        lane += 1;
+        if (placeAtBottom) { bottomLane += 1; } else { topLane += 1; }
       });
     }
   };
@@ -71,7 +82,7 @@
   function sliceByYears(rows, startYear, endYear) { return rows.filter(function (row) { return row.year >= startYear && row.year <= endYear; }); }
 
   function buildConfig(rows) {
-    return {type: 'line', plugins: [eventPlugin], data: {labels: rows.map(function (r) { return Statso.core.formatMonthHe(r.month); }), datasets: [{label: 'מדד משורשר', data: rows.map(function (r) { return r.chained_1951_09; }), borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,.1)', borderWidth: 2, pointRadius: 0, tension: 0, fill: true}]}, options: {responsive: true, maintainAspectRatio: false, locale: 'he-IL', interaction: {intersect: false, mode: 'index'}, scales: {x: {type: 'category', ticks: {autoSkip: true, maxTicksLimit: 12}}, y: {type: 'linear', beginAtZero: false, ticks: {callback: function (v) { return Statso.core.formatNumber(v, 0); }}}}, plugins: {legend: {rtl: true}, tooltip: {rtl: true, textDirection: 'rtl'}}}};
+    return {type: 'line', plugins: [eventPlugin], data: {labels: rows.map(function (r) { return Statso.core.formatMonthHe(r.month); }), datasets: [{label: Statso.i18n.t('מדד משורשר'), data: rows.map(function (r) { return r.chained_1951_09; }), borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,.1)', borderWidth: 2, pointRadius: 0, tension: 0, fill: true}]}, options: {responsive: true, maintainAspectRatio: false, locale: 'he-IL', interaction: {intersect: false, mode: 'index'}, scales: {x: {type: 'category', ticks: {autoSkip: true, maxTicksLimit: 12}}, y: {type: 'linear', beginAtZero: false, ticks: {callback: function (v) { return Statso.core.formatNumber(v, 0); }}}}, plugins: {legend: {rtl: true}, tooltip: {rtl: true, textDirection: 'rtl'}}}};
   }
 
   function render(rows) {
@@ -104,5 +115,9 @@
 
   function showUnavailable() { Statso.data.setState(document.getElementById('chart-section'), 'error', 'ספריית התרשים אינה זמינה. יתר הכלים ממשיכים לפעול.'); }
   function resize() { if (chartInstance) { chartInstance.resize(); } }
+  Statso.i18n.onChange(function () {
+    if (!chartInstance || !document.getElementById('chart-start-year') || !document.getElementById('chart-end-year') || !document.getElementById('chart-range-error') || !document.getElementById('cpi-chart')) { return; }
+    onRangeChange();
+  });
   Statso.chart = {EVENTS: EVENTS, eventIndex: eventIndex, populateYearSelects: populateYearSelects, sliceByYears: sliceByYears, buildConfig: buildConfig, render: render, onRangeChange: onRangeChange, init: init, activate: activate, showUnavailable: showUnavailable, resize: resize};
 })(window);

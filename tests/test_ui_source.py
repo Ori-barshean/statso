@@ -24,6 +24,18 @@ class UiSourceTests(unittest.TestCase):
         self.assertIn("type: 'linear'", text)
         for forbidden in ("logarithmic", "Math.log", "'time'"): self.assertNotIn(forbidden, text)
 
+    def test_event_chips_dodge_the_line_instead_of_reserving_a_band(self):
+        text = self.scripts["statso-chart.js"]
+        for gone in ("EVENT_BAND_HEIGHT", "layout:", "padding:"):
+            self.assertNotIn(gone, text)
+        self.assertIn("const CHIP_HEIGHT = 17;", text)
+        self.assertIn("const middle = (area.top + area.bottom) / 2;", text)
+        self.assertIn("chart.scales.y", text)
+        self.assertIn("const placeAtBottom = isFinite(valueY) && valueY < middle;", text)
+        self.assertIn("area.bottom - 4 - CHIP_HEIGHT - (bottomLane % 2) * 21", text)
+        self.assertIn("area.top + 4 + (topLane % 2) * 21", text)
+        self.assertIn("if (placeAtBottom) { bottomLane += 1; } else { topLane += 1; }", text)
+
     def test_calculator_default(self):
         self.assertRegex(self.html, r'<input[^>]*type="radio"[^>]*name="calc-mode"[^>]*value="known"[^>]*checked')
 
@@ -41,7 +53,8 @@ class UiSourceTests(unittest.TestCase):
     def test_info_routes_and_unknown_hash_fallback(self):
         text = self.scripts["statso-nav.js"]
         for route, page in (("about", "about-page"), ("method", "method-page"),
-                            ("privacy", "privacy-page"), ("contact", "contact-page")):
+                            ("terms", "terms-page"), ("privacy", "privacy-page"),
+                            ("accessibility", "accessibility-page"), ("contact", "contact-page")):
             self.assertIn(f"'#/" + route + "': '" + page + "'", text)
         self.assertIn("const infoPageId = infoRoutes[hash]", text)
         self.assertIn("dashboardView.hidden = guides || info", text)
@@ -103,15 +116,60 @@ class UiSourceTests(unittest.TestCase):
         self.assertIn('input[name="calc-kind"]', init_body)
         self.assertIn("showKind(currentKind());", init_body)
 
-    def test_top_nav_is_three_destinations_plus_the_tools_menu(self):
+    def test_top_nav_is_four_destinations_plus_the_tools_menu(self):
         nav = re.search(r'<nav class="site-nav".*?</nav>', self.html, re.DOTALL).group(0)
-        self.assertEqual(nav.count('class="nav-item"'), 2)
-        for href in ('href="#/"', 'href="#/guides"', 'href="#/tools"'):
+        self.assertEqual(len(re.findall(r'class="nav-item(?: [^"]+)?"', nav)), 4)
+        self.assertNotIn('<br', nav)
+        self.assertGreater(nav.index('href="#/mcode"'), nav.index('</ul>'))
+        for href in ('href="#/"', 'href="#/guides"', 'href="#/tools"', 'href="#/mcode"'):
             self.assertIn(href, nav)
         submenu = re.search(r'<ul class="nav-submenu".*?</ul>', nav, re.DOTALL).group(0)
         self.assertEqual(submenu.count("<a "), 5)
         for route in ("index", "fx", "history", "fx-history", "rent"):
             self.assertIn(f'href="#/tools/{route}"', submenu)
+
+    def test_mcode_ids_and_module_order(self):
+        for name in ("mcode-view", "mc-currencies-block", "mc-currencies", "mc-from", "mc-to", "mc-average", "mc-error", "mc-code", "mc-copy"):
+            self.assertEqual(self.html.count(f'id="{name}"'), 1)
+        self.assertLess(self.html.index('src="assets/statso-mcode.js"'), self.html.index('src="assets/statso-guides.js"'))
+        self.assertRegex(self.html, r'<main[^>]*id="mcode-view"[\s\S]*?<h1>')
+
+    def test_footer_links_disclaimer_and_copyright(self):
+        footer = re.search(r'<footer>.*?</footer>', self.html, re.DOTALL).group(0)
+        routes_in_order = re.findall(r'href="(#/[a-z-]+)"', footer)
+        self.assertEqual(routes_in_order,
+                          ["#/about", "#/method", "#/terms", "#/privacy", "#/accessibility", "#/contact"])
+        self.assertIn("statso הוא אתר אישי וחובבני, שאינו מופעל מטעם הלשכה המרכזית לסטטיסטיקה, "
+                      "בנק ישראל או גוף ממשלתי אחר.", footer)
+        self.assertIn("© 2026 מפעיל האתר. נתוני המקור שייכים לגופים המפרסמים.", footer)
+
+    def test_contact_form_accessibility_additions(self):
+        self.assertIn('autocomplete="name"', self.html)
+        self.assertIn('autocomplete="email"', self.html)
+        contact = re.search(r'<article class="info-page" id="contact-page".*?</article>', self.html, re.DOTALL).group(0)
+        self.assertIn('name="botcheck"', contact)
+        self.assertNotIn('type="checkbox" name="privacy-consent"', contact)
+        self.assertIn('href="#/privacy"', contact)
+        text = self.scripts["statso-contact.js"]
+        self.assertIn("payload.set('subject'", text)
+        self.assertIn("setAttribute('role', 'status')", text)
+        self.assertIn("WEB3FORMS_ACCESS_KEY", text)
+
+    def test_method_page_stale_counts_and_broken_link_fixed(self):
+        method = re.search(r'<article class="info-page" id="method-page".*?</article>', self.html, re.DOTALL).group(0)
+        self.assertNotIn("Developers-Portal.aspx", method)
+        self.assertIn("%D7%9E%D7%9E%D7%A9%D7%A7-API.aspx", method)
+        self.assertNotIn(">899<", method)
+        self.assertNotIn(">159<", method)
+        self.assertIn(">22</span> בסיסים", method)
+        self.assertIn(">22</span> different bases", method)
+
+    def test_privacy_page_no_longer_claims_no_browser_storage(self):
+        privacy = re.search(r'<article class="info-page" id="privacy-page".*?</article>', self.html, re.DOTALL).group(0)
+        self.assertNotIn("אינו שומר דבר בדפדפן שלך", privacy)
+        self.assertNotIn("stores nothing in your browser", privacy)
+        for marker in ("Web3Forms", "web3forms.com/privacy", "localStorage", "45 יום", "45 days"):
+            self.assertIn(marker, privacy)
 
 
 if __name__ == "__main__": unittest.main()

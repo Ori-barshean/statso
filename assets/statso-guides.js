@@ -8,23 +8,41 @@
   };
   const guides = [
     {id: 'excel', title: 'שאיבת נתונים מ-statso לתוך Excel', description: 'כך מייבאים ריבית או מדד לאקסל, עם הוראות מותאמות למחשב ולשיטת העבודה.'},
-    {id: 'cpi-terms', title: 'מדד בגין מול מדד ידוע — ומה המדד בכלל מודד', description: 'ההבדל בין שני המדדים, מתי הלמ״ס מפרסמת, ומה נכלל בסל.'}
+    {id: 'cpi-terms', title: 'מדד בגין מול מדד ידוע — ומה המדד בכלל מודד', description: 'ההבדל בין שני המדדים, מתי הלמ״ס מפרסמת, ומה נכלל בסל.'},
+    {id: 'live-pull', soon: true, title: 'שליפת נתונים חיה — בקרוב', description: 'מדריך לשליפה אוטומטית של נתוני statso לכלים נוספים. בהכנה.'}
   ];
   const state = {platform: 'mac', method: 'power', dataset: 'boi'};
 
   function getSteps(platform, method, dataset) {
     const csv = URLS[dataset].csv; const json = URLS[dataset].json;
     if (method === 'power') {
-      return [
-        platform === 'mac' ? {
+      if (platform === 'mac') {
+        return [
+          {
           text: 'פותחים חוברת עבודה חדשה, עוברים ללשונית Data / ״נתונים״ ולוחצים על ״יבא נתונים (Power Query)״.',
           art: 'ribbon-data',
           shots: {he: {src: 'assets/images/excel-mac-power-query-he.png',
                        alt: 'אקסל למק בעברית: לשונית נתונים והכפתור ״יבא נתונים (Power Query)״.',
                        width: 542, height: 260,
                        arrow: {from: [240, 240], c1: [280, 250], c2: [334, 228], to: [386, 212], width: 7, head: 24}}}
-        } : {text: 'פותחים חוברת עבודה חדשה ועוברים ללשונית Data / ״נתונים״.', art: 'ribbon-data'},
-        {text: platform === 'mac' ? 'בוחרים Data ← Get Data ← From Web (בעברית: נתונים ← קבלת נתונים ← מהאינטרנט).' : 'בוחרים Get Data ← From Other Sources ← From Web (בעברית: קבל נתונים ← ממקורות אחרים ← מהאינטרנט).', art: 'menu-getdata'},
+        },
+          {text: 'בחלון ״בחר מקור נתונים״ (Choose data source) בוחרים ״שאילתה ריקה״ (Blank Query).', art: 'dialog-choose-source',
+           shots: {he: {src: 'assets/images/excel-mac-blank-query-he.png', alt: 'אקסל למק בעברית: חלון ״בחר מקור נתונים״ (Choose data source) והכרטיס הנבחר ״שאילתה ריקה״ (Blank Query).', width: 542, height: 229,
+                       arrow: {from: [12, 222], c1: [4, 200], c2: [18, 182], to: [66, 183], width: 7, head: 20}}}},
+          {text: 'בעורך Power Query לוחצים על ״עורך מתקדם״ (Advanced Editor), מוחקים את כל מה שכתוב שם, מדביקים במקומו את הקוד הבא ומאשרים.', art: 'editor-advanced', mcodeCta: true,
+           code: Statso.mcode ? Statso.mcode.generate({series: dataset === 'cpi' ? 'cpi' : 'boi', currencies: [], from: '2022-12-01', to: '2025-12-31', average: false}) : ''},
+          {text: 'אם מופיעה הודעה כתומה ״לא היתה אפשרות להעריך שאילתה זו עקב אישורים לא חוקיים או חסרים״ — לוחצים על ״קבע תצורה של חיבור״ (Configure connection), בוחרים ״אנונימי״ (Anonymous) ומתחברים.', art: 'dialog-credentials',
+           shots: {he: {src: 'assets/images/excel-mac-credentials-he.png', alt: 'אקסל למק בעברית: הודעת האישורים והכפתור ״קבע תצורה של חיבור״.', width: 542, height: 184}}},
+          {text: 'הטבלה מופיעה בתצוגה המקדימה של העורך. לוחצים על ״סגור וטען״ (Close & Load) כדי לטעון אותה לגיליון.', art: 'sheet-loaded',
+           shots: {he: {src: 'assets/images/excel-mac-close-load-he.png', alt: 'אקסל למק בעברית: הטבלה בעורך Power Query והכפתור ״סגור וטען״.', width: 542, height: 286}}},
+          {text: 'לעדכון הנתונים עוברים ללשונית Data / ״נתונים״ ולוחצים על ״רענן את הכל״ (Refresh All).', art: 'ribbon-refresh',
+           shots: {he: {src: 'assets/images/excel-mac-refresh-all-he.png', alt: 'אקסל למק בעברית: לשונית נתונים והכפתור ״רענן את הכל״ (Refresh All).', width: 542, height: 209,
+                       arrow: {from: [350, 200], c1: [318, 202], c2: [290, 196], to: [268, 172], width: 7, head: 20}}}}
+        ];
+      }
+      return [
+        {text: 'פותחים חוברת עבודה חדשה ועוברים ללשונית Data / ״נתונים״.', art: 'ribbon-data'},
+        {text: 'בוחרים Get Data ← From Other Sources ← From Web (בעברית: קבל נתונים ← ממקורות אחרים ← מהאינטרנט).', art: 'menu-getdata'},
         {text: 'מדביקים את כתובת ה-CSV בתיבת URL ומאשרים ב-OK / ״אישור״.', art: 'dialog-fromweb', url: csv},
         {text: 'בחלון Navigator / ״נווט״ לוחצים Load / ״טען״, או Transform Data / ״המר נתונים״ לעריכה לפני הטעינה.', art: 'dialog-navigator'},
         {text: 'הטבלה נטענת לגיליון כטבלת Query.', art: 'sheet-loaded'},
@@ -55,6 +73,9 @@
   function urlBlock(url) {
     return '<div class="url-block"><code dir="ltr">' + url + '</code><button class="copy-url" type="button" data-url="' + url + '">העתק</button></div>';
   }
+  function codeBlock(code) {
+    return '<div class="code-block"><pre dir="ltr" data-i18n-skip><code>' + Statso.core.escapeHtml(code) + '</code></pre><button class="copy-url" type="button">העתק</button></div>';
+  }
   function escAttr(value) { return String(value == null ? '' : value).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   function round1(value) { return Math.round(value * 10) / 10; }
   // The arrowhead is its own polygon laid along the curve's final tangent, not a <marker>,
@@ -81,11 +102,26 @@
     return '<figure><div class="art-scroll art-scroll-' + (lang === 'he' ? 'rtl' : 'ltr') + '">' + visual + '</div><figcaption>' + caption + '</figcaption></figure>';
   }
   // A Hebrew reader may be running Excel in either language, so both screenshots
-  // earn their place. An English reader has no use for the Hebrew Excel UI.
+  // earn their place, except in the Mac Power Query guide with Hebrew screenshots.
+  // An English reader has no use for the Hebrew Excel UI.
   function artSlots(step, number) {
     const site = Statso.i18n ? Statso.i18n.current() : 'he';
     if (site === 'en') { return artSlot(step, 'en', number); }
+    if (hebrewMacPower()) { return artSlot(step, 'he', number); }
     return artSlot(step, 'he', number) + artSlot(step, 'en', number);
+  }
+
+  function hebrewMacPower() {
+    const site = Statso.i18n ? Statso.i18n.current() : 'he';
+    return site === 'he' && state.platform === 'mac' && state.method === 'power';
+  }
+  function mcodeCta() {
+    const example = state.dataset === 'cpi'
+      ? 'הקוד שלמעלה הוא דוגמה מוכנה למדד המחירים לצרכן לטווח 2022-12-01 עד 2025-12-31.'
+      : 'הקוד שלמעלה הוא דוגמה מוכנה לריבית בנק ישראל לטווח 2022-12-01 עד 2025-12-31.';
+    const explanation = 'בעמוד ״קודים לייצוא (Power Query)״ אפשר לבחור כל סדרה, טווח תאריכים והשוואה שהאתר מציע, להוסיף שורת ממוצע לפי הצורך ולקבל קוד M מוכן להעתקה למקרה שלכם.';
+    const label = 'קודים לייצוא (Power Query)';
+    return '<div class="guide-mcode-cta"><p>' + example + '</p><p>' + explanation + '</p><a class="guide-mcode-button" href="#/mcode">' + label + '</a></div>';
   }
 
   function renderSteps() {
@@ -96,10 +132,10 @@
       return;
     }
     const steps = getSteps(state.platform, state.method, state.dataset);
-    const note = state.platform === 'mac' && state.method === 'power' ? '<aside class="guide-note">״From Web״ קיים ב-Excel for Mac מתוך Microsoft 365 בגרסאות מ-2022 ואילך. אם הוא לא מופיע — יש לעדכן את אקסל או להשתמש בשיטת ההורדה הידנית.</aside>' : '';
-    target.innerHTML = note + '<ol class="guide-steps">' + steps.map(function (step, index) {
+    const artClass = hebrewMacPower() ? 'step-art step-art-single' : 'step-art';
+    target.innerHTML = '<ol class="guide-steps">' + steps.map(function (step, index) {
       const number = index + 1;
-      return '<li><div class="step-copy"><h2>שלב ' + number + '</h2><p>' + step.text + '</p>' + (step.formula ? '<p><code dir="ltr">=WEBSERVICE(&quot;&lt;JSON URL&gt;&quot;)</code></p>' : '') + (step.url ? urlBlock(step.url) : '') + '</div><div class="step-art">' + artSlots(step, number) + '</div></li>';
+      return '<li><div class="step-copy"><h2>שלב ' + number + '</h2><p>' + step.text + '</p>' + (step.formula ? '<p><code dir="ltr">=WEBSERVICE(&quot;&lt;JSON URL&gt;&quot;)</code></p>' : '') + (step.url ? urlBlock(step.url) : '') + (step.code ? codeBlock(step.code) + (step.mcodeCta ? mcodeCta() : '') : '') + '</div><div class="' + artClass + '">' + artSlots(step, number) + '</div></li>';
     }).join('') + '</ol>';
     attachCopyButtons();
   }
@@ -149,23 +185,35 @@
   function showGuide(eventOrId) {
     const guideId = typeof eventOrId === 'string' ? eventOrId : eventOrId && eventOrId.currentTarget ? eventOrId.currentTarget.dataset.guide : 'excel';
     document.getElementById('guides-index').hidden = true; document.getElementById('guide-detail').hidden = false; renderGuide(guideId); root.scrollTo(0, 0);
+    if (Statso.nav && Statso.nav.focusView) { Statso.nav.focusView(); }
   }
-  function showIndex() { document.getElementById('guide-detail').hidden = true; document.getElementById('guides-index').hidden = false; root.scrollTo(0, 0); }
+  function showIndex(fromRoute) {
+    document.getElementById('guide-detail').hidden = true; document.getElementById('guides-index').hidden = false; root.scrollTo(0, 0);
+    if (!fromRoute && Statso.nav && Statso.nav.focusView) { Statso.nav.focusView(); }
+  }
   function renderIndex() {
-    document.getElementById('guide-cards').innerHTML = guides.map(function (guide) { return '<button class="guide-card" type="button" data-guide="' + guide.id + '"><span>' + guide.title + '</span><small>' + guide.description + '</small><b aria-hidden="true">←</b></button>'; }).join('');
+    document.getElementById('guide-cards').innerHTML = guides.map(function (guide) {
+      if (guide.soon) { return '<div class="guide-card guide-card-soon" aria-disabled="true"><span>' + Statso.core.escapeHtml(guide.title) + '</span><small>' + Statso.core.escapeHtml(guide.description) + '</small></div>'; }
+      return '<button class="guide-card" type="button" data-guide="' + guide.id + '"><span>' + guide.title + '</span><small>' + guide.description + '</small><b aria-hidden="true">←</b></button>'; }).join('');
     document.querySelectorAll('[data-guide]').forEach(function (button) { button.addEventListener('click', showGuide); });
   }
   function legacyCopy(text) {
     const input = document.createElement('textarea'); input.value = text; input.setAttribute('readonly', ''); input.style.position = 'fixed'; input.style.opacity = '0'; document.body.appendChild(input); input.select();
     let ok = false; try { ok = document.execCommand('copy'); } catch (error) { ok = false; } document.body.removeChild(input); return ok;
   }
+  function payload(button) {
+    if (button.dataset.url) { return button.dataset.url; }
+    const holder = button.closest('.code-block');
+    const code = holder && holder.querySelector('code');
+    return code ? code.textContent : '';
+  }
   function copy(button) {
     const done = function (ok) { if (!ok) { return; } const old = button.textContent; button.textContent = 'הועתק'; root.setTimeout(function () { button.textContent = old; }, 1400); };
-    if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(button.dataset.url).then(function () { done(true); }).catch(function () { done(legacyCopy(button.dataset.url)); }); }
-    else { done(legacyCopy(button.dataset.url)); }
+    if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(payload(button)).then(function () { done(true); }).catch(function () { done(legacyCopy(payload(button))); }); }
+    else { done(legacyCopy(payload(button))); }
   }
   function attachCopyButtons() { document.querySelectorAll('.copy-url').forEach(function (button) { button.addEventListener('click', function () { copy(button); }); }); }
-  function init() { renderIndex(); document.getElementById('guide-back').addEventListener('click', showIndex); }
+  function init() { renderIndex(); document.getElementById('guide-back').addEventListener('click', function () { showIndex(); }); }
   document.addEventListener('DOMContentLoaded', init);
   if (root.Statso.i18n) {
     root.Statso.i18n.onChange(function () {

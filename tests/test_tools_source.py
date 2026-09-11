@@ -85,7 +85,7 @@ class ToolsSourceTests(unittest.TestCase):
 
     def test_the_offline_build_can_inline_every_new_module(self):
         forbidden = ("</script", "</style", "<!--", "-->")
-        for name in ("statso-xlsx.js", "statso-export.js", "statso-tools.js", "statso-rent.js"):
+        for name in ("statso-xlsx.js", "statso-export.js", "statso-tools.js", "statso-rent.js", "statso-mcode.js"):
             self.assertIn(name, self.html, f"{name} is not loaded by the page")
             for token in forbidden:
                 self.assertNotIn(token, self.scripts[name], f"{token!r} would fail the offline build")

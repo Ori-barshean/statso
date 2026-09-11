@@ -20,14 +20,14 @@
   }
 
   function cell(value, title) {
-    const attribute = title ? ' title="' + title + '"' : '';
+    const attribute = title ? ' title="' + Statso.core.escapeHtml(title) + '"' : '';
     return '<td dir="ltr"' + attribute + '>' + (value === null ? '—' : Statso.core.formatRate(value)) + '</td>';
   }
 
   function buildRow(row, yearCount) {
-    const name = Statso.core.CURRENCY_NAMES[row.code] || row.code;
-    const unit = row.unit && row.unit !== 1 ? ' <span class="currency-code">×' + row.unit + '</span>' : '';
-    let html = '<tr><th scope="row">' + name + ' <span class="currency-code">' + row.code + '</span>' + unit + '</th>';
+    const name = Statso.core.escapeHtml(Statso.core.CURRENCY_NAMES[row.code] || row.code);
+    const unit = row.unit && row.unit !== 1 ? ' <span class="currency-code">×' + Statso.core.escapeHtml(row.unit) + '</span>' : '';
+    let html = '<tr><th scope="row">' + name + ' <span class="currency-code">' + Statso.core.escapeHtml(row.code) + '</span>' + unit + '</th>';
     html += cell(row.latest ? row.latest.rate : null, row.latest ? row.latest.date : '');
     for (let position = 0; position < yearCount; position += 1) {
       const entry = row.years && row.years[position];
@@ -44,7 +44,7 @@
     const heads = ['מטבע', 'שער עדכני'];
     labels.forEach(function (label) { heads.push(label.end); heads.push(label.average); });
     document.getElementById('fx-table-head').innerHTML = heads.map(function (text) {
-      return '<th scope="col">' + text + '</th>';
+      return '<th scope="col">' + Statso.core.escapeHtml(text) + '</th>';
     }).join('');
     document.getElementById('fx-table-body').innerHTML = rates.map(function (row) {
       return buildRow(row, labels.length);
