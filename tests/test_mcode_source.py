@@ -105,15 +105,15 @@ process.stdout.write(JSON.stringify(out));
 
     def test_guide_example_is_identical_in_both_load_orders(self):
         body = '''
-process.stdout.write(JSON.stringify(['boi', 'cpi'].map(series => {
- const steps = S.guides.getSteps('mac', 'power', series);
- return {embedded: steps[2].code, generated: S.mcode.generate({series, currencies: [], from: '2022-12-01', to: '2025-12-31', average: false}), hasUrl: steps.some(s => s.url)};
-})));
+const steps = S.guides.getSteps('mac', 'power');
+process.stdout.write(JSON.stringify({embedded: steps[2].code,
+ generated: S.mcode.generate({series: 'boi', currencies: [], from: '2022-12-01', to: '2025-12-31', average: false}),
+ hasUrl: steps.some(s => s.url)}));
 '''
         for modules in (MODULES, MODULES[:2] + [MODULES[3], MODULES[2]]):
-            for row in node(body, modules=modules):
-                self.assertEqual(row['embedded'], row['generated'])
-                self.assertFalse(row['hasUrl'])
+            row = node(body, modules=modules)
+            self.assertEqual(row['embedded'], row['generated'])
+            self.assertFalse(row['hasUrl'])
 
     def test_validation_clears_code_without_generating(self):
         out = node('''

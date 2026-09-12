@@ -13,8 +13,8 @@
   ];
   const state = {platform: 'mac', method: 'power', dataset: 'boi'};
 
-  function getSteps(platform, method, dataset) {
-    const csv = URLS[dataset].csv; const json = URLS[dataset].json;
+  function getSteps(platform, method) {
+    const csv = URLS.boi.csv; const json = URLS.boi.json;
     if (method === 'power') {
       if (platform === 'mac') {
         return [
@@ -29,8 +29,11 @@
           {text: 'בחלון ״בחר מקור נתונים״ (Choose data source) בוחרים ״שאילתה ריקה״ (Blank Query).', art: 'dialog-choose-source',
            shots: {he: {src: 'assets/images/excel-mac-blank-query-he.png', alt: 'אקסל למק בעברית: חלון ״בחר מקור נתונים״ (Choose data source) והכרטיס הנבחר ״שאילתה ריקה״ (Blank Query).', width: 542, height: 229,
                        arrow: {from: [12, 222], c1: [4, 200], c2: [18, 182], to: [66, 183], width: 7, head: 20}}}},
-          {text: 'בעורך Power Query לוחצים על ״עורך מתקדם״ (Advanced Editor), מוחקים את כל מה שכתוב שם, מדביקים במקומו את הקוד הבא ומאשרים.', art: 'editor-advanced', mcodeCta: true,
-           code: Statso.mcode ? Statso.mcode.generate({series: dataset === 'cpi' ? 'cpi' : 'boi', currencies: [], from: '2022-12-01', to: '2025-12-31', average: false}) : ''},
+          {text: 'בעורך Power Query לוחצים על ״עורך מתקדם״ (Advanced Editor), מוחקים את כל מה שכתוב שם, מדביקים במקומו קוד מתוך',
+           mcodeLink: true,
+           textAfterLink: ', ולוחצים אישור/הבא.',
+           mcodeCta: true,
+           code: Statso.mcode ? Statso.mcode.generate({series: 'boi', currencies: [], from: '2022-12-01', to: '2025-12-31', average: false}) : ''},
           {text: 'אם מופיעה הודעה כתומה ״לא היתה אפשרות להעריך שאילתה זו עקב אישורים לא חוקיים או חסרים״ — לוחצים על ״קבע תצורה של חיבור״ (Configure connection), בוחרים ״אנונימי״ (Anonymous) ומתחברים.', art: 'dialog-credentials',
            shots: {he: {src: 'assets/images/excel-mac-credentials-he.png', alt: 'אקסל למק בעברית: הודעת האישורים והכפתור ״קבע תצורה של חיבור״.', width: 542, height: 184}}},
           {text: 'הטבלה מופיעה בתצוגה המקדימה של העורך. לוחצים על ״סגור וטען״ (Close & Load) כדי לטעון אותה לגיליון.', art: 'sheet-loaded',
@@ -74,7 +77,7 @@
     return '<div class="url-block"><code dir="ltr">' + url + '</code><button class="copy-url" type="button" data-url="' + url + '">העתק</button></div>';
   }
   function codeBlock(code) {
-    return '<div class="code-block"><pre dir="ltr" data-i18n-skip><code>' + Statso.core.escapeHtml(code) + '</code></pre><button class="copy-url" type="button">העתק</button></div>';
+    return '<div class="code-block"><button class="copy-url guide-copy-pill" type="button">העתקת הקוד</button><pre dir="ltr" data-i18n-skip><code>' + Statso.core.escapeHtml(code) + '</code></pre></div>';
   }
   function escAttr(value) { return String(value == null ? '' : value).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   function round1(value) { return Math.round(value * 10) / 10; }
@@ -98,7 +101,7 @@
     let visual;
     const shot = source.shots && source.shots[lang];
     if (shot) { visual = shotMarkup(shot); }
-    else { visual = Statso.guideArt.render(source.art, {lang: lang, platform: state.platform, url: source.url || URLS[state.dataset].csv, dataset: state.dataset, step: stepNumber}); }
+    else { visual = Statso.guideArt.render(source.art, {lang: lang, platform: state.platform, url: source.url || URLS.boi.csv, dataset: 'boi', step: stepNumber}); }
     return '<figure><div class="art-scroll art-scroll-' + (lang === 'he' ? 'rtl' : 'ltr') + '">' + visual + '</div><figcaption>' + caption + '</figcaption></figure>';
   }
   // A Hebrew reader may be running Excel in either language, so both screenshots
@@ -115,13 +118,13 @@
     const site = Statso.i18n ? Statso.i18n.current() : 'he';
     return site === 'he' && state.platform === 'mac' && state.method === 'power';
   }
+  function mcodeLink() { return '<a class="guide-pill" href="#/mcode">קודים לייצוא (Power Query)</a>'; }
+  function mcodeExample() {
+    return '<p>' + 'הקוד שלהלן הוא דוגמה מוכנה לריבית בנק ישראל לטווח 2022-12-01 עד 2025-12-31.' + '</p>';
+  }
   function mcodeCta() {
-    const example = state.dataset === 'cpi'
-      ? 'הקוד שלמעלה הוא דוגמה מוכנה למדד המחירים לצרכן לטווח 2022-12-01 עד 2025-12-31.'
-      : 'הקוד שלמעלה הוא דוגמה מוכנה לריבית בנק ישראל לטווח 2022-12-01 עד 2025-12-31.';
     const explanation = 'בעמוד ״קודים לייצוא (Power Query)״ אפשר לבחור כל סדרה, טווח תאריכים והשוואה שהאתר מציע, להוסיף שורת ממוצע לפי הצורך ולקבל קוד M מוכן להעתקה למקרה שלכם.';
-    const label = 'קודים לייצוא (Power Query)';
-    return '<div class="guide-mcode-cta"><p>' + example + '</p><p>' + explanation + '</p><a class="guide-mcode-button" href="#/mcode">' + label + '</a></div>';
+    return '<div class="guide-mcode-cta"><p>' + explanation + '</p></div>';
   }
 
   function renderSteps() {
@@ -131,20 +134,19 @@
       document.querySelector('.choose-power').addEventListener('click', function () { state.method = 'power'; renderGuide(); });
       return;
     }
-    const steps = getSteps(state.platform, state.method, state.dataset);
+    const steps = getSteps(state.platform, state.method);
     const artClass = hebrewMacPower() ? 'step-art step-art-single' : 'step-art';
     target.innerHTML = '<ol class="guide-steps">' + steps.map(function (step, index) {
       const number = index + 1;
-      return '<li><div class="step-copy"><h2>שלב ' + number + '</h2><p>' + step.text + '</p>' + (step.formula ? '<p><code dir="ltr">=WEBSERVICE(&quot;&lt;JSON URL&gt;&quot;)</code></p>' : '') + (step.url ? urlBlock(step.url) : '') + (step.code ? codeBlock(step.code) + (step.mcodeCta ? mcodeCta() : '') : '') + '</div><div class="' + artClass + '">' + artSlots(step, number) + '</div></li>';
+      return '<li><div class="step-copy"><h2>שלב ' + number + '</h2><p>' + step.text + (step.mcodeLink ? ' ' + mcodeLink() + step.textAfterLink : '') + '</p>' + (step.formula ? '<p><code dir="ltr">=WEBSERVICE(&quot;&lt;JSON URL&gt;&quot;)</code></p>' : '') + (step.url ? urlBlock(step.url) : '') + (step.code ? (step.mcodeCta ? mcodeExample() : '') + codeBlock(step.code) + (step.mcodeCta ? mcodeCta() : '') : '') + '</div>' + (step.art ? '<div class="' + artClass + '">' + artSlots(step, number) + '</div>' : '') + '</li>';
     }).join('') + '</ol>';
     attachCopyButtons();
   }
   function renderExcelGuide() {
     document.getElementById('guide-detail').setAttribute('aria-labelledby', 'excel-guide-title');
-    document.getElementById('guide-content').innerHTML = '<header class="guide-header"><p class="eyebrow">מדריך אינטראקטיבי</p><h1 id="excel-guide-title">שאיבת נתונים מ-statso לתוך Excel</h1><p>בחרו את סביבת העבודה והנתונים, והשלבים יתעדכנו מיד.</p></header><form class="guide-selectors">' +
+    document.getElementById('guide-content').innerHTML = '<header class="guide-header"><p class="eyebrow">מדריך אינטראקטיבי</p><h1 id="excel-guide-title">שאיבת נתונים מ-statso לתוך Excel</h1><p>בחרו את סביבת העבודה ושיטת הייבוא, והשלבים יתעדכנו מיד.</p></header><form class="guide-selectors">' +
       selector('platform', 'מערכת הפעלה', [['mac','מק (macOS)'],['win','ווינדוס']]) +
-      selector('method', 'שיטה', [['power','Power Query (מומלץ)'],['manual','הורדה ידנית של CSV'],['webservice','נוסחת WEBSERVICE']]) +
-      selector('dataset', 'נתונים', [['boi','ריבית בנק ישראל'],['cpi','מדד המחירים לצרכן']]) + '</form><div class="guide-steps-host"></div>';
+      selector('method', 'שיטה', [['power','Power Query (מומלץ)'],['manual','הורדה ידנית של CSV'],['webservice','נוסחת WEBSERVICE']]) + '</form><div class="guide-steps-host"></div>';
     document.querySelectorAll('.guide-selectors input').forEach(function (radio) { radio.addEventListener('change', function () { state[radio.name.replace('guide-', '')] = radio.value; renderSteps(); }); });
     renderSteps();
   }

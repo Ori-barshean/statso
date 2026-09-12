@@ -57,7 +57,7 @@ class DictionaryCoverageTests(unittest.TestCase):
             source = (ROOT / "assets" / name).read_text()
             if name == "statso-guides.js":
                 source = source.split("if (method === 'power')")[1].split("if (method === 'manual')")[0]
-                texts = re.findall(r"(?:text|alt): '([^']+)'", source)
+                texts = re.findall(r"(?:text|textAfterLink|alt): '([^']+)'", source)
             else:
                 texts = re.findall(r"error = '([^']+)'", source)
             for text in texts:
@@ -68,11 +68,17 @@ class DictionaryCoverageTests(unittest.TestCase):
 
     def test_mac_code_cta_literals_have_translations(self):
         source = (ROOT / 'assets/statso-guides.js').read_text()
+        keys = dictionary_keys()
+        subtitle = re.search(r'<h1 id="excel-guide-title">.*?</h1><p>(.*?)</p>', source).group(1)
+        self.assertIn(subtitle, keys)
+        self.assertIn('העתקת הקוד', keys)
+        self.assertIn('קודים לייצוא (Power Query)', keys)
         cta = source.split('function mcodeCta() {')[1].split('\n  }')[0]
-        literals = [text for text in re.findall(r"'([^']+)'", cta) if HEBREW.search(text)]
-        self.assertEqual(len(literals), 4)
+        example = source.split('function mcodeExample() {')[1].split('\n  }')[0]
+        literals = [text for text in re.findall(r"'([^']+)'", cta + example) if HEBREW.search(text)]
+        self.assertEqual(len(literals), 2)
         for text in literals:
-            self.assertIn(text, dictionary_keys())
+            self.assertIn(text, keys)
 
 
 class EngineTests(unittest.TestCase):

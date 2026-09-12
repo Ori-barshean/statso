@@ -21,7 +21,8 @@
     'יש לבחור תאריך התחלה ותאריך סיום.': 'Choose a start date and an end date.',
     'תאריך ההתחלה חייב להיות לפני תאריך הסיום.': 'The start date must be before the end date.',
     'בחלון ״בחר מקור נתונים״ (Choose data source) בוחרים ״שאילתה ריקה״ (Blank Query).': 'In Choose data source, select Blank Query.',
-    'בעורך Power Query לוחצים על ״עורך מתקדם״ (Advanced Editor), מוחקים את כל מה שכתוב שם, מדביקים במקומו את הקוד הבא ומאשרים.': 'In Power Query, click Advanced Editor, delete all existing content, paste the following code, and confirm.',
+    'בעורך Power Query לוחצים על ״עורך מתקדם״ (Advanced Editor), מוחקים את כל מה שכתוב שם, מדביקים במקומו קוד מתוך': 'In Power Query, click Advanced Editor, delete all existing content, and paste code from',
+    ', ולוחצים אישור/הבא.': ', then click OK/Next.',
     'אם מופיעה הודעה כתומה ״לא היתה אפשרות להעריך שאילתה זו עקב אישורים לא חוקיים או חסרים״ — לוחצים על ״קבע תצורה של חיבור״ (Configure connection), בוחרים ״אנונימי״ (Anonymous) ומתחברים.': 'If an orange warning says the query could not be evaluated because of invalid or missing credentials, click Configure connection, choose Anonymous access, and connect.',
     'הטבלה מופיעה בתצוגה המקדימה של העורך. לוחצים על ״סגור וטען״ (Close & Load) כדי לטעון אותה לגיליון.': 'The table appears in the editor preview. Click Close & Load to load it into the worksheet.',
     'אקסל למק בעברית: חלון ״בחר מקור נתונים״ (Choose data source) והכרטיס הנבחר ״שאילתה ריקה״ (Blank Query).': 'Excel for Mac in Hebrew: Choose data source and the selected Blank Query card.',
@@ -39,8 +40,7 @@
 
     'לעדכון הנתונים עוברים ללשונית Data / ״נתונים״ ולוחצים על ״רענן את הכל״ (Refresh All).': 'To update the data, open the Data tab and click Refresh All.',
     'אקסל למק בעברית: לשונית נתונים והכפתור ״רענן את הכל״ (Refresh All).': 'Excel for Mac in Hebrew: the Data tab and Refresh All button.',
-    'הקוד שלמעלה הוא דוגמה מוכנה למדד המחירים לצרכן לטווח 2022-12-01 עד 2025-12-31.': 'The code above is a ready-made consumer price index example for 2022-12-01 to 2025-12-31.',
-    'הקוד שלמעלה הוא דוגמה מוכנה לריבית בנק ישראל לטווח 2022-12-01 עד 2025-12-31.': 'The code above is a ready-made Bank of Israel interest rate example for 2022-12-01 to 2025-12-31.',
+    'הקוד שלהלן הוא דוגמה מוכנה לריבית בנק ישראל לטווח 2022-12-01 עד 2025-12-31.': 'The code below is a ready-made Bank of Israel interest rate example for 2022-12-01 to 2025-12-31.',
     'בעמוד ״קודים לייצוא (Power Query)״ אפשר לבחור כל סדרה, טווח תאריכים והשוואה שהאתר מציע, להוסיף שורת ממוצע לפי הצורך ולקבל קוד M מוכן להעתקה למקרה שלכם.': 'On the Export code (Power Query) page, choose any series, date range, and comparison the site offers, optionally add an average row, and get copy-ready M code for your own case.',
 
     // --- chrome -----------------------------------------------------------
@@ -434,8 +434,8 @@
     'ההבדל בין שני המדדים, מועד הפרסום והרכב סל הצריכה.':
       'The difference between the two, the publication date and what the consumption basket holds.',
     'מדריך אינטראקטיבי': 'Interactive guide',
-    'בחרו את סביבת העבודה והנתונים, והשלבים יתעדכנו מיד.':
-      'Pick your environment and dataset, and the steps update instantly.',
+    'בחרו את סביבת העבודה ושיטת הייבוא, והשלבים יתעדכנו מיד.':
+      'Pick your environment and import method, and the steps update instantly.',
     'מושגים במדד המחירים לצרכן': 'Consumer price index concepts',
     'מערכת הפעלה': 'Operating system',
     'מק (macOS)': 'Mac (macOS)',
