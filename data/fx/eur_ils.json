@@ -5,9 +5,9 @@
   "currency": "EUR",
   "counter_currency": "ILS",
   "unit": 1,
-  "count": 6776,
+  "count": 6779,
   "first_date": "1999-01-04",
-  "last_date": "2026-09-07",
+  "last_date": "2026-09-10",
   "observations": [
     {
       "date": "1999-01-04",
@@ -27112,6 +27112,18 @@
     {
       "date": "2026-09-07",
       "rate": 3.5015
+    },
+    {
+      "date": "2026-09-08",
+      "rate": 3.5056
+    },
+    {
+      "date": "2026-09-09",
+      "rate": 3.5131
+    },
+    {
+      "date": "2026-09-10",
+      "rate": 3.514
     }
   ]
 }
