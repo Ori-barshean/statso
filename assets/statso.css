@@ -90,6 +90,8 @@ html[dir="rtl"] .data-table td[dir="ltr"] { text-align: right; }
 .data-table tbody th { font-weight: 700; }
 .data-table td { font-size: .94rem; }
 .data-table .currency-code { color: var(--muted); font-size: .78rem; margin-inline-start: 6px; }
+html[dir="rtl"] .data-table .col-group-start { border-right: 2px solid var(--line); }
+html[dir="ltr"] .data-table .col-group-start { border-left: 2px solid var(--line); }
 .table-note { margin: 14px 0 0; color: var(--muted); font-size: .8rem; }
 .calc-result span { color: #cbd5e1; font-size: .86rem; display: block; }
 .calc-result strong { display: inline-block; font-size: 2rem; margin: 3px 0; }

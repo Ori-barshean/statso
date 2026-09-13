@@ -19,9 +19,10 @@
     });
   }
 
-  function cell(value, title) {
+  function cell(value, title, groupStart) {
     const attribute = title ? ' title="' + Statso.core.escapeHtml(title) + '"' : '';
-    return '<td dir="ltr"' + attribute + '>' + (value === null ? '—' : Statso.core.formatRate(value)) + '</td>';
+    const groupClass = groupStart ? ' class="col-group-start"' : '';
+    return '<td dir="ltr"' + groupClass + attribute + '>' + (value === null ? '—' : Statso.core.formatRate(value)) + '</td>';
   }
 
   function buildRow(row, yearCount) {
@@ -31,7 +32,7 @@
     html += cell(row.latest ? row.latest.rate : null, row.latest ? row.latest.date : '');
     for (let position = 0; position < yearCount; position += 1) {
       const entry = row.years && row.years[position];
-      html += cell(entry && entry.year_end ? entry.year_end.rate : null, entry && entry.year_end ? entry.year_end.date : '');
+      html += cell(entry && entry.year_end ? entry.year_end.rate : null, entry && entry.year_end ? entry.year_end.date : '', true);
       html += cell(entry ? entry.average : null, entry ? entry.count + ' שערים שפורסמו' : '');
     }
     return html + '</tr>';
@@ -41,10 +42,14 @@
     const rates = doc.rates || [];
     if (!rates.length) { throw new Error('טבלת שערי החליפין ריקה'); }
     const labels = headerLabels(doc);
-    const heads = ['מטבע', 'שער עדכני'];
-    labels.forEach(function (label) { heads.push(label.end); heads.push(label.average); });
-    document.getElementById('fx-table-head').innerHTML = heads.map(function (text) {
-      return '<th scope="col">' + Statso.core.escapeHtml(text) + '</th>';
+    const heads = [{text: 'מטבע'}, {text: 'שער עדכני'}];
+    labels.forEach(function (label) {
+      heads.push({text: label.end, groupStart: true});
+      heads.push({text: label.average});
+    });
+    document.getElementById('fx-table-head').innerHTML = heads.map(function (head) {
+      const groupClass = head.groupStart ? ' class="col-group-start"' : '';
+      return '<th scope="col"' + groupClass + '>' + Statso.core.escapeHtml(head.text) + '</th>';
     }).join('');
     document.getElementById('fx-table-body').innerHTML = rates.map(function (row) {
       return buildRow(row, labels.length);
