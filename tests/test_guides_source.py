@@ -73,6 +73,9 @@ for (const site of ['he', 'en']) {
 out.shots = S.guides.getSteps('mac', 'power').filter(s => s.shots).map(s => s.shots.he);
 out.shot = S.guides.getSteps('mac', 'power')[0].shots.he;
 out.win = S.guides.getSteps('win', 'power')[0];
+out.winShots = S.guides.getSteps('win', 'power')
+  .filter(s => s.shots)
+  .flatMap(s => Array.isArray(s.shots.he) ? s.shots.he : [s.shots.he]);
 out.code = S.mcode.generate({series: 'boi', currencies: [], from: '2022-12-01', to: '2025-12-31', average: false});
 S.i18n = {current: () => 'he', onChange() {}};
 Object.assign(S.guides.state, {platform: 'mac', method: 'manual'});
@@ -84,9 +87,10 @@ process.stdout.write(JSON.stringify(out));
         out = json.loads(subprocess.run(
             ["node", "-e", script], check=True, capture_output=True, text=True, encoding="utf-8"
         ).stdout)
-        old_text = 'פותחים חוברת עבודה חדשה ועוברים ללשונית Data / ״נתונים״.'
         new_text = 'פותחים חוברת עבודה חדשה, עוברים ללשונית Data / ״נתונים״ ולוחצים על ״יבא נתונים (Power Query)״.'
         alt = 'אקסל למק בעברית: לשונית נתונים והכפתור ״יבא נתונים (Power Query)״.'
+        win_text = ('פותחים חוברת עבודה חדשה ועוברים ללשונית ״נתונים״ (Data). לוחצים על ״יבא נתונים״ (Get Data), '
+                     'ואז על ״יבא נתונים (תצוגה מקדימה)״ (Get Data (Preview)).')
 
         def steps(key):
             return re.findall(r"<li>(.*?)</li>", out[key], re.S)
@@ -160,20 +164,49 @@ process.stdout.write(JSON.stringify(out));
                 self.assertNotIn("arrow", shot)
                 self.assertNotIn("guide-shot-arrow", mac[index])
 
+        # the Windows Power Query guide (Hebrew) now uses real screenshots too,
+        # laid out as 7 steps: single real photo per step, except step 4 (paste
+        # code) which carries two arrows on one photo, and step 5 (credentials)
+        # which shows two sequential real photos (the banner, then Anonymous/Connect).
         win = steps("he/win")
-        self.assertIn(old_text, win[0])
-        self.assertEqual(len(figures(win[0])), 2)
-        for figure in figures(win[0]):
-            self.assertIn('class="guide-svg', figure)
+        self.assertEqual(len(win), 7)
+        self.assertIn(win_text, win[0])
+        for index in (0, 1, 2, 5, 6):
+            figs = figures(win[index])
+            self.assertEqual(len(figs), 1)
+            self.assertIn('class="step-art step-art-single"', win[index])
+            self.assertNotIn('אקסל באנגלית', win[index])
+            self.assertIn('class="guide-shot-arrow"', figs[0])
+            for absent in ('guide-svg', ' id="', '<marker'):
+                self.assertNotIn(absent, figs[0])
+        self.assertIn('assets/images/excel-win-get-data-he.png', win[0])
+        self.assertIn('assets/images/excel-win-blank-query-he.png', win[1])
+        self.assertIn('assets/images/excel-win-advanced-editor-he.png', win[2])
+        self.assertIn('assets/images/excel-win-close-load-he.png', win[5])
+        self.assertIn('assets/images/excel-win-refresh-all-he.png', win[6])
+        # step 4: one photo, two arrow overlays (code box + Done button)
+        paste = figures(win[3])
+        self.assertEqual(len(paste), 1)
+        self.assertIn('assets/images/excel-win-paste-code-he.png', win[3])
+        self.assertEqual(win[3].count('<polygon'), 2)
+        self.assertIn('class="code-block"', win[3])
+        self.assertIn('href="#/mcode"', win[3])
+        # step 5: two sequential real photos (banner, then Anonymous/Connect)
+        creds = figures(win[4])
+        self.assertEqual(len(creds), 2)
+        self.assertIn('assets/images/excel-win-credentials-he.png', win[4])
+        self.assertIn('assets/images/excel-win-credentials-anonymous-he.png', win[4])
+        self.assertEqual(win[4].count('class="guide-shot-arrow"'), 2)
+        self.assertEqual(figures(win[4])[1].count('<polygon'), 2)  # anonymous + connect
 
-        # the English site shows the English Excel figure only, so no Hebrew screenshot
-        for page in ("he/win", "en/mac", "en/win"):
+        # the English site never shows the Hebrew real screenshots
+        for page in ("en/mac", "en/win"):
             self.assertNotIn("<img", out[page])
             self.assertNotIn("guide-real-shot", out[page])
         for page in ("en/mac", "en/win"):
             for index, step in enumerate(steps(page)):
                 only = figures(step)
-                if page == 'en/mac' and index == 2:
+                if (page == 'en/mac' and index == 2) or (page == 'en/win' and index == 3):
                     self.assertEqual(only, [])
                     self.assertNotIn('step-art', step)
                     continue
@@ -198,13 +231,15 @@ process.stdout.write(JSON.stringify(out));
                 if variant.endswith('win/webservice'):
                     self.assertTrue(any(url.endswith('boi_interest_rate.json') for url in urls))
 
-        self.assertEqual(out["win"], {"text": old_text, "art": "ribbon-data"})
+        self.assertEqual(out["win"]["text"], win_text)
+        self.assertEqual(out["win"]["art"], "ribbon-data")
+        self.assertEqual(out["win"]["shots"]["he"]["src"], "assets/images/excel-win-get-data-he.png")
         self.assertEqual(len(out["shots"]), 5)
         self.assertNotIn('step-art-single', out['manual'])
         self.assertNotIn('href="#/mcode"', out['manual'])
         for step in steps('manual'):
             self.assertEqual(len(figures(step)), 2)
-        for shot in out["shots"]:
+        for shot in out["shots"] + out["winShots"]:
             with (ROOT / shot["src"]).open("rb") as handle:
                 self.assertEqual(handle.read(8), b"\x89PNG\r\n\x1a\n")
                 length = struct.unpack(">I", handle.read(4))[0]
@@ -212,11 +247,13 @@ process.stdout.write(JSON.stringify(out));
                 width, height = struct.unpack(">II", handle.read(length)[:8])
             self.assertEqual((width, height), (shot["width"], shot["height"]))
 
-    def test_single_hebrew_column_is_only_for_mac_power(self):
-        predicate = self.guides.split('function hebrewMacPower() {')[1].split('\n  }')[0]
+    def test_single_hebrew_column_is_only_for_mac_or_win_power(self):
+        predicate = self.guides.split('function realShotGuide() {')[1].split('\n  }')[0]
         self.assertIn("Statso.i18n ? Statso.i18n.current() : 'he'", predicate)
-        self.assertIn("return site === 'he' && state.platform === 'mac' && state.method === 'power';", predicate)
-        self.assertIn("if (hebrewMacPower()) { return artSlot(step, 'he', number); }", self.guides)
+        self.assertIn(
+            "return site === 'he' && state.method === 'power' && (state.platform === 'mac' || state.platform === 'win');",
+            predicate)
+        self.assertIn("if (realShotGuide()) { return artSlot(step, 'he', number); }", self.guides)
 
     def test_second_guide_and_id_dispatch(self):
         self.assertIn("id: 'cpi-terms'", self.guides)

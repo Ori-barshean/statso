@@ -346,21 +346,10 @@
 
 
     // --- guide steps and diagrams -------------------------------------------
-    'פותחים חוברת עבודה חדשה ועוברים ללשונית Data / ״נתונים״.':
-      'Open a new workbook and go to the Data tab.',
     'פותחים חוברת עבודה חדשה, עוברים ללשונית Data / ״נתונים״ ולוחצים על ״יבא נתונים (Power Query)״.':
       'Open a new workbook, go to the Data tab, and click Get Data (Power Query).',
     'אקסל למק בעברית: לשונית נתונים והכפתור ״יבא נתונים (Power Query)״.':
       'Excel for Mac in Hebrew: the Data tab and the Get Data (Power Query) button.',
-    'בוחרים Get Data ← From Other Sources ← From Web (בעברית: קבל נתונים ← ממקורות אחרים ← מהאינטרנט).':
-      'Choose Get Data → From Other Sources → From Web.',
-    'מדביקים את כתובת ה-CSV בתיבת URL ומאשרים ב-OK / ״אישור״.':
-      'Paste the CSV address into the URL box and confirm with OK.',
-    'בחלון Navigator / ״נווט״ לוחצים Load / ״טען״, או Transform Data / ״המר נתונים״ לעריכה לפני הטעינה.':
-      'In the Navigator window click Load, or Transform Data to edit before loading.',
-    'הטבלה נטענת לגיליון כטבלת Query.': 'The table loads into the sheet as a Query table.',
-    'לעדכון הנתונים בוחרים Data ← Refresh All (בעברית: נתונים ← רענן הכל).':
-      'To refresh the data choose Data → Refresh All.',
     'פותחים את כתובת ה-CSV בדפדפן.': 'Open the CSV address in your browser.',
     'פותחים את הקובץ באקסל דרך File ← Open / ״קובץ ← פתיחה״.':
       'Open the file in Excel through File → Open.',
@@ -372,6 +361,38 @@
       'This suits a single value, such as the current interest rate, rather than a whole table. The result must fit in one cell — up to 32,767 characters.',
     'לקובצי המדד המלאים השיטה אינה מתאימה. משתמשים ב-Power Query, או בקובץ הקטן של החלטת הריבית הבאה.':
       'It does not suit the full index files. Use Power Query, or the small next-rate-decision file.',
+    'פותחים חוברת עבודה חדשה ועוברים ללשונית ״נתונים״ (Data). לוחצים על ״יבא נתונים״ (Get Data), ואז על ״יבא נתונים (תצוגה מקדימה)״ (Get Data (Preview)).':
+      'Open a new workbook and go to the "Data" tab. Click "Get Data", then "Get Data (Preview)".',
+    'אקסל בווינדוס בעברית: לשונית נתונים, הכפתור ״יבא נתונים״ (Get Data) והפריט ״יבא נתונים (תצוגה מקדימה)״ (Get Data (Preview)) בתפריט הנשלף.':
+      'Excel on Windows in Hebrew: the Data tab, the "Get Data" button and the "Get Data (Preview)" item in the flyout menu.',
+    'בחלון ״יבא נתונים (Power Query)״ (Get Data (Power Query)) בוחרים ״שאילתה ריקה״ (Blank Query).':
+      'In the "Get Data (Power Query)" window, choose "Blank Query".',
+    'אקסל בווינדוס בעברית: חלון ״יבא נתונים (Power Query)״ (Get Data (Power Query)) והכרטיס ״שאילתה ריקה״ (Blank Query).':
+      'Excel on Windows in Hebrew: the "Get Data (Power Query)" window and the "Blank Query" card.',
+    'בחלון שנפתח לוחצים על ״עורך מתקדם״ (Advanced Editor).':
+      'In the window that opens, click "Advanced Editor".',
+    'אקסל בווינדוס בעברית: הכרטיסייה ״בית״ בעורך Power Query והכפתור ״עורך מתקדם״ (Advanced Editor).':
+      'Excel on Windows in Hebrew: the Home tab of the Power Query editor and the "Advanced Editor" button.',
+    'בחלון שנפתח מוחקים את כל הקוד הקיים ומדביקים במקומו קוד מתוך':
+      'In the window that opens, delete all the existing code and paste in its place the code from',
+    '. לאחר ההדבקה לוחצים על ״סיום״ (Done).':
+      '. After pasting, click "Done".',
+    'אקסל בווינדוס בעברית: חלון ״עורך מתקדם״ עם תיבת הקוד וכפתור ״סיום״ (Done).':
+      'Excel on Windows in Hebrew: the "Advanced Editor" window with the code box and the "Done" button.',
+    'אם מופיעה הודעה כתומה המבקשת לציין כיצד להתחבר (״ציין כיצד להתחבר.״), לוחצים על ״ערוך אישורים״ (Edit Credentials). בחלון שנפתח בוחרים ״אנונימי״ (Anonymous), ואז לוחצים על ״התחבר״ (Connect).':
+      'If an orange message appears asking you to specify how to connect ("Specify how to connect."), click "Edit Credentials". In the window that opens, choose "Anonymous", then click "Connect".',
+    'אקסל בווינדוס בעברית: הודעת ״ציין כיצד להתחבר.״ והכפתור ״ערוך אישורים״ (Edit Credentials).':
+      'Excel on Windows in Hebrew: the "Specify how to connect." message and the "Edit Credentials" button.',
+    'אקסל בווינדוס בעברית: חלון ״קבל גישה לתוכן אינטרנט״ עם האפשרות ״אנונימי״ (Anonymous) וכפתור ״התחבר״ (Connect).':
+      'Excel on Windows in Hebrew: the "Access Web content" window with the "Anonymous" option and the "Connect" button.',
+    'לאחר שהטבלה מופיעה, לוחצים על ״סגור וטען״ (Close & Load).':
+      'Once the table appears, click "Close & Load".',
+    'אקסל בווינדוס בעברית: הטבלה בעורך Power Query והכפתור ״סגור וטען״ (Close & Load).':
+      'Excel on Windows in Hebrew: the table in the Power Query editor and the "Close & Load" button.',
+    'לעדכון הנתונים עוברים ללשונית ״נתונים״ (Data) ולוחצים על ״רענן הכל״ (Refresh All).':
+      'To update the data, go to the "Data" tab and click "Refresh All".',
+    'אקסל בווינדוס בעברית: לשונית נתונים והכפתור ״רענן הכל״ (Refresh All).':
+      'Excel on Windows in Hebrew: the Data tab and the "Refresh All" button.',
     'WEBSERVICE אינה זמינה ב-Excel for Mac': 'WEBSERVICE is not available in Excel for Mac',
     'אין צעדים להצגה עבור שילוב זה. אפשר לייבא את הנתונים באמצעות Power Query.':
       'There are no steps to show for this combination. You can import the data with Power Query instead.',
@@ -439,7 +460,7 @@
     'מושגים במדד המחירים לצרכן': 'Consumer price index concepts',
     'מערכת הפעלה': 'Operating system',
     'מק (macOS)': 'Mac (macOS)',
-    'ווינדוס': 'Windows',
+    'ווינדוס (Windows)': 'Windows',
     'שיטה': 'Method',
     'Power Query (מומלץ)': 'Power Query (recommended)',
     'הורדה ידנית של CSV': 'Manual CSV download',

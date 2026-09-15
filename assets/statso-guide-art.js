@@ -2,8 +2,8 @@
   'use strict';
   const Statso = root.Statso = root.Statso || {};
   const words = {
-    he: {excel: 'Excel', data: 'נתונים', getData: 'קבל נתונים', other: 'ממקורות אחרים', web: 'מהאינטרנט', refresh: 'רענן הכל', url: 'כתובת URL', ok: 'אישור', navigator: 'נווט', load: 'טען', file: 'קובץ', open: 'פתיחה', save: 'שמירה', formula: 'שורת הנוסחאות', preview: 'תצוגה מקדימה', chooseSource: 'בחר מקור נתונים', blankQuery: 'שאילתה ריקה', textCsv: 'טקסט/CSV', advancedEditor: 'עורך מתקדם', configureConnection: 'קבע תצורה של חיבור', credentialsWarning: 'אישורים לא חוקיים או חסרים', closeLoad: 'סגור וטען'},
-    en: {excel: 'Excel', data: 'Data', getData: 'Get Data', other: 'From Other Sources', web: 'From Web', refresh: 'Refresh All', url: 'URL', ok: 'OK', navigator: 'Navigator', load: 'Load', file: 'File', open: 'Open', save: 'Save', formula: 'Formula bar', preview: 'Preview', chooseSource: 'Choose data source', blankQuery: 'Blank Query', textCsv: 'Text/CSV', advancedEditor: 'Advanced Editor', configureConnection: 'Configure connection', credentialsWarning: 'Invalid or missing credentials', closeLoad: 'Close & Load'}
+    he: {excel: 'Excel', data: 'נתונים', getData: 'קבל נתונים', other: 'ממקורות אחרים', web: 'מהאינטרנט', refresh: 'רענן הכל', url: 'כתובת URL', ok: 'אישור', navigator: 'נווט', load: 'טען', file: 'קובץ', open: 'פתיחה', save: 'שמירה', formula: 'שורת הנוסחאות', preview: 'תצוגה מקדימה', chooseSource: 'בחר מקור נתונים', blankQuery: 'שאילתה ריקה', textCsv: 'טקסט/CSV', advancedEditor: 'עורך מתקדם', configureConnection: 'קבע תצורה של חיבור', credentialsWarning: 'אישורים לא חוקיים או חסרים', closeLoad: 'סגור וטען', specifyConnect: 'ציין כיצד להתחבר.', editCredentials: 'ערוך אישורים'},
+    en: {excel: 'Excel', data: 'Data', getData: 'Get Data', other: 'From Other Sources', web: 'From Web', refresh: 'Refresh All', url: 'URL', ok: 'OK', navigator: 'Navigator', load: 'Load', file: 'File', open: 'Open', save: 'Save', formula: 'Formula bar', preview: 'Preview', chooseSource: 'Choose data source', blankQuery: 'Blank Query', textCsv: 'Text/CSV', advancedEditor: 'Advanced Editor', configureConnection: 'Configure connection', credentialsWarning: 'Invalid or missing credentials', closeLoad: 'Close & Load', specifyConnect: 'Specify how to connect.', editCredentials: 'Edit Credentials'}
   };
   function esc(value) { return String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
   function text(x, y, value, cls) { return '<text x="' + x + '" y="' + y + '" class="' + (cls || '') + '">' + esc(value) + '</text>'; }
@@ -29,8 +29,13 @@
         text(70, 210, 'X-1', 'timeline-label center') + text(300, 210, 'X', 'timeline-label center') + text(530, 210, 'X+1', 'timeline-label center') +
         '<rect x="190" y="82" width="220" height="54" rx="10" class="known-callout"/>' + text(300, 105, 'במהלך חודש X', 'small center') + text(300, 124, 'מדד ידוע = מדד X-1', 'timeline-label center') +
         '<circle cx="470" cy="176" r="10" class="marker"/>' + text(470, 153, '15 בחודש X+1', 'small center') + text(470, 238, 'פרסום מדד בגין X', 'timeline-label center');
-    } else if (archetype === 'ribbon-data' || archetype === 'ribbon-refresh') {
-      body = '<rect x="18" y="56" width="564" height="70" rx="5" fill="#f1f5f9"/>' + text(rtl ? 530 : 42, 48, w.data, 'tab active') + text(rtl ? 485 : 42, 92, archetype === 'ribbon-refresh' ? w.refresh : w.getData, 'button-label') + '<rect x="' + (rtl ? 430 : 30) + '" y="66" width="140" height="42" rx="6" class="highlight"/>' + marker(rtl ? 422 : 178, 87, step) + grid(cols);
+    } else if (archetype === 'ribbon-data' || archetype === 'ribbon-refresh' || archetype === 'ribbon-advanced-editor') {
+      const ribbonLabel = archetype === 'ribbon-refresh' ? w.refresh : archetype === 'ribbon-advanced-editor' ? w.advancedEditor : w.getData;
+      body = '<rect x="18" y="56" width="564" height="70" rx="5" fill="#f1f5f9"/>' + text(rtl ? 530 : 42, 48, w.data, 'tab active') + text(rtl ? 485 : 42, 92, ribbonLabel, 'button-label') + '<rect x="' + (rtl ? 430 : 30) + '" y="66" width="140" height="42" rx="6" class="highlight"/>' + marker(rtl ? 422 : 178, 87, step) + grid(cols);
+    } else if (archetype === 'dialog-credentials-connect') {
+      body = text(rtl ? 555 : 28, 64, w.advancedEditor, 'dialog-title') + '<rect x="26" y="92" width="548" height="65" rx="5" fill="#fff7ed" stroke="#fdba74"/>' +
+        text(rtl ? 550 : 48, 128, w.specifyConnect, 'small') +
+        '<rect x="170" y="186" width="260" height="48" rx="6" class="highlight"/>' + text(300, 215, w.editCredentials, 'button-label center') + marker(rtl ? 446 : 154, 210, step);
     } else if (archetype === 'menu-getdata') {
       const mx = rtl ? 302 : 28;
       body = '<rect x="18" y="53" width="564" height="54" fill="#f1f5f9"/>' + text(rtl ? 530 : 42, 84, w.getData, 'button-label') + '<rect x="' + mx + '" y="101" width="270" height="142" rx="7" fill="#fff" stroke="#94a3b8"/>' + text(mx + 18, 135, w.other, 'menu') + text(mx + 18, 187, w.web, 'menu') + '<rect x="' + (mx + 8) + '" y="155" width="254" height="48" rx="4" class="highlight"/>' + marker(rtl ? 286 : 314, 178, step);

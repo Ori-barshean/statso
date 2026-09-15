@@ -44,12 +44,59 @@
         ];
       }
       return [
-        {text: 'פותחים חוברת עבודה חדשה ועוברים ללשונית Data / ״נתונים״.', art: 'ribbon-data'},
-        {text: 'בוחרים Get Data ← From Other Sources ← From Web (בעברית: קבל נתונים ← ממקורות אחרים ← מהאינטרנט).', art: 'menu-getdata'},
-        {text: 'מדביקים את כתובת ה-CSV בתיבת URL ומאשרים ב-OK / ״אישור״.', art: 'dialog-fromweb', url: csv},
-        {text: 'בחלון Navigator / ״נווט״ לוחצים Load / ״טען״, או Transform Data / ״המר נתונים״ לעריכה לפני הטעינה.', art: 'dialog-navigator'},
-        {text: 'הטבלה נטענת לגיליון כטבלת Query.', art: 'sheet-loaded'},
-        {text: 'לעדכון הנתונים בוחרים Data ← Refresh All (בעברית: נתונים ← רענן הכל).', art: 'ribbon-refresh'}
+        {text: 'פותחים חוברת עבודה חדשה ועוברים ללשונית ״נתונים״ (Data). לוחצים על ״יבא נתונים״ (Get Data), ואז על ״יבא נתונים (תצוגה מקדימה)״ (Get Data (Preview)).',
+         art: 'ribbon-data',
+         shots: {he: {src: 'assets/images/excel-win-get-data-he.png',
+                      alt: 'אקסל בווינדוס בעברית: לשונית נתונים, הכפתור ״יבא נתונים״ (Get Data) והפריט ״יבא נתונים (תצוגה מקדימה)״ (Get Data (Preview)) בתפריט הנשלף.',
+                      width: 902, height: 530,
+                      arrow: {from: [850, 480], c1: [860, 430], c2: [850, 370], to: [790, 350], width: 7, head: 22}}}},
+        {text: 'בחלון ״יבא נתונים (Power Query)״ (Get Data (Power Query)) בוחרים ״שאילתה ריקה״ (Blank Query).',
+         art: 'dialog-choose-source',
+         shots: {he: {src: 'assets/images/excel-win-blank-query-he.png',
+                      alt: 'אקסל בווינדוס בעברית: חלון ״יבא נתונים (Power Query)״ (Get Data (Power Query)) והכרטיס ״שאילתה ריקה״ (Blank Query).',
+                      width: 2276, height: 1486,
+                      arrow: {from: [300, 1470], c1: [300, 1440], c2: [290, 1410], to: [280, 1382], width: 8, head: 26}}}},
+        {text: 'בחלון שנפתח לוחצים על ״עורך מתקדם״ (Advanced Editor).',
+         art: 'ribbon-advanced-editor',
+         shots: {he: {src: 'assets/images/excel-win-advanced-editor-he.png',
+                      alt: 'אקסל בווינדוס בעברית: הכרטיסייה ״בית״ בעורך Power Query והכפתור ״עורך מתקדם״ (Advanced Editor).',
+                      width: 1046, height: 564,
+                      arrow: {from: [738, 320], c1: [738, 270], c2: [738, 225], to: [738, 200], width: 7, head: 22}}}},
+        {text: 'בחלון שנפתח מוחקים את כל הקוד הקיים ומדביקים במקומו קוד מתוך',
+         mcodeLink: true,
+         textAfterLink: '. לאחר ההדבקה לוחצים על ״סיום״ (Done).',
+         mcodeCta: true,
+         code: Statso.mcode ? Statso.mcode.generate({series: 'boi', currencies: [], from: '2022-12-01', to: '2025-12-31', average: false}) : '',
+         shots: {he: {src: 'assets/images/excel-win-paste-code-he.png',
+                      alt: 'אקסל בווינדוס בעברית: חלון ״עורך מתקדם״ עם תיבת הקוד וכפתור ״סיום״ (Done).',
+                      width: 2012, height: 1034,
+                      arrow: [{from: [1000, 120], c1: [1000, 160], c2: [1000, 190], to: [1000, 215], width: 8, head: 24},
+                              {from: [266, 1010], c1: [266, 985], c2: [266, 965], to: [266, 952], width: 6, head: 18}]}}},
+        {text: 'אם מופיעה הודעה כתומה המבקשת לציין כיצד להתחבר (״ציין כיצד להתחבר.״), לוחצים על ״ערוך אישורים״ (Edit Credentials). בחלון שנפתח בוחרים ״אנונימי״ (Anonymous), ואז לוחצים על ״התחבר״ (Connect).',
+         art: 'dialog-credentials-connect',
+         shots: {he: [
+           {src: 'assets/images/excel-win-credentials-he.png',
+            alt: 'אקסל בווינדוס בעברית: הודעת ״ציין כיצד להתחבר.״ והכפתור ״ערוך אישורים״ (Edit Credentials).',
+            width: 1252, height: 394,
+            arrow: {from: [640, 360], c1: [640, 330], c2: [640, 300], to: [640, 282], width: 6, head: 18}},
+           {src: 'assets/images/excel-win-credentials-anonymous-he.png',
+            alt: 'אקסל בווינדוס בעברית: חלון ״קבל גישה לתוכן אינטרנט״ עם האפשרות ״אנונימי״ (Anonymous) וכפתור ״התחבר״ (Connect).',
+            width: 1404, height: 560,
+            arrow: [{from: [1300, 20], c1: [1280, 50], c2: [1260, 70], to: [1240, 88], width: 6, head: 18},
+                    {from: [500, 510], c1: [420, 500], c2: [350, 490], to: [300, 480], width: 6, head: 18}]}
+         ]}},
+        {text: 'לאחר שהטבלה מופיעה, לוחצים על ״סגור וטען״ (Close & Load).',
+         art: 'sheet-loaded',
+         shots: {he: {src: 'assets/images/excel-win-close-load-he.png',
+                      alt: 'אקסל בווינדוס בעברית: הטבלה בעורך Power Query והכפתור ״סגור וטען״ (Close & Load).',
+                      width: 1252, height: 854,
+                      arrow: {from: [1200, 290], c1: [1200, 250], c2: [1200, 220], to: [1200, 200], width: 7, head: 20}}}},
+        {text: 'לעדכון הנתונים עוברים ללשונית ״נתונים״ (Data) ולוחצים על ״רענן הכל״ (Refresh All).',
+         art: 'ribbon-refresh',
+         shots: {he: {src: 'assets/images/excel-win-refresh-all-he.png',
+                      alt: 'אקסל בווינדוס בעברית: לשונית נתונים והכפתור ״רענן הכל״ (Refresh All).',
+                      width: 1192, height: 312,
+                      arrow: {from: [538, 270], c1: [538, 230], c2: [538, 190], to: [538, 165], width: 7, head: 20}}}}
       ];
     }
     if (method === 'manual') {
@@ -93,30 +140,41 @@
       '<polygon points="' + point(arrow.to, ',') + ' ' + point(left, ',') + ' ' + point(right, ',') + '" fill="#f97316"></polygon>';
   }
   function shotMarkup(shot) {
-    const overlay = shot.arrow ? '<svg class="guide-shot-arrow" viewBox="0 0 ' + shot.width + ' ' + shot.height + '" aria-hidden="true" focusable="false">' + arrowMarkup(shot.arrow) + '</svg>' : '';
+    const arrows = shot.arrow ? (Array.isArray(shot.arrow) ? shot.arrow : [shot.arrow]) : [];
+    const overlay = arrows.length ? '<svg class="guide-shot-arrow" viewBox="0 0 ' + shot.width + ' ' + shot.height + '" aria-hidden="true" focusable="false">' + arrows.map(arrowMarkup).join('') + '</svg>' : '';
     return '<div class="guide-real-shot"><img src="' + escAttr(shot.src) + '" alt="' + escAttr(shot.alt) + '" width="' + shot.width + '" height="' + shot.height + '">' + overlay + '</div>';
   }
-  function artSlot(source, lang, stepNumber) {
+  function oneArtSlot(visual, lang) {
     const caption = lang === 'he' ? 'אקסל בעברית' : 'אקסל באנגלית';
-    let visual;
-    const shot = source.shots && source.shots[lang];
-    if (shot) { visual = shotMarkup(shot); }
-    else { visual = Statso.guideArt.render(source.art, {lang: lang, platform: state.platform, url: source.url || URLS.boi.csv, dataset: 'boi', step: stepNumber}); }
     return '<figure><div class="art-scroll art-scroll-' + (lang === 'he' ? 'rtl' : 'ltr') + '">' + visual + '</div><figcaption>' + caption + '</figcaption></figure>';
   }
+  function artSlot(source, lang, stepNumber) {
+    const shot = source.shots && source.shots[lang];
+    if (Array.isArray(shot)) { return shot.map(function (s) { return oneArtSlot(shotMarkup(s), lang); }).join(''); }
+    let visual;
+    if (shot) { visual = shotMarkup(shot); }
+    else { visual = Statso.guideArt.render(source.art, {lang: lang, platform: state.platform, url: source.url || URLS.boi.csv, dataset: 'boi', step: stepNumber}); }
+    return oneArtSlot(visual, lang);
+  }
   // A Hebrew reader may be running Excel in either language, so both screenshots
-  // earn their place, except in the Mac Power Query guide with Hebrew screenshots.
-  // An English reader has no use for the Hebrew Excel UI.
+  // earn their place, except in the real-screenshot Power Query guides (Mac and
+  // Windows) where the Hebrew photos stand alone. An English reader has no use
+  // for the Hebrew Excel UI.
   function artSlots(step, number) {
     const site = Statso.i18n ? Statso.i18n.current() : 'he';
     if (site === 'en') { return artSlot(step, 'en', number); }
-    if (hebrewMacPower()) { return artSlot(step, 'he', number); }
+    if (realShotGuide()) { return artSlot(step, 'he', number); }
     return artSlot(step, 'he', number) + artSlot(step, 'en', number);
   }
 
-  function hebrewMacPower() {
+  function realShotGuide() {
     const site = Statso.i18n ? Statso.i18n.current() : 'he';
-    return site === 'he' && state.platform === 'mac' && state.method === 'power';
+    return site === 'he' && state.method === 'power' && (state.platform === 'mac' || state.platform === 'win');
+  }
+  function stepHasArt(step) {
+    if (step.art) { return true; }
+    const site = Statso.i18n ? Statso.i18n.current() : 'he';
+    return !!(step.shots && step.shots[site]);
   }
   function mcodeLink() { return '<a class="guide-pill" href="#/mcode">קודים לייצוא (Power Query)</a>'; }
   function mcodeExample() {
@@ -135,17 +193,17 @@
       return;
     }
     const steps = getSteps(state.platform, state.method);
-    const artClass = hebrewMacPower() ? 'step-art step-art-single' : 'step-art';
+    const artClass = realShotGuide() ? 'step-art step-art-single' : 'step-art';
     target.innerHTML = '<ol class="guide-steps">' + steps.map(function (step, index) {
       const number = index + 1;
-      return '<li><div class="step-copy"><h2>שלב ' + number + '</h2><p>' + step.text + (step.mcodeLink ? ' ' + mcodeLink() + step.textAfterLink : '') + '</p>' + (step.formula ? '<p><code dir="ltr">=WEBSERVICE(&quot;&lt;JSON URL&gt;&quot;)</code></p>' : '') + (step.url ? urlBlock(step.url) : '') + (step.code ? (step.mcodeCta ? mcodeExample() : '') + codeBlock(step.code) + (step.mcodeCta ? mcodeCta() : '') : '') + '</div>' + (step.art ? '<div class="' + artClass + '">' + artSlots(step, number) + '</div>' : '') + '</li>';
+      return '<li><div class="step-copy"><h2>שלב ' + number + '</h2><p>' + step.text + (step.mcodeLink ? ' ' + mcodeLink() + step.textAfterLink : '') + '</p>' + (step.formula ? '<p><code dir="ltr">=WEBSERVICE(&quot;&lt;JSON URL&gt;&quot;)</code></p>' : '') + (step.url ? urlBlock(step.url) : '') + (step.code ? (step.mcodeCta ? mcodeExample() : '') + codeBlock(step.code) + (step.mcodeCta ? mcodeCta() : '') : '') + '</div>' + (stepHasArt(step) ? '<div class="' + artClass + '">' + artSlots(step, number) + '</div>' : '') + '</li>';
     }).join('') + '</ol>';
     attachCopyButtons();
   }
   function renderExcelGuide() {
     document.getElementById('guide-detail').setAttribute('aria-labelledby', 'excel-guide-title');
     document.getElementById('guide-content').innerHTML = '<header class="guide-header"><p class="eyebrow">מדריך אינטראקטיבי</p><h1 id="excel-guide-title">שאיבת נתונים מ-statso לתוך Excel</h1><p>בחרו את סביבת העבודה ושיטת הייבוא, והשלבים יתעדכנו מיד.</p></header><form class="guide-selectors">' +
-      selector('platform', 'מערכת הפעלה', [['mac','מק (macOS)'],['win','ווינדוס']]) +
+      selector('platform', 'מערכת הפעלה', [['mac','מק (macOS)'],['win','ווינדוס (Windows)']]) +
       selector('method', 'שיטה', [['power','Power Query (מומלץ)'],['manual','הורדה ידנית של CSV'],['webservice','נוסחת WEBSERVICE']]) + '</form><div class="guide-steps-host"></div>';
     document.querySelectorAll('.guide-selectors input').forEach(function (radio) { radio.addEventListener('change', function () { state[radio.name.replace('guide-', '')] = radio.value; renderSteps(); }); });
     renderSteps();

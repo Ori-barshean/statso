@@ -55,7 +55,7 @@ class BuildOfflineTests(unittest.TestCase):
             self.assertEqual(text.count("<script"), text.count("</script>"))
             self.assertIn('id="guides-view"', text)
             self.assertIn('id="mcode-view"', text)
-            self.assertEqual(len(set(re.findall(r'data:image/png;base64,[A-Za-z0-9+/=]+', text))), 5)
+            self.assertEqual(len(set(re.findall(r'data:image/png;base64,[A-Za-z0-9+/=]+', text))), 16)
             self.assertIn('class="site-nav"', text)
             self.assertIn("Statso.guides", text)
             self.assertIn("מדד בגין מול מדד ידוע — ומה המדד בכלל מודד", text)
