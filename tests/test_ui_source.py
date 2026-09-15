@@ -124,9 +124,16 @@ class UiSourceTests(unittest.TestCase):
         for href in ('href="#/"', 'href="#/guides"', 'href="#/tools"', 'href="#/mcode"'):
             self.assertIn(href, nav)
         submenu = re.search(r'<ul class="nav-submenu".*?</ul>', nav, re.DOTALL).group(0)
-        self.assertEqual(submenu.count("<a "), 5)
-        for route in ("index", "fx", "history", "fx-history", "rent"):
+        self.assertEqual(submenu.count("<a "), 6)
+        for route in ("index", "fx", "history", "rate-history", "fx-history", "rent"):
             self.assertIn(f'href="#/tools/{route}"', submenu)
+        # the new tool must sit right after "history" and before "fx-history",
+        # in both the dropdown menu and the tools-tab card grid
+        self.assertLess(submenu.index('href="#/tools/history"'), submenu.index('href="#/tools/rate-history"'))
+        self.assertLess(submenu.index('href="#/tools/rate-history"'), submenu.index('href="#/tools/fx-history"'))
+        cards = re.search(r'<div class="tool-cards"[^>]*>.*?</div>', self.html, re.DOTALL).group(0)
+        self.assertLess(cards.index('href="#/tools/history"'), cards.index('href="#/tools/rate-history"'))
+        self.assertLess(cards.index('href="#/tools/rate-history"'), cards.index('href="#/tools/fx-history"'))
 
     def test_mcode_ids_and_module_order(self):
         for name in ("mcode-view", "mc-currencies-block", "mc-currencies", "mc-from", "mc-to", "mc-average", "mc-error", "mc-code", "mc-copy"):

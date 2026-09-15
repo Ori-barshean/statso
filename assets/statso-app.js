@@ -32,6 +32,7 @@
     document.getElementById('kpi-boi-rate').textContent = Statso.core.formatPercent(doc.current_rate);
     document.getElementById('kpi-boi-prime').textContent = Statso.core.formatPercent(Statso.core.primeRate(doc.current_rate));
     Statso.data.setState(document.getElementById('boi-kpi'), 'ready');
+    if (Statso.tools) { Statso.tools.initBoi(doc); }
   }
   function showNext(doc) {
     if (!doc.next_decision_date) { throw new Error('מועד ההחלטה הבאה אינו זמין'); }

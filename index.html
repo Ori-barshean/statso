@@ -26,6 +26,7 @@
             <li><a href="#/tools/index">הצמדה למדדים</a></li>
             <li><a href="#/tools/fx">הצמדה למטבע</a></li>
             <li><a href="#/tools/history">נתוני מדד היסטוריים</a></li>
+            <li><a href="#/tools/rate-history">נתוני ריבית היסטוריים</a></li>
             <li><a href="#/tools/fx-history">נתוני שער חליפין היסטוריים</a></li>
             <li><a href="#/tools/rent">הצמדת הסכם שכירות</a></li>
           </ul>
@@ -183,6 +184,7 @@
       <a class="tool-card" href="#/tools/index"><span class="tool-card-mark">₪</span><strong>הצמדה למדדים</strong><span>הצמדת סכום בין שני חודשים לפי מדד המחירים לצרכן.</span></a>
       <a class="tool-card" href="#/tools/fx"><span class="tool-card-mark">$</span><strong>הצמדה למטבע</strong><span>המרה לפי שער יציג, או הצמדה לפי שינוי השער בין שני תאריכים.</span></a>
       <a class="tool-card" href="#/tools/history"><span class="tool-card-mark">☰</span><strong>נתוני מדד היסטוריים</strong><span>טבלת מדד לטווח שתבחר, עם העתקה ישירה לאקסל.</span></a>
+      <a class="tool-card" href="#/tools/rate-history"><span class="tool-card-mark">%</span><strong>נתוני ריבית היסטוריים</strong><span>ריבית בנק ישראל ופריים, לפי תאריכי שינוי או ברמה חודשית.</span></a>
       <a class="tool-card" href="#/tools/fx-history"><span class="tool-card-mark">₪$</span><strong>נתוני שער חליפין היסטוריים</strong><span>שערים יציגים לטווח ולמטבעות שתבחר, יומי או כממוצע תקופתי.</span></a>
       <a class="tool-card" href="#/tools/rent"><span class="tool-card-mark">⌂</span><strong>הצמדת הסכם שכירות</strong><span>חישוב הפרשי הצמדה לכל תקופות השכירות והאופציה, לשליחה לשוכר.</span></a>
     </div>
@@ -246,8 +248,34 @@
       <p class="table-note" id="th-note"></p>
     </section>
 
+    <section class="panel tool-page" id="tool-rate-history-page" hidden aria-labelledby="tool-rate-history-title">
+      <div class="section-heading"><div><p class="eyebrow">כלי 4</p><h2 id="tool-rate-history-title">נתוני ריבית היסטוריים</h2></div><a class="tool-back" href="#/tools">← לכל הכלים</a></div>
+      <form class="rent-form" onsubmit="return false">
+        <fieldset class="rent-block"><legend>סדרות</legend>
+          <div class="tool-checkboxes">
+            <label class="tool-checkbox"><input id="trh-boi" type="checkbox" checked> ריבית בנק ישראל</label>
+            <label class="tool-checkbox"><input id="trh-prime" type="checkbox" checked> ריבית פריים</label>
+          </div>
+        </fieldset>
+        <fieldset class="rent-block"><legend>טווח ורמת פירוט</legend>
+          <div class="rent-grid">
+            <label>מתאריך <input id="trh-from" type="date"></label>
+            <label>עד תאריך <input id="trh-to" type="date"></label>
+            <label>רמת פירוט <select id="trh-mode">
+              <option value="points">תאריכי שינוי בלבד</option>
+              <option value="monthly" selected>רמה חודשית — ממוצע משוקלל</option>
+            </select></label>
+          </div>
+        </fieldset>
+      </form>
+      <p class="inline-error" id="trh-error" role="alert"></p>
+      <div class="tool-actions"><button type="button" class="btn-ghost btn-copy" id="trh-copy">העתקה לאקסל</button><button type="button" class="btn-ghost" id="trh-xlsx">ייצוא לאקסל</button><button type="button" class="btn-ghost" id="trh-pdf">ייצוא ל־PDF</button></div>
+      <div class="table-wrap"><table class="data-table" id="trh-table"><caption class="sr-only">נתוני ריבית בנק ישראל ופריים ההיסטוריים</caption><thead><tr id="trh-head"></tr></thead><tbody id="trh-body"></tbody></table></div>
+      <p class="table-note" id="trh-note"></p>
+    </section>
+
     <section class="panel tool-page" id="tool-fx-history-page" hidden aria-labelledby="tool-fx-history-title">
-      <div class="section-heading"><div><p class="eyebrow">כלי 4</p><h2 id="tool-fx-history-title">נתוני שער חליפין היסטוריים</h2></div><a class="tool-back" href="#/tools">← לכל הכלים</a></div>
+      <div class="section-heading"><div><p class="eyebrow">כלי 5</p><h2 id="tool-fx-history-title">נתוני שער חליפין היסטוריים</h2></div><a class="tool-back" href="#/tools">← לכל הכלים</a></div>
       <form class="rent-form" onsubmit="return false">
         <fieldset class="rent-block"><legend>מטבעות</legend>
           <div class="fxh-currencies" id="fxh-currencies"></div>
@@ -273,7 +301,7 @@
     </section>
 
     <section class="panel tool-page" id="tool-rent-page" hidden aria-labelledby="tool-rent-title">
-      <div class="section-heading"><div><p class="eyebrow">כלי 5</p><h2 id="tool-rent-title">הצמדת הסכם שכירות למדד</h2></div><a class="tool-back" href="#/tools">← לכל הכלים</a></div>
+      <div class="section-heading"><div><p class="eyebrow">כלי 6</p><h2 id="tool-rent-title">הצמדת הסכם שכירות למדד</h2></div><a class="tool-back" href="#/tools">← לכל הכלים</a></div>
       <form class="rent-form" onsubmit="return false">
         <fieldset class="rent-block"><legend>פרטי ההסכם</legend>
           <div class="rent-grid">
@@ -568,6 +596,7 @@
   <script src="assets/statso-export.js" data-inline="script"></script>
   <script src="assets/statso-tools.js" data-inline="script"></script>
   <script src="assets/statso-fxhistory.js" data-inline="script"></script>
+  <script src="assets/statso-ratehistory.js" data-inline="script"></script>
   <script src="assets/statso-rent.js" data-inline="script"></script>
   <script src="assets/statso-nav.js" data-inline="script"></script>
   <script src="assets/statso-app.js" data-inline="script"></script>

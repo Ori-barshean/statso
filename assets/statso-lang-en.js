@@ -257,6 +257,31 @@
     'חודש סיום השכירות מוקדם מחודש ההתחלה.': 'The last month comes before the first month.',
     'יש להזין דמי שכירות חודשיים תקינים.': 'Enter a valid monthly rent.',
 
+    // --- historical interest rate tool ---------------------------------------
+    'כלי 6': 'Tool 6',
+    'נתוני ריבית היסטוריים': 'Historical interest rate data',
+    'ריבית בנק ישראל ופריים, לפי תאריכי שינוי או ברמה חודשית.':
+      'Bank of Israel and prime rate, by change date or at monthly level.',
+    'נתוני ריבית בנק ישראל ופריים ההיסטוריים': 'Historical Bank of Israel and prime rate data',
+    'סדרות': 'Series',
+    'טווח ורמת פירוט': 'Range and detail level',
+    'רמת פירוט': 'Detail level',
+    'תאריכי שינוי בלבד': 'Change dates only',
+    'רמה חודשית — ממוצע משוקלל': 'Monthly level — weighted average',
+    'תאריך שינוי': 'Change date',
+    'ריבית היסטורית': 'Historical interest rate',
+    'יש לבחור סדרה אחת לפחות.': 'Choose at least one series.',
+    'אין שינויי ריבית בטווח שנבחר.': 'No rate changes in the selected range.',
+    'אין נתוני ריבית בטווח שנבחר.': 'No rate data in the selected range.',
+    'שינויים בטווח שנבחר.': 'changes in the selected range.',
+    'חודשים בטווח שנבחר.': 'months in the selected range.',
+    'ריבית הפריים מחושבת כריבית בנק ישראל בתוספת 1.5 נקודות אחוז.':
+      'The prime rate is calculated as the Bank of Israel rate plus 1.5 percentage points.',
+    'חודש המסומן ב-* הוא חודש שבו בוצע שינוי ריבית בפועל, והריבית המוצגת בו היא ממוצע משוקלל לפי מספר הימים שבהם חלה כל ריבית באותו חודש.':
+      'A month marked with * is one where an actual rate change took place; the rate shown for it is a weighted average by the number of days each rate was in effect that month.',
+    'חודש שבו בוצע שינוי ריבית בפועל — הריבית המוצגת היא ממוצע משוקלל של הריבית שחלה בכל אחד מימי החודש.':
+      'A month in which an actual rate change took place — the rate shown is a weighted average of the rates in effect on each day of the month.',
+
     // --- shared results and errors -----------------------------------------
     'יש להזין סכום תקין שאינו שלילי.': 'Enter a valid, non-negative amount.',
     'יש לבחור תאריך.': 'Choose a date.',

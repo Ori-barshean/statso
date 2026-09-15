@@ -363,7 +363,11 @@
     if (Statso.fxhistory) { Statso.fxhistory.init(summary); }
   }
 
-  Statso.tools = {init: init, initFx: initFx, computeIndex: computeIndex, computeFx: computeFx,
+  function initBoi(boiDoc) {
+    if (Statso.ratehistory) { Statso.ratehistory.init(boiDoc); }
+  }
+
+  Statso.tools = {init: init, initFx: initFx, initBoi: initBoi, computeIndex: computeIndex, computeFx: computeFx,
     buildHistory: buildHistory, historyMatrix: historyMatrix, exportIndex: exportIndex,
     exportFx: exportFx, exportHistory: exportHistory, HISTORY_HEAD: HISTORY_HEAD};
 })(window);

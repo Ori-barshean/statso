@@ -104,7 +104,7 @@ class A11ySourceTests(unittest.TestCase):
     # ---------- table captions ------------------------------------------------
 
     def test_every_data_table_has_a_caption(self):
-        for table_id in ("fx-table", "th-table", "fxh-table"):
+        for table_id in ("fx-table", "th-table", "fxh-table", "trh-table"):
             match = re.search(r'<table class="data-table" id="' + table_id + r'">(.*?)<thead', self.html, re.DOTALL)
             self.assertIsNotNone(match, f"{table_id} not found")
             self.assertIn("<caption", match.group(1))

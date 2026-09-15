@@ -157,8 +157,8 @@ html[dir="ltr"] .data-table .col-group-start { border-left: 2px solid var(--line
 .rent-table tfoot th, .rent-table tfoot td { border-top: 2px solid var(--line); font-weight: 700; }
 .rent-row-pending td { color: var(--muted); font-style: italic; }
 .rent-negative { color: #b42318; }
-.fxh-currencies { display: flex; flex-wrap: wrap; gap: 10px 20px; }
-.fxh-currency { display: flex; align-items: center; gap: 7px; font-size: .88rem; white-space: nowrap; }
+.fxh-currencies, .tool-checkboxes { display: flex; flex-wrap: wrap; gap: 10px 20px; }
+.fxh-currency, .tool-checkbox { display: flex; align-items: center; gap: 7px; font-size: .88rem; white-space: nowrap; }
 
 /* --- print / PDF export -------------------------------------------------- */
 #print-root { display: none; }

@@ -6,6 +6,7 @@ ROOT = Path(__file__).parent.parent
 
 TOOLS = [("index", "tool-index-page", "ti"), ("fx", "tool-fx-page", "tf"),
          ("history", "tool-history-page", "th"),
+         ("rate-history", "tool-rate-history-page", "trh"),
          ("fx-history", "tool-fx-history-page", "fxh"), ("rent", "tool-rent-page", "tr")]
 
 
@@ -85,7 +86,8 @@ class ToolsSourceTests(unittest.TestCase):
 
     def test_the_offline_build_can_inline_every_new_module(self):
         forbidden = ("</script", "</style", "<!--", "-->")
-        for name in ("statso-xlsx.js", "statso-export.js", "statso-tools.js", "statso-rent.js", "statso-mcode.js"):
+        for name in ("statso-xlsx.js", "statso-export.js", "statso-tools.js", "statso-rent.js", "statso-mcode.js",
+                     "statso-ratehistory.js"):
             self.assertIn(name, self.html, f"{name} is not loaded by the page")
             for token in forbidden:
                 self.assertNotIn(token, self.scripts[name], f"{token!r} would fail the offline build")
