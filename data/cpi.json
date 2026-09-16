@@ -5,9 +5,9 @@
   "series_id": "120010",
   "chained_base": "1951 ספטמבר",
   "chained_base_value": 100.0,
-  "count": 899,
+  "count": 900,
   "first_month": "1951-09",
-  "last_month": "2026-07",
+  "last_month": "2026-08",
   "observations": [
     {
       "month": "1951-09",
@@ -7200,6 +7200,14 @@
       "value": 105.1,
       "base_desc": "2024 ממוצע",
       "chained_1951_09": 40691566.5993423
+    },
+    {
+      "month": "2026-08",
+      "year": 2026,
+      "month_num": 8,
+      "value": 105.8,
+      "base_desc": "2024 ממוצע",
+      "chained_1951_09": 40962585.5966737
     }
   ]
 }
