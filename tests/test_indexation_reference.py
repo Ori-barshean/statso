@@ -33,14 +33,15 @@ class IndexationReferenceTests(unittest.TestCase):
         self.assertEqual(round(indexed, 2), 1016.49); self.assertEqual(round(difference, 2), 16.49)
 
     def test_out_of_range(self):
-        for month in ("2026-08", "1951-03"):
+        after_last = shift_month(self.cpi["last_month"], 1)
+        for month in (after_last, "1951-03"):
             self.assertNotIn(resolve(month, "for"), self.index_map)
 
     def test_headlines(self):
         yoy = (40691566.5993423 / 40072094.6054417 - 1) * 100
         self.assertEqual(yoy, 1.5458937198069123); self.assertEqual(round(yoy, 2), 1.55)
         latest = next(r for r in self.cpi["observations"] if r["month"] == self.cpi["last_month"])
-        self.assertEqual(latest["value"], 105.1)
+        self.assertEqual(latest["value"], 105.8)
         self.assertEqual(self.boi["current_rate"], 3.25)
         self.assertEqual(self.boi["current_rate"], self.boi["changes"][-1]["rate"])
 
