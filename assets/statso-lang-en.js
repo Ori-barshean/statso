@@ -65,6 +65,9 @@
     'טוען נתונים…': 'Loading data…',
     'שינוי שנתי': 'Year over year',
     'שינוי חודשי': 'Month over month',
+    'פרסום המדד הבא:': 'Next index publication:',
+    'התאריך משוער; הלמ״ס דוחה פרסום שחל בסוף שבוע או בחג ליום החול הבא':
+      'The date is estimated; the CBS postpones a publication that falls on a weekend or holiday to the next weekday',
     'ריבית בנק ישראל': 'Bank of Israel rate',
     'ריבית נוכחית': 'Current rate',
     'ריבית פריים': 'Prime rate',

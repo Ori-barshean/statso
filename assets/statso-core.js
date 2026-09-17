@@ -88,6 +88,43 @@
   function formatMonthHe(key) { const p = key.split('-'); return p[1] + '/' + p[0]; }
   function formatIsoDateHe(value) { const p = value.split('-'); return p[2] + '/' + p[1] + '/' + p[0]; }
 
+  // Israeli statutory non-working days (Rosh Hashana, Yom Kippur, Sukkot I, Shmini Atzeret,
+  // Pesach I, Pesach VII, Shavuot, Yom HaAtzmaut) through 2034, sourced from hebcal.com.
+  // Extend this table as the range runs out; CBS does not publish the CPI on these dates.
+  const CBS_PUBLICATION_HOLIDAYS = new Set([
+    '2025-09-23', '2025-09-24', '2025-10-02', '2025-10-07', '2025-10-14',
+    '2026-09-12', '2026-09-13', '2026-09-21', '2026-09-26', '2026-10-03',
+    '2027-10-02', '2027-10-03', '2027-10-11', '2027-10-16', '2027-10-23',
+    '2028-09-21', '2028-09-22', '2028-09-30', '2028-10-05', '2028-10-12',
+    '2029-09-10', '2029-09-11', '2029-09-19', '2029-09-24', '2029-10-01',
+    '2030-09-28', '2030-09-29', '2030-10-07', '2030-10-12', '2030-10-19',
+    '2031-09-18', '2031-09-19', '2031-09-27', '2031-10-02', '2031-10-09',
+    '2032-09-06', '2032-09-07', '2032-09-15', '2032-09-20', '2032-09-27',
+    '2033-09-24', '2033-09-25', '2033-10-03', '2033-10-08', '2033-10-15',
+    '2034-09-14', '2034-09-15', '2034-09-23', '2034-09-28', '2034-10-05',
+    '2025-04-13', '2025-04-19', '2026-04-02', '2026-04-08', '2027-04-22', '2027-04-28',
+    '2028-04-11', '2028-04-17', '2029-03-31', '2029-04-06', '2030-04-18', '2030-04-24',
+    '2031-04-08', '2031-04-14', '2032-03-27', '2032-04-02', '2033-04-14', '2033-04-20',
+    '2034-04-04', '2034-04-10',
+    '2025-06-02', '2026-05-22', '2027-06-11', '2028-05-31', '2029-05-20',
+    '2030-06-07', '2031-05-28', '2032-05-16', '2033-06-03', '2034-05-24',
+    '2025-05-01', '2026-04-22', '2027-05-12', '2028-05-02', '2029-04-19',
+    '2030-05-08', '2031-04-29', '2032-04-15', '2033-05-04', '2034-04-25'
+  ]);
+  // CBS publishes the CPI for a month around the 15th of the month after next; a date that
+  // falls on a Friday, Saturday or statutory holiday is postponed to the next weekday.
+  function nextCpiPublicationDate(lastMonth) {
+    const publishMonth = shiftMonth(lastMonth, 2).split('-').map(Number);
+    const date = new Date(Date.UTC(publishMonth[0], publishMonth[1] - 1, 15));
+    function iso(d) { return d.toISOString().slice(0, 10); }
+    while (true) {
+      const weekday = date.getUTCDay();
+      if (weekday !== 5 && weekday !== 6 && !CBS_PUBLICATION_HOLIDAYS.has(iso(date))) { break; }
+      date.setUTCDate(date.getUTCDate() + 1);
+    }
+    return iso(date);
+  }
+
   const ESCAPE_MAP = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'};
   // Safe for HTML text content and for double-quoted HTML attribute values —
   // every call site that uses this only needs those two contexts.
@@ -103,5 +140,5 @@
     formatRateSmart: formatRateSmart,
     CURRENCY_NAMES: CURRENCY_NAMES, latestObservation: latestObservation,
     formatNumber: formatNumber, formatPercent: formatPercent, formatMonthHe: formatMonthHe,
-    formatIsoDateHe: formatIsoDateHe, escapeHtml: escapeHtml};
+    formatIsoDateHe: formatIsoDateHe, nextCpiPublicationDate: nextCpiPublicationDate, escapeHtml: escapeHtml};
 })(window);

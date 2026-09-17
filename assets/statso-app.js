@@ -20,6 +20,7 @@
     document.getElementById('kpi-cpi-yoy-range').textContent = Statso.core.formatMonthHe(Statso.core.shiftMonth(doc.last_month, -12)) + '–' + Statso.core.formatMonthHe(doc.last_month);
     document.getElementById('kpi-cpi-mom').textContent = Statso.core.formatPercent(mom.percent);
     document.getElementById('kpi-cpi-mom-month').textContent = Statso.core.formatMonthHe(doc.last_month);
+    document.getElementById('kpi-cpi-next').textContent = Statso.core.formatIsoDateHe(Statso.core.nextCpiPublicationDate(doc.last_month));
     Statso.data.setState(document.getElementById('cpi-kpi'), 'ready');
     Statso.data.setState(document.getElementById('calculator-section'), 'ready');
     Statso.calculator.init(doc, map);
