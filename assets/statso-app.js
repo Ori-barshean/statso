@@ -24,7 +24,7 @@
     Statso.data.setState(document.getElementById('calculator-section'), 'ready');
     Statso.calculator.init(doc, map);
     if (Statso.tools) { Statso.tools.init(doc, map, constructionDoc || null); }
-    if (typeof root.Chart === 'function') { Statso.chart.init(doc.observations); Statso.data.setState(document.getElementById('chart-section'), 'ready'); }
+    if (typeof root.Chart === 'function') { Statso.chart.init(doc.observations, constructionDoc ? constructionDoc.observations : null); Statso.data.setState(document.getElementById('chart-section'), 'ready'); }
     else { Statso.chart.showUnavailable(); }
   }
   function showBoi(doc) {

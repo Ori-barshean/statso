@@ -81,14 +81,20 @@
 
   function sliceByYears(rows, startYear, endYear) { return rows.filter(function (row) { return row.year >= startYear && row.year <= endYear; }); }
 
-  function buildConfig(rows) {
-    return {type: 'line', plugins: [eventPlugin], data: {labels: rows.map(function (r) { return Statso.core.formatMonthHe(r.month); }), datasets: [{label: Statso.i18n.t('מדד משורשר'), data: rows.map(function (r) { return r.chained_1951_09; }), borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,.1)', borderWidth: 2, pointRadius: 0, tension: 0, fill: true}]}, options: {responsive: true, maintainAspectRatio: false, locale: 'he-IL', interaction: {intersect: false, mode: 'index'}, scales: {x: {type: 'category', ticks: {autoSkip: true, maxTicksLimit: 12}}, y: {type: 'linear', beginAtZero: false, ticks: {callback: function (v) { return Statso.core.formatNumber(v, 0); }}}}, plugins: {legend: {rtl: true}, tooltip: {rtl: true, textDirection: 'rtl'}}}};
+  function buildConfig(cpiRows, constructionRows) {
+    const hasConstruction = !!(constructionRows && constructionRows.length);
+    const constructionByMonth = new Map((constructionRows || []).map(function (r) { return [r.month, r.chained_1950_07]; }));
+    const datasets = [{label: Statso.i18n.t('מדד המחירים לצרכן'), data: cpiRows.map(function (r) { return r.chained_1951_09; }), borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,.1)', borderWidth: 2, pointRadius: 0, tension: 0, fill: true, yAxisID: 'y'}];
+    if (hasConstruction) {
+      datasets.push({label: Statso.i18n.t('מדד תשומות הבנייה למגורים'), data: cpiRows.map(function (r) { return constructionByMonth.has(r.month) ? constructionByMonth.get(r.month) : null; }), borderColor: '#16a34a', backgroundColor: 'rgba(22,163,74,.1)', borderWidth: 2, pointRadius: 0, tension: 0, fill: false, spanGaps: false, yAxisID: 'y1'});
+    }
+    return {type: 'line', plugins: [eventPlugin], data: {labels: cpiRows.map(function (r) { return Statso.core.formatMonthHe(r.month); }), datasets: datasets}, options: {responsive: true, maintainAspectRatio: false, locale: 'he-IL', interaction: {intersect: false, mode: 'index'}, scales: {x: {type: 'category', ticks: {autoSkip: true, maxTicksLimit: 12}}, y: {type: 'linear', position: 'left', beginAtZero: false, ticks: {callback: function (v) { return Statso.core.formatNumber(v, 0); }}}, y1: {type: 'linear', position: 'right', beginAtZero: false, display: hasConstruction, grid: {drawOnChartArea: false}, ticks: {callback: function (v) { return Statso.core.formatNumber(v, 0); }}}}, plugins: {legend: {rtl: true, display: true}, tooltip: {rtl: true, textDirection: 'rtl'}}}};
   }
 
-  function render(rows) {
+  function render(cpiRows, constructionRows) {
     if (chartInstance) { chartInstance.destroy(); }
-    chartInstance = new root.Chart(document.getElementById('cpi-chart').getContext('2d'), buildConfig(rows));
-    chartInstance.$statsoRows = rows;
+    chartInstance = new root.Chart(document.getElementById('cpi-chart').getContext('2d'), buildConfig(cpiRows, constructionRows));
+    chartInstance.$statsoRows = cpiRows;
     chartInstance.update('none');
   }
 
@@ -97,7 +103,7 @@
     const end = Number(document.getElementById('chart-end-year').value);
     const error = document.getElementById('chart-range-error');
     if (start > end) { error.textContent = 'שנת ההתחלה חייבת להיות מוקדמת משנת הסיום.'; return; }
-    error.textContent = ''; render(sliceByYears(observations, start, end));
+    error.textContent = ''; render(sliceByYears(observations, start, end), sliceByYears(constructionObservations, start, end));
   }
 
   function start() {
@@ -110,7 +116,8 @@
     onRangeChange();
   }
 
-  function init(rows) { observations = rows; hasData = true; start(); }
+  let constructionObservations = [];
+  function init(rows, constructionRows) { observations = rows; constructionObservations = constructionRows || []; hasData = true; start(); }
   function activate() { opened = true; start(); }
 
   function showUnavailable() { Statso.data.setState(document.getElementById('chart-section'), 'error', 'ספריית התרשים אינה זמינה. יתר הכלים ממשיכים לפעול.'); }

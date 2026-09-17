@@ -90,9 +90,9 @@
     // --- chart --------------------------------------------------------------
     'מגמה היסטורית': 'Historical trend',
     'המדד המשורשר לאורך זמן': 'The chained index over time',
-    'תרשים מדד המחירים לצרכן': 'Consumer price index chart',
-    'התרשים מציג את מגמת מדד המחירים לצרכן המשורשר לאורך הטווח שנבחר.':
-      'The chart shows the trend of the chained consumer price index over the selected range.',
+    'תרשים מדד המחירים לצרכן ומדד תשומות הבנייה למגורים, משורשרים': 'Consumer price index and residential construction inputs index chart, chained',
+    'התרשים מציג את מגמת מדד המחירים לצרכן ומדד תשומות הבנייה למגורים, משורשרים, לאורך הטווח שנבחר.':
+      'The chart shows the trend of the chained consumer price index and residential construction inputs index over the selected range.',
     'לצפייה בנתונים כטבלה': 'View as a table',
     'משנה': 'From year',
     'עד': 'to',
