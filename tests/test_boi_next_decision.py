@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from scripts import boi_next_decision, boi_rate, cpi, update_all
+from scripts import boi_next_decision, boi_rate, construction_inputs, cpi, update_all
 from scripts.common import ParseError, SourceError
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -49,6 +49,7 @@ class BoiNextDecisionTests(unittest.TestCase):
 
     def fixture_fetch(self, fail_next=False):
         cpi_raw = gzip.open(FIXTURES / "cbs_cpi_snapshot_2026-09-05.json.gz", "rb").read()
+        ci_raw = gzip.open(FIXTURES / "cbs_construction_snapshot_2026-09-16.json.gz", "rb").read()
         boi_raw = gzip.open(FIXTURES / "boi_snapshot_2026-09-05.csv.gz", "rb").read()
         def fetch(url):
             if url == boi_next_decision.BOI_NEXT_URL:
@@ -56,6 +57,7 @@ class BoiNextDecisionTests(unittest.TestCase):
                 return LIVE
             if url == boi_rate.BOI_URL: return boi_raw
             if url == cpi.page_url(1): return cpi_raw
+            if url == construction_inputs.page_url(1): return ci_raw
             raise AssertionError(url)
         return fetch
 
@@ -63,7 +65,7 @@ class BoiNextDecisionTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             target = Path(temp) / "data"
             with mock.patch("scripts.update_all.fx_rates.prepare_update", return_value=({}, {})):
-                self.assertEqual(len(update_all.update(fetch=self.fixture_fetch(), data_dir=target)), 5)
+                self.assertEqual(len(update_all.update(fetch=self.fixture_fetch(), data_dir=target)), 7)
                 self.assertEqual(update_all.update(fetch=self.fixture_fetch(), data_dir=target), [])
 
     def test_update_all_soft_fails_on_next_decision(self):
@@ -72,7 +74,7 @@ class BoiNextDecisionTests(unittest.TestCase):
             stale = b"stale\n"; (target / "boi_next_decision.json").write_bytes(stale)
             with mock.patch("scripts.update_all.fx_rates.prepare_update", return_value=({}, {})):
                 changed = update_all.update(fetch=self.fixture_fetch(True), data_dir=target)
-            self.assertEqual(len(changed), 4)
+            self.assertEqual(len(changed), 6)
             self.assertEqual((target / "boi_next_decision.json").read_bytes(), stale)
 
 

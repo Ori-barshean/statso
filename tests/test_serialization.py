@@ -11,7 +11,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from scripts import boi_rate, cpi, update_all
+from scripts import boi_rate, construction_inputs, cpi, update_all
 from scripts.common import SourceError, ValidationError, fmt_number, write_atomic
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -23,6 +23,10 @@ class SerializationTests(unittest.TestCase):
         with gzip.open(FIXTURES / "cbs_cpi_snapshot_2026-09-05.json.gz", "rt", encoding="utf-8") as f:
             payload = json.load(f)
         cls.cpi_records = cpi.build_records(cpi.extract_rows(payload))
+        with gzip.open(FIXTURES / "cbs_construction_snapshot_2026-09-16.json.gz", "rt", encoding="utf-8") as f:
+            ci_payload = json.load(f)
+        cls.ci_records = construction_inputs.export_records(
+            construction_inputs.build_records(construction_inputs.extract_rows(ci_payload)))
         with gzip.open(FIXTURES / "boi_snapshot_2026-09-05.csv.gz", "rb") as f:
             observations = boi_rate.parse_observations(f.read())
         cls.changes = boi_rate.derive_change_points(observations)
@@ -32,7 +36,12 @@ class SerializationTests(unittest.TestCase):
         self.assertTrue(json_bytes.startswith(b"{"))
         self.assertIn("1951 ספטמבר".encode(), json_bytes)
         json.loads(json_bytes)
-        for payload in (cpi.to_csv_bytes(self.cpi_records), boi_rate.to_csv_bytes(self.changes)):
+        ci_json_bytes = construction_inputs.to_json_bytes(self.ci_records)
+        self.assertTrue(ci_json_bytes.startswith(b"{"))
+        self.assertIn("1950 יולי".encode(), ci_json_bytes)
+        json.loads(ci_json_bytes)
+        for payload in (cpi.to_csv_bytes(self.cpi_records), construction_inputs.to_csv_bytes(self.ci_records),
+                        boi_rate.to_csv_bytes(self.changes)):
             self.assertTrue(payload.startswith(codecs.BOM_UTF8))
             self.assertNotIn(b"\r", payload)
             self.assertTrue(payload.endswith(b"\n"))
@@ -50,6 +59,13 @@ class SerializationTests(unittest.TestCase):
         self.assertEqual(cpi.to_csv_bytes(self.cpi_records), cpi.to_csv_bytes(self.cpi_records))
         cpi_obj = json.loads(cpi.to_json_bytes(self.cpi_records))
         self.assertEqual(cpi.to_json_bytes(cpi_obj["observations"]), cpi.to_json_bytes(self.cpi_records))
+        self.assertEqual(construction_inputs.to_json_bytes(self.ci_records),
+                          construction_inputs.to_json_bytes(self.ci_records))
+        self.assertEqual(construction_inputs.to_csv_bytes(self.ci_records),
+                          construction_inputs.to_csv_bytes(self.ci_records))
+        ci_obj = json.loads(construction_inputs.to_json_bytes(self.ci_records))
+        self.assertEqual(construction_inputs.to_json_bytes(ci_obj["observations"]),
+                          construction_inputs.to_json_bytes(self.ci_records))
         boi_obj = json.loads(boi_rate.to_json_bytes(self.changes))
         self.assertEqual(boi_rate.to_json_bytes(boi_obj["changes"]), boi_rate.to_json_bytes(self.changes))
 

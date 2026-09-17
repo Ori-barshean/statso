@@ -63,6 +63,7 @@ python3 -m scripts.build_offline
 | נתון | מקור | היסטוריה מ- | תדירות רענון |
 |---|---|---|---|
 | מדד המחירים לצרכן | הלשכה המרכזית לסטטיסטיקה (CBS) | 9/1951 | יומי, 02:00 (שעון ישראל) |
+| מדד תשומות הבנייה למגורים | הלשכה המרכזית לסטטיסטיקה (CBS) | 1/2000 (הסדרה המלאה קיימת מ-1/1956, אך מתפרסמת כאן רק מ-1/2000) | יומי, 02:00 (שעון ישראל) |
 | ריבית בנק ישראל | בנק ישראל | 27/01/1994 | יומי, 02:00 (שעון ישראל) |
 | שערי חליפין יציגים מול השקל | בנק ישראל | לפי המטבע, מ־15/05/1948 | יומי, 02:00 (שעון ישראל) |
 
@@ -97,6 +98,29 @@ python3 -m scripts.build_offline
 | `value` | מספר | ערך המדד בבסיס הנוכחי שפורסם במקור |
 | `base_desc` | מחרוזת | תיאור הבסיס המקורי של הלמ״ס |
 | `chained_1951_09` | מספר | ערך המדד משורשר לבסיס קבוע 1951 ספטמבר = 100, כפי ש-CBS עצמה מפרסמת אותו תחת `prevBase`; אין כפל מקדמים ידני. העוגן נשאר 1951 ספטמבר גם אחרי כל שינוי בסיס עתידי של הלמ״ס. |
+
+### מדד תשומות הבנייה למגורים
+
+מעטפת JSON:
+
+| שדה | סוג | משמעות |
+|---|---|---|
+| `dataset` | מחרוזת | המזהה הקבוע `israel_construction_inputs` |
+| `source`, `source_url`, `series_id` | מחרוזת | המקור וסדרת הלמ״ס (מדד תשומות הבנייה למגורים - כללי, קוד 200010) |
+| `chained_base`, `chained_base_value` | מחרוזת, מספר | בסיס השרשור הקבוע (1950 יולי) וערך העוגן 100.0 |
+| `count` | מספר שלם | מספר התצפיות המפורסמות |
+| `first_month`, `last_month` | מחרוזת | גבולות הסדרה המפורסמת בפורמט `YYYY-MM` |
+| `observations` | מערך | רשומות המדד החודשיות, מ-2000-01 ואילך בלבד |
+
+כל רשומה במערך `observations` ובקובץ CSV:
+
+| שדה | סוג | משמעות |
+|---|---|---|
+| `month` | מחרוזת | חודש בפורמט `YYYY-MM` |
+| `year`, `month_num` | מספר שלם | שנה וחודש 1–12 |
+| `value` | מספר | ערך המדד בבסיס הנוכחי שפורסם במקור |
+| `base_desc` | מחרוזת | תיאור הבסיס המקורי של הלמ״ס |
+| `chained_1950_07` | מספר | ערך המדד משורשר לבסיס קבוע 1950 יולי = 100, באותה שיטה כמו `chained_1951_09` של מדד המחירים לצרכן. הסדרה המלאה נשאבת ומאומתת מול הבסיס הזה, ורק לאחר מכן מפורסמים החל מ-2000-01; לכן ערך התצפית הראשונה שמתפרסמת (2000-01) אינו 100. |
 
 ### ריבית בנק ישראל
 
@@ -174,6 +198,8 @@ python3 -m scripts.fx_rates --backfill
 
 - https://raw.githubusercontent.com/Ori-barshean/statso/main/data/cpi.json
 - https://raw.githubusercontent.com/Ori-barshean/statso/main/data/cpi.csv
+- https://raw.githubusercontent.com/Ori-barshean/statso/main/data/construction_inputs.json
+- https://raw.githubusercontent.com/Ori-barshean/statso/main/data/construction_inputs.csv
 - https://raw.githubusercontent.com/Ori-barshean/statso/main/data/boi_interest_rate.json
 - https://raw.githubusercontent.com/Ori-barshean/statso/main/data/boi_interest_rate.csv
 - https://raw.githubusercontent.com/Ori-barshean/statso/main/data/fx_latest.json

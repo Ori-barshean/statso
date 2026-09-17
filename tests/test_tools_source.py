@@ -79,10 +79,20 @@ class ToolsSourceTests(unittest.TestCase):
 
     def test_readings_shown_to_people_share_one_base(self):
         core = self.scripts["statso-core.js"]
-        self.assertIn("function readingInBase(map, baseMonth, month)", core)
+        self.assertIn("function readingInBase(map, baseMonth, month, field)", core)
         self.assertIn("readingInBase: readingInBase", core)
         self.assertIn("Statso.core.readingInBase", self.scripts["statso-rent.js"])
         self.assertIn("Statso.core.readingInBase", self.scripts["statso-tools.js"])
+
+    def test_construction_inputs_index_is_selectable_in_both_tools(self):
+        for marker in ('name="ti-series"', 'value="cpi" id="ti-series-cpi"',
+                       'value="construction" id="ti-series-construction"',
+                       'id="th-cpi"', 'id="th-construction"', 'id="th-head"',
+                       'id="data-construction-inputs"'):
+            self.assertIn(marker, self.html)
+        tools = self.scripts["statso-tools.js"]
+        for marker in ("chained_1950_07", "INDEX_SERIES", "HISTORY_SERIES"):
+            self.assertIn(marker, tools)
 
     def test_the_offline_build_can_inline_every_new_module(self):
         forbidden = ("</script", "</style", "<!--", "-->")

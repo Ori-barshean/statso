@@ -46,6 +46,23 @@
         ['Filtered', 'Table.SelectRows(Typed, each [month] >= FromMonth and [month] <= ToMonth)'],
         ['Sorted', 'Table.Sort(Filtered, {{"month", Order.Ascending}})'],
         ['Renamed', 'Table.RenameColumns(Sorted, {{"chained_1951_09", "cpi_chained"}})']];
+    } else if (selection.series === 'construction') {
+      const url = base + 'construction_inputs.csv'; key = 'month'; columns = ['construction_chained'];
+      header = '// statso - Israeli residential construction inputs price index (CBS series 200010)\n// Source: ' + url + '\n' +
+        '// The exported column is chained_1950_07 - the CBS CHAINED index: one continuous\n' +
+        '// series across every base change, chained back to the earliest CBS base for this\n' +
+        '// series, the July 1950 average. The plain "value" column holds each period\'s\n' +
+        '// figure on its own base and is NOT comparable across bases, so it is dropped\n' +
+        '// here. Only the RATIO between two months of the chained series is meaningful;\n' +
+        '// the absolute level of the number is not. The published history starts at\n' +
+        '// January 2000 - that is only where publication begins, not the chain base.';
+      pairs = [['FromMonth', '"' + from.slice(0, 7) + '"'], ['ToMonth', '"' + to.slice(0, 7) + '"'],
+        ['Source', source(url)], ['Promoted', 'Table.PromoteHeaders(Source, [PromoteAllScalars = true])'],
+        ['Kept', 'Table.SelectColumns(Promoted, {"month", "chained_1950_07"})'],
+        ['Typed', 'Table.TransformColumnTypes(Kept, {{"month", type text}, {"chained_1950_07", type number}}, "en-US")'],
+        ['Filtered', 'Table.SelectRows(Typed, each [month] >= FromMonth and [month] <= ToMonth)'],
+        ['Sorted', 'Table.Sort(Filtered, {{"month", Order.Ascending}})'],
+        ['Renamed', 'Table.RenameColumns(Sorted, {{"chained_1950_07", "construction_chained"}})']];
     } else {
       const currencies = Array.from(new Set(selection.currencies)).filter(function (code) { return CURRENCIES.includes(code); });
       if (!currencies.length) { throw new Error('Choose at least one supported currency.'); }

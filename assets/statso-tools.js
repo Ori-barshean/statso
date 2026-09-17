@@ -3,6 +3,7 @@
   const Statso = root.Statso = root.Statso || {};
   const S = function () { return Statso.xlsx.STYLE; };
   let cpi = null, indexMap = null, firstMonth = null, lastMonth = null;
+  let construction = null, constructionMap = null;
   let fxSummary = null, fxDaily = null, fxPending = false;
 
   function el(id) { return document.getElementById(id); }
@@ -18,15 +19,33 @@
     const years = options(fy, ly, false); const months = options(1, 12, true);
     ids.forEach(function (pair) { el(pair.year).innerHTML = years; el(pair.month).innerHTML = months; });
   }
+  function clampMonth(month, first, last) {
+    if (Statso.core.monthToOrdinal(month) < Statso.core.monthToOrdinal(first)) { return first; }
+    if (Statso.core.monthToOrdinal(month) > Statso.core.monthToOrdinal(last)) { return last; }
+    return month;
+  }
 
   // ---------- tool 1: index linkage ----------------------------------------
   let indexResult = null;
 
-  // The chained series is expressed in the 9/1951 base, so its raw numbers run to
-  // millions. Ratios come from it, but anything shown to a person is the index as
-  // the CBS published it that month.
-  function published(month) {
-    const row = indexMap ? indexMap.get(month) : null;
+  const INDEX_SERIES = {
+    cpi: {key: 'cpi', label: 'מדד המחירים לצרכן', title: 'הצמדה למדד המחירים לצרכן', field: 'chained_1951_09',
+      doc: function () { return cpi; }, map: function () { return indexMap; }},
+    construction: {key: 'construction', label: 'מדד תשומות הבנייה למגורים', title: 'הצמדה למדד תשומות הבנייה למגורים',
+      field: 'chained_1950_07', doc: function () { return construction; }, map: function () { return constructionMap; }}
+  };
+
+  function currentIndexSeries() {
+    const node = document.querySelector('input[name="ti-series"]:checked');
+    const series = INDEX_SERIES[node ? node.value : 'cpi'] || INDEX_SERIES.cpi;
+    return series.doc() ? series : INDEX_SERIES.cpi;
+  }
+
+  // The chained series is expressed in the series' own base, so its raw numbers can
+  // run to millions. Ratios come from it, but anything shown to a person is the
+  // index as the CBS published it that month.
+  function published(map, month) {
+    const row = map ? map.get(month) : null;
     return row ? row.value : null;
   }
 
@@ -34,7 +53,8 @@
     return {amount: Number(el('ti-amount').value),
       baseMonth: el('ti-base-year').value + '-' + el('ti-base-month').value,
       targetMonth: el('ti-target-year').value + '-' + el('ti-target-month').value,
-      mode: document.querySelector('input[name="ti-mode"]:checked').value};
+      mode: document.querySelector('input[name="ti-mode"]:checked').value,
+      series: currentIndexSeries()};
   }
 
   function indexFail(message) {
@@ -44,21 +64,24 @@
   }
 
   function computeIndex() {
-    if (!indexMap) { return; }
+    if (!cpi) { return; }
     const input = indexInputs();
+    const series = input.series;
+    const doc = series.doc(); const map = series.map();
+    if (!doc || !map) { return; }
     if (!Number.isFinite(input.amount) || input.amount < 0) { indexFail('יש להזין סכום תקין שאינו שלילי.'); return; }
     const baseMonth = Statso.core.resolveIndexMonth(input.baseMonth, input.mode);
     const targetMonth = Statso.core.resolveIndexMonth(input.targetMonth, input.mode);
-    const base = Statso.core.lookupChained(indexMap, baseMonth, firstMonth, lastMonth);
-    const target = Statso.core.lookupChained(indexMap, targetMonth, firstMonth, lastMonth);
+    const base = Statso.core.lookupChained(map, baseMonth, doc.first_month, doc.last_month, series.field);
+    const target = Statso.core.lookupChained(map, targetMonth, doc.first_month, doc.last_month, series.field);
     const missing = !base.ok ? baseMonth : (!target.ok ? targetMonth : null);
     if (missing) {
       indexFail('המדד לחודש ' + Statso.core.formatMonthHe(missing) + ' אינו זמין. הטווח הוא '
-        + Statso.core.formatMonthHe(firstMonth) + '–' + Statso.core.formatMonthHe(lastMonth) + '.');
+        + Statso.core.formatMonthHe(doc.first_month) + '–' + Statso.core.formatMonthHe(doc.last_month) + '.');
       return;
     }
     const outcome = Statso.core.indexAmount(input.amount, base.value, target.value);
-    indexResult = {input: input, baseMonth: baseMonth, targetMonth: targetMonth,
+    indexResult = {input: input, series: series, baseMonth: baseMonth, targetMonth: targetMonth,
       baseValue: base.value, targetValue: target.value,
       indexed: outcome.indexed, difference: outcome.difference,
       ratio: target.value / base.value};
@@ -66,9 +89,9 @@
     el('ti-result').hidden = false;
     el('ti-indexed').textContent = Statso.core.formatNumber(outcome.indexed, 2);
     el('ti-difference').textContent = Statso.core.formatNumber(outcome.difference, 2);
-    el('ti-detail').textContent = 'מדד ' + Statso.core.formatMonthHe(baseMonth) + ' = '
-      + Statso.core.formatNumber(published(baseMonth), 1) + ' · מדד ' + Statso.core.formatMonthHe(targetMonth)
-      + ' = ' + Statso.core.formatNumber(Statso.core.readingInBase(indexMap, baseMonth, targetMonth), 1)
+    el('ti-detail').textContent = series.label + ' · מדד ' + Statso.core.formatMonthHe(baseMonth) + ' = '
+      + Statso.core.formatNumber(published(map, baseMonth), 1) + ' · מדד ' + Statso.core.formatMonthHe(targetMonth)
+      + ' = ' + Statso.core.formatNumber(Statso.core.readingInBase(map, baseMonth, targetMonth, series.field), 1)
       + ' (באותו בסיס) · מקדם '
       + Statso.core.formatNumber(target.value / base.value, 4);
   }
@@ -76,14 +99,14 @@
   function indexRows() {
     const r = indexResult;
     const modeText = r.input.mode === 'known' ? 'מדד ידוע' : 'מדד בגין';
-    return [['סוג המדד', 'מדד המחירים לצרכן'], ['בסיס החישוב', modeText],
+    return [['סוג המדד', r.series.label], ['בסיס החישוב', modeText],
       ['סכום מקורי (₪)', r.input.amount],
       ['חודש בסיס', Statso.core.formatMonthHe(r.input.baseMonth)],
       ['מדד הבסיס בפועל', Statso.core.formatMonthHe(r.baseMonth)],
-      ['ערך מדד הבסיס', published(r.baseMonth)],
+      ['ערך מדד הבסיס', published(r.series.map(), r.baseMonth)],
       ['חודש יעד', Statso.core.formatMonthHe(r.input.targetMonth)],
       ['מדד היעד בפועל', Statso.core.formatMonthHe(r.targetMonth)],
-      ['ערך מדד היעד (בבסיס מדד הבסיס)', Statso.core.readingInBase(indexMap, r.baseMonth, r.targetMonth)],
+      ['ערך מדד היעד (בבסיס מדד הבסיס)', Statso.core.readingInBase(r.series.map(), r.baseMonth, r.targetMonth, r.series.field)],
       ['מקדם הצמדה', r.ratio],
       ['סכום מוצמד (₪)', r.indexed],
       ['הפרש (₪)', r.difference]];
@@ -92,20 +115,39 @@
   function exportIndex(kind) {
     if (!indexResult) { return; }
     const rows = indexRows();
+    const title = indexResult.series.title;
     if (kind === 'xlsx') {
       const sheet = {name: 'הצמדה למדד', columns: [{width: 26}, {width: 20}],
-        merges: ['A1:B1'], rows: [[{v: 'הצמדה למדד המחירים לצרכן', s: S().title}], []]};
+        merges: ['A1:B1'], rows: [[{v: say(title), s: S().title}], []]};
       rows.forEach(function (row) {
         sheet.rows.push([{v: row[0], s: S().header},
           typeof row[1] === 'number' ? {v: row[1], s: S().money} : {v: row[1], s: S().boxed}]);
       });
-      Statso.exporter.downloadWorkbook('statso-' + Statso.i18n.t('הצמדה למדד') + '-' + Statso.exporter.stamp() + '.xlsx', [sheet]);
+      Statso.exporter.downloadWorkbook('statso-' + Statso.i18n.t(title) + '-' + Statso.exporter.stamp() + '.xlsx', [sheet]);
       return;
     }
-    Statso.exporter.printDocument('הצמדה למדד המחירים לצרכן',
-      Statso.exporter.documentHtml('הצמדה למדד המחירים לצרכן',
+    Statso.exporter.printDocument(title,
+      Statso.exporter.documentHtml(title,
         Statso.core.formatMonthHe(indexResult.input.baseMonth) + ' → ' + Statso.core.formatMonthHe(indexResult.input.targetMonth),
         [Statso.exporter.tableHtml(['פריט', 'ערך'], rows)]));
+  }
+
+  function switchIndexSeries() {
+    const series = currentIndexSeries();
+    const doc = series.doc();
+    if (!doc) { return; }
+    const capture = function (yearId, monthId) { return el(yearId).value + '-' + el(monthId).value; };
+    const currentBase = capture('ti-base-year', 'ti-base-month');
+    const currentTarget = capture('ti-target-year', 'ti-target-month');
+    fillMonthSelects([{year: 'ti-base-year', month: 'ti-base-month'},
+      {year: 'ti-target-year', month: 'ti-target-month'}], doc.first_month, doc.last_month);
+    const apply = function (yearId, monthId, month) {
+      const clamped = clampMonth(month, doc.first_month, doc.last_month);
+      el(yearId).value = clamped.slice(0, 4); el(monthId).value = clamped.slice(5);
+    };
+    apply('ti-base-year', 'ti-base-month', currentBase);
+    apply('ti-target-year', 'ti-target-month', currentTarget);
+    computeIndex();
   }
 
   // ---------- tool 2: currency ---------------------------------------------
@@ -230,9 +272,39 @@
   // ---------- tool 3: historical table -------------------------------------
   let historyRows = [];
 
+  const HISTORY_SERIES = [
+    {key: 'cpi', label: 'מדד המחירים לצרכן', field: 'chained_1951_09',
+      baseNote: 'המדד המשורשר של מדד המחירים לצרכן מבוטא בבסיס 9/1951.',
+      doc: function () { return cpi; }, map: function () { return indexMap; }},
+    {key: 'construction', label: 'מדד תשומות הבנייה למגורים', field: 'chained_1950_07',
+      baseNote: 'המדד המשורשר של מדד תשומות הבנייה למגורים מבוטא בבסיס 7/1950, והסדרה המפורסמת מתחילה ב-1/2000.',
+      doc: function () { return construction; }, map: function () { return constructionMap; }}
+  ];
+
+  const HISTORY_METRICS = [
+    {key: 'chained', label: 'מדד משורשר', decimals: 2, format: function (v) { return Statso.core.formatNumber(v, 2); }},
+    {key: 'value', label: 'מדד מקורי', decimals: null, format: function (v) { return Statso.core.formatNumber(v, 1); }},
+    {key: 'mom', label: 'שינוי חודשי %', decimals: 2, format: function (v) { return Statso.core.formatPercent(v); }},
+    {key: 'yoy', label: 'שינוי שנתי %', decimals: 2, format: function (v) { return Statso.core.formatPercent(v); }}
+  ];
+
+  function selectedHistorySeries() {
+    return HISTORY_SERIES.filter(function (s) { return s.doc() && el('th-' + s.key).checked; });
+  }
+
   function historyRange() {
     return {from: el('th-start-year').value + '-' + el('th-start-month').value,
       to: el('th-end-year').value + '-' + el('th-end-month').value};
+  }
+
+  function monthSpine(from, to) {
+    const months = [];
+    let cursor = from;
+    while (Statso.core.monthToOrdinal(cursor) <= Statso.core.monthToOrdinal(to)) {
+      months.push(cursor);
+      cursor = Statso.core.shiftMonth(cursor, 1);
+    }
+    return months;
   }
 
   function buildHistory() {
@@ -240,92 +312,154 @@
     const range = historyRange();
     if (Statso.core.monthToOrdinal(range.from) > Statso.core.monthToOrdinal(range.to)) {
       el('th-error').textContent = 'חודש ההתחלה חייב להיות מוקדם מחודש הסיום.';
-      el('th-body').innerHTML = ''; historyRows = []; return;
+      el('th-head').innerHTML = ''; el('th-body').innerHTML = ''; el('th-note').textContent = ''; historyRows = []; return;
+    }
+    const series = selectedHistorySeries();
+    if (!series.length) {
+      el('th-error').textContent = 'יש לבחור סדרה אחת לפחות.';
+      el('th-head').innerHTML = ''; el('th-body').innerHTML = ''; el('th-note').textContent = ''; historyRows = []; return;
     }
     el('th-error').textContent = '';
-    historyRows = cpi.observations.filter(function (row) {
-      return Statso.core.monthToOrdinal(row.month) >= Statso.core.monthToOrdinal(range.from)
-        && Statso.core.monthToOrdinal(row.month) <= Statso.core.monthToOrdinal(range.to);
-    }).map(function (row) {
-      const mom = Statso.core.monthOverMonth(indexMap, row.month);
-      const yoy = Statso.core.yearOverYear(indexMap, row.month);
-      return {month: row.month, chained: row.chained_1951_09, value: row.value,
-        mom: mom.ok ? mom.percent : null, yoy: yoy.ok ? yoy.percent : null};
+    historyRows = monthSpine(range.from, range.to).map(function (month) {
+      const cells = {};
+      series.forEach(function (s) {
+        const map = s.map();
+        const row = map ? map.get(month) : null;
+        const mom = map ? Statso.core.monthOverMonth(map, month, s.field) : {ok: false, percent: null};
+        const yoy = map ? Statso.core.yearOverYear(map, month, s.field) : {ok: false, percent: null};
+        cells[s.key] = {chained: row ? row[s.field] : null, value: row ? row.value : null,
+          mom: mom.ok ? mom.percent : null, yoy: yoy.ok ? yoy.percent : null};
+      });
+      return {month: month, cells: cells};
     });
-    el('th-body').innerHTML = historyRows.map(function (row) {
-      return '<tr><th scope="row" dir="ltr">' + Statso.core.escapeHtml(Statso.core.formatMonthHe(row.month)) + '</th>'
-        + '<td dir="ltr">' + Statso.core.formatNumber(row.chained, 2) + '</td>'
-        + '<td dir="ltr">' + Statso.core.formatNumber(row.value, 1) + '</td>'
-        + '<td dir="ltr">' + (row.mom === null ? '—' : Statso.core.formatPercent(row.mom)) + '</td>'
-        + '<td dir="ltr">' + (row.yoy === null ? '—' : Statso.core.formatPercent(row.yoy)) + '</td></tr>';
-    }).join('');
-    el('th-note').textContent = historyRows.length + ' חודשים בטווח שנבחר. המדד המשורשר מבוטא בבסיס 9/1951, '
-      + 'והמדד המקורי הוא הערך כפי שפורסם בבסיס התקף באותו חודש.';
+    renderHistory();
   }
 
-  const HISTORY_HEAD = ['חודש', 'מדד משורשר', 'מדד מקורי', 'שינוי חודשי %', 'שינוי שנתי %'];
+  function renderHistory() {
+    const series = selectedHistorySeries();
+    el('th-head').innerHTML = '<th scope="col">' + say('חודש') + '</th>' + series.map(function (s) {
+      return HISTORY_METRICS.map(function (m) {
+        return '<th scope="col">' + say(m.label) + ' — ' + say(s.label) + '</th>';
+      }).join('');
+    }).join('');
+    el('th-body').innerHTML = historyRows.map(function (row) {
+      return '<tr><th scope="row" dir="ltr">' + Statso.core.escapeHtml(Statso.core.formatMonthHe(row.month)) + '</th>'
+        + series.map(function (s) {
+          const cell = row.cells[s.key];
+          return HISTORY_METRICS.map(function (m) {
+            const v = cell[m.key];
+            return '<td dir="ltr">' + (v === null ? '—' : m.format(v)) + '</td>';
+          }).join('');
+        }).join('') + '</tr>';
+    }).join('');
+    const base = historyRows.length + ' ' + say('חודשים בטווח שנבחר.');
+    const notes = series.map(function (s) { return say(s.baseNote); }).join(' ');
+    el('th-note').textContent = base + (notes ? ' ' + notes : '');
+  }
+
+  function historyHead() {
+    const series = selectedHistorySeries();
+    const head = [say('חודש')];
+    series.forEach(function (s) {
+      HISTORY_METRICS.forEach(function (m) { head.push(say(m.label) + ' — ' + say(s.label)); });
+    });
+    return head;
+  }
 
   function historyMatrix() {
+    const series = selectedHistorySeries();
     return historyRows.map(function (row) {
-      return [Statso.core.formatMonthHe(row.month), Number(row.chained.toFixed(2)), row.value,
-        row.mom === null ? '' : Number(row.mom.toFixed(2)), row.yoy === null ? '' : Number(row.yoy.toFixed(2))];
+      const out = [Statso.core.formatMonthHe(row.month)];
+      series.forEach(function (s) {
+        const cell = row.cells[s.key];
+        HISTORY_METRICS.forEach(function (m) {
+          const v = cell[m.key];
+          out.push(v === null ? '' : (m.decimals === null ? v : Number(v.toFixed(m.decimals))));
+        });
+      });
+      return out;
     });
   }
 
   function exportHistory(kind) {
     if (!historyRows.length) { return; }
+    const series = selectedHistorySeries();
+    if (!series.length) { return; }
     const range = historyRange();
     const subtitle = Statso.core.formatMonthHe(range.from) + '–' + Statso.core.formatMonthHe(range.to);
+    const title = series.map(function (s) { return say(s.label); }).join(' / ');
+    const head = historyHead();
     if (kind === 'xlsx') {
-      const sheet = {name: 'מדד היסטורי',
-        columns: [{width: 12}, {width: 15}, {width: 14}, {width: 15}, {width: 15}],
-        merges: ['A1:E1'],
-        rows: [[{v: say('מדד המחירים לצרכן') + ' — ' + subtitle, s: S().title}], [],
-          HISTORY_HEAD.map(function (text) { return {v: text, s: S().header}; })]};
+      const columns = head.map(function (_, i) { return {width: i === 0 ? 12 : 15}; });
+      const sheet = {name: 'מדד היסטורי', columns: columns,
+        merges: ['A1:' + Statso.xlsx.columnName(head.length - 1) + '1'],
+        rows: [[{v: title + ' — ' + subtitle, s: S().title}], [],
+          head.map(function (text) { return {v: text, s: S().header}; })]};
       historyMatrix().forEach(function (row) {
-        sheet.rows.push([{v: row[0], s: S().boxed}, {v: row[1], s: S().money}, {v: row[2], s: S().money},
-          row[3] === '' ? '' : {v: row[3], s: S().money}, row[4] === '' ? '' : {v: row[4], s: S().money}]);
+        sheet.rows.push([{v: row[0], s: S().boxed}].concat(row.slice(1).map(function (v) {
+          return v === '' ? '' : {v: v, s: S().money};
+        })));
       });
-      Statso.exporter.downloadWorkbook('statso-' + Statso.i18n.t('מדד היסטורי') + '-' + Statso.exporter.stamp() + '.xlsx', [sheet]);
+      Statso.exporter.downloadWorkbook('statso-' + say('מדד היסטורי') + '-' + Statso.exporter.stamp() + '.xlsx', [sheet]);
       return;
     }
-    Statso.exporter.printDocument('מדד המחירים לצרכן — ' + subtitle,
-      Statso.exporter.documentHtml('מדד המחירים לצרכן', subtitle,
-        [Statso.exporter.tableHtml(HISTORY_HEAD, historyMatrix())]));
+    Statso.exporter.printDocument(title + ' — ' + subtitle,
+      Statso.exporter.documentHtml(title, subtitle,
+        [Statso.exporter.tableHtml(head, historyMatrix())]));
   }
 
   function copyHistory() {
     if (!historyRows.length) { return; }
     const button = el('th-copy');
-    Statso.exporter.copyText(Statso.exporter.toTsv([HISTORY_HEAD].concat(historyMatrix())))
+    Statso.exporter.copyText(Statso.exporter.toTsv([historyHead()].concat(historyMatrix())))
       .then(function () { Statso.exporter.flash(button, 'הועתק ✓'); })
       .catch(function () { Statso.exporter.flash(button, 'ההעתקה נכשלה'); });
   }
 
   // ---------- wiring --------------------------------------------------------
-  function init(cpiDoc, map) {
+  function init(cpiDoc, map, constructionDoc) {
     cpi = cpiDoc; indexMap = map; firstMonth = cpiDoc.first_month; lastMonth = cpiDoc.last_month;
+    construction = constructionDoc || null;
+    constructionMap = construction ? Statso.core.buildIndexMap(construction.observations) : null;
+
     fillMonthSelects([{year: 'ti-base-year', month: 'ti-base-month'},
-      {year: 'ti-target-year', month: 'ti-target-month'},
-      {year: 'th-start-year', month: 'th-start-month'},
-      {year: 'th-end-year', month: 'th-end-month'}], firstMonth, lastMonth);
+      {year: 'ti-target-year', month: 'ti-target-month'}], firstMonth, lastMonth);
     const lastYear = lastMonth.slice(0, 4); const lastMonthPart = lastMonth.slice(5);
     el('ti-base-year').value = String(Number(lastYear) - 1); el('ti-base-month').value = lastMonthPart;
     el('ti-target-year').value = lastYear; el('ti-target-month').value = lastMonthPart;
+
+    const unionFirst = construction && Statso.core.monthToOrdinal(construction.first_month) < Statso.core.monthToOrdinal(firstMonth)
+      ? construction.first_month : firstMonth;
+    const unionLast = construction && Statso.core.monthToOrdinal(construction.last_month) > Statso.core.monthToOrdinal(lastMonth)
+      ? construction.last_month : lastMonth;
+    fillMonthSelects([{year: 'th-start-year', month: 'th-start-month'},
+      {year: 'th-end-year', month: 'th-end-month'}], unionFirst, unionLast);
     el('th-start-year').value = String(Number(lastYear) - 2); el('th-start-month').value = '01';
     el('th-end-year').value = lastYear; el('th-end-month').value = lastMonthPart;
+
+    if (!construction) {
+      const radio = el('ti-series-construction'); if (radio) { radio.disabled = true; }
+      const box = el('th-construction'); if (box) { box.disabled = true; box.checked = false; }
+    }
+
     ['ti-amount', 'ti-base-year', 'ti-base-month', 'ti-target-year', 'ti-target-month'].forEach(function (id) {
       on(id, 'input', computeIndex);
     });
     document.querySelectorAll('input[name="ti-mode"]').forEach(function (radio) { radio.addEventListener('change', computeIndex); });
+    document.querySelectorAll('input[name="ti-series"]').forEach(function (radio) { radio.addEventListener('change', switchIndexSeries); });
     on('ti-xlsx', 'click', function () { exportIndex('xlsx'); });
     on('ti-pdf', 'click', function () { exportIndex('pdf'); });
+
     ['th-start-year', 'th-start-month', 'th-end-year', 'th-end-month'].forEach(function (id) {
       on(id, 'change', buildHistory);
     });
+    on('th-cpi', 'change', buildHistory);
+    on('th-construction', 'change', buildHistory);
     on('th-copy', 'click', copyHistory);
     on('th-xlsx', 'click', function () { exportHistory('xlsx'); });
     on('th-pdf', 'click', function () { exportHistory('pdf'); });
+    if (Statso.i18n) { Statso.i18n.onChange(function () { if (historyRows.length) { renderHistory(); } }); }
+
     computeIndex();
     buildHistory();
     if (Statso.rent) { Statso.rent.init(cpiDoc, map); }
@@ -368,6 +502,6 @@
   }
 
   Statso.tools = {init: init, initFx: initFx, initBoi: initBoi, computeIndex: computeIndex, computeFx: computeFx,
-    buildHistory: buildHistory, historyMatrix: historyMatrix, exportIndex: exportIndex,
-    exportFx: exportFx, exportHistory: exportHistory, HISTORY_HEAD: HISTORY_HEAD};
+    buildHistory: buildHistory, historyMatrix: historyMatrix, historyHead: historyHead, exportIndex: exportIndex,
+    exportFx: exportFx, exportHistory: exportHistory};
 })(window);

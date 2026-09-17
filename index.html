@@ -157,6 +157,7 @@
       <fieldset><legend>סדרת נתונים</legend><div class="radio-options">
         <label><input type="radio" name="mc-series" value="boi" checked> <span>ריבית בנק ישראל</span></label>
         <label><input type="radio" name="mc-series" value="cpi"> <span>מדד המחירים לצרכן (משורשר)</span></label>
+        <label><input type="radio" name="mc-series" value="construction"> <span>מדד תשומות הבנייה למגורים (משורשר)</span></label>
         <label><input type="radio" name="mc-series" value="fx"> <span>שערי חליפין יציגים</span></label>
       </div></fieldset>
       <fieldset id="mc-currencies-block" hidden><legend>מטבעות</legend><div class="fxh-currencies" id="mc-currencies"></div></fieldset>
@@ -181,7 +182,7 @@
     </section>
 
     <div class="tool-cards" id="tools-index">
-      <a class="tool-card" href="#/tools/index"><span class="tool-card-mark">₪</span><strong>הצמדה למדדים</strong><span>הצמדת סכום בין שני חודשים לפי מדד המחירים לצרכן.</span></a>
+      <a class="tool-card" href="#/tools/index"><span class="tool-card-mark">₪</span><strong>הצמדה למדדים</strong><span>הצמדת סכום בין שני חודשים לפי מדד שתבחרו — מחירים לצרכן או תשומות הבנייה למגורים.</span></a>
       <a class="tool-card" href="#/tools/fx"><span class="tool-card-mark">$</span><strong>הצמדה למטבע</strong><span>המרה לפי שער יציג, או הצמדה לפי שינוי השער בין שני תאריכים.</span></a>
       <a class="tool-card" href="#/tools/history"><span class="tool-card-mark">☰</span><strong>נתוני מדד היסטוריים</strong><span>טבלת מדד לטווח שתבחר, עם העתקה ישירה לאקסל.</span></a>
       <a class="tool-card" href="#/tools/rate-history"><span class="tool-card-mark">%</span><strong>נתוני ריבית היסטוריים</strong><span>ריבית בנק ישראל ופריים, לפי תאריכי שינוי או ברמה חודשית.</span></a>
@@ -194,7 +195,7 @@
       <div class="tool-layout">
         <form class="calc-form" onsubmit="return false">
           <label class="wide">סכום בשקלים <input id="ti-amount" type="number" min="0" step="any" value="1000" inputmode="decimal"></label>
-          <label class="wide">סוג המדד <select id="ti-index"><option value="cpi">מדד המחירים לצרכן</option></select></label>
+          <fieldset class="wide"><legend>סדרת המדד</legend><label><input type="radio" name="ti-series" value="cpi" id="ti-series-cpi" checked> מדד המחירים לצרכן</label><label><input type="radio" name="ti-series" value="construction" id="ti-series-construction"> מדד תשומות הבנייה למגורים</label></fieldset>
           <fieldset class="wide"><legend>סוג המדד לחישוב</legend><label><input type="radio" name="ti-mode" value="known" checked> מדד ידוע</label><label><input type="radio" name="ti-mode" value="for"> מדד בגין</label></fieldset>
           <div class="date-group"><span>חודש בסיס</span><label>שנה <select id="ti-base-year"></select></label><label>חודש <select id="ti-base-month"></select></label></div>
           <div class="date-group"><span>חודש יעד</span><label>שנה <select id="ti-target-year"></select></label><label>חודש <select id="ti-target-month"></select></label></div>
@@ -238,13 +239,21 @@
 
     <section class="panel tool-page" id="tool-history-page" hidden aria-labelledby="tool-history-title">
       <div class="section-heading"><div><p class="eyebrow">כלי 3</p><h2 id="tool-history-title">נתוני מדד היסטוריים</h2></div><a class="tool-back" href="#/tools">← לכל הכלים</a></div>
-      <form class="range-controls" onsubmit="return false">
-        <span>מ־</span><label>שנה <select id="th-start-year"></select></label><label>חודש <select id="th-start-month"></select></label>
-        <span>עד</span><label>שנה <select id="th-end-year"></select></label><label>חודש <select id="th-end-month"></select></label>
+      <form class="rent-form" onsubmit="return false">
+        <fieldset class="rent-block"><legend>סדרות</legend>
+          <div class="tool-checkboxes">
+            <label class="tool-checkbox"><input id="th-cpi" type="checkbox" checked> מדד המחירים לצרכן</label>
+            <label class="tool-checkbox"><input id="th-construction" type="checkbox"> מדד תשומות הבנייה למגורים</label>
+          </div>
+        </fieldset>
+        <div class="range-controls">
+          <span>מ־</span><label>שנה <select id="th-start-year"></select></label><label>חודש <select id="th-start-month"></select></label>
+          <span>עד</span><label>שנה <select id="th-end-year"></select></label><label>חודש <select id="th-end-month"></select></label>
+        </div>
       </form>
       <p class="inline-error" id="th-error" role="alert"></p>
         <div class="tool-actions"><button type="button" class="btn-ghost btn-copy" id="th-copy">העתקה לאקסל</button><button type="button" class="btn-ghost" id="th-xlsx">ייצוא לאקסל</button><button type="button" class="btn-ghost" id="th-pdf">ייצוא ל־PDF</button></div>
-      <div class="table-wrap"><table class="data-table" id="th-table"><caption class="sr-only">נתוני מדד המחירים לצרכן ההיסטוריים, לפי חודש</caption><thead><tr><th scope="col">חודש</th><th scope="col">מדד משורשר</th><th scope="col">מדד מקורי</th><th scope="col">שינוי חודשי</th><th scope="col">שינוי שנתי</th></tr></thead><tbody id="th-body"></tbody></table></div>
+      <div class="table-wrap"><table class="data-table" id="th-table"><caption class="sr-only">נתוני מדד היסטוריים, לפי חודש</caption><thead><tr id="th-head"></tr></thead><tbody id="th-body"></tbody></table></div>
       <p class="table-note" id="th-note"></p>
     </section>
 
@@ -574,6 +583,7 @@
   <footer><div class="shell footer-inner"><div class="footer-meta"><span class="brand"><span class="brand-mark">s</span><span>statso</span></span><span>נתונים ממקורות רשמיים<span id="app-version-line" hidden> · גרסה <span id="app-version" dir="ltr"></span></span></span></div><nav class="footer-links" aria-label="מידע"><a href="#/about">אודות</a><span aria-hidden="true">·</span><a href="#/method">שיטת החישוב</a><span aria-hidden="true">·</span><a href="#/terms">תנאי שימוש והבהרות</a><span aria-hidden="true">·</span><a href="#/privacy">מדיניות פרטיות</a><span aria-hidden="true">·</span><a href="#/accessibility">הצהרת נגישות</a><span aria-hidden="true">·</span><a href="#/contact">צור קשר</a></nav></div><div class="shell footer-legal"><p>statso הוא אתר אישי וחובבני, שאינו מופעל מטעם הלשכה המרכזית לסטטיסטיקה, בנק ישראל או גוף ממשלתי אחר.</p><p>© 2026 מפעיל האתר. נתוני המקור שייכים לגופים המפרסמים.</p></div></footer>
 
   <script type="application/json" id="data-cpi" data-inline="json" data-src="data/cpi.json" data-label="מדד המחירים לצרכן"></script>
+  <script type="application/json" id="data-construction-inputs" data-inline="json" data-src="data/construction_inputs.json" data-label="מדד תשומות הבנייה למגורים"></script>
   <script type="application/json" id="data-boi" data-inline="json" data-src="data/boi_interest_rate.json" data-label="ריבית בנק ישראל"></script>
   <script type="application/json" id="data-next" data-inline="json" data-src="data/boi_next_decision.json" data-label="מועד החלטת הריבית הבאה"></script>
   <script type="application/json" id="data-fx-summary" data-inline="json" data-src="data/fx_summary.json" data-label="סיכום שערי חליפין"></script>

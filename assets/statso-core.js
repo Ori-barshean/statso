@@ -21,12 +21,15 @@
   function buildIndexMap(observations) { return new Map(observations.map(function (row) { return [row.month, row]; })); }
   function resolveIndexMonth(contractMonth, mode) { return mode === 'known' ? shiftMonth(contractMonth, -1) : contractMonth; }
 
-  function lookupChained(map, month, firstMonth, lastMonth) {
+  const DEFAULT_CHAINED = 'chained_1951_09';
+  function chainedOf(row, field) { return row[field || DEFAULT_CHAINED]; }
+
+  function lookupChained(map, month, firstMonth, lastMonth, field) {
     if (monthToOrdinal(month) < monthToOrdinal(firstMonth) || monthToOrdinal(month) > monthToOrdinal(lastMonth)) {
       return {ok: false, value: null, reason: 'out_of_range'};
     }
     const row = map.get(month);
-    return row ? {ok: true, value: row.chained_1951_09, reason: null} : {ok: false, value: null, reason: 'missing'};
+    return row ? {ok: true, value: chainedOf(row, field), reason: null} : {ok: false, value: null, reason: 'missing'};
   }
 
   function lookupRateAt(dates, rates, isoDate) {
@@ -48,10 +51,10 @@
   // comparable once both are expressed in the same base. coef=true gives us the
   // chained series precisely so this is a lookup: restate `month` in the base that
   // was in force at `baseMonth`, which is the number a contract actually cites.
-  function readingInBase(map, baseMonth, month) {
+  function readingInBase(map, baseMonth, month, field) {
     const base = map.get(baseMonth); const target = map.get(month);
     if (!base || !target) { return null; }
-    return base.value * (target.chained_1951_09 / base.chained_1951_09);
+    return base.value * (chainedOf(target, field) / chainedOf(base, field));
   }
 
   function indexAmount(amount, baseChained, targetChained) {
@@ -59,14 +62,14 @@
     return {indexed: indexed, difference: indexed - amount};
   }
 
-  function changeOverMonths(map, lastMonth, back) {
+  function changeOverMonths(map, lastMonth, back, field) {
     const current = map.get(lastMonth);
     const prior = map.get(shiftMonth(lastMonth, -back));
-    return current && prior ? {ok: true, percent: (current.chained_1951_09 / prior.chained_1951_09 - 1) * 100} : {ok: false, percent: null};
+    return current && prior ? {ok: true, percent: (chainedOf(current, field) / chainedOf(prior, field) - 1) * 100} : {ok: false, percent: null};
   }
 
-  function yearOverYear(map, lastMonth) { return changeOverMonths(map, lastMonth, 12); }
-  function monthOverMonth(map, lastMonth) { return changeOverMonths(map, lastMonth, 1); }
+  function yearOverYear(map, lastMonth, field) { return changeOverMonths(map, lastMonth, 12, field); }
+  function monthOverMonth(map, lastMonth, field) { return changeOverMonths(map, lastMonth, 1, field); }
   function primeRate(boiRate) { return boiRate + PRIME_SPREAD; }
 
   function latestObservation(cpiDoc, map) { return map.get(cpiDoc.last_month); }

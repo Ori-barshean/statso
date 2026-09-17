@@ -11,7 +11,7 @@
     Statso.data.setState(document.getElementById('chart-section'), 'error', message);
     Statso.data.setState(document.getElementById('calculator-section'), 'error', message);
   }
-  function showCpi(doc) {
+  function showCpi(doc, constructionDoc) {
     const map = Statso.core.buildIndexMap(doc.observations); const latest = Statso.core.latestObservation(doc, map);
     if (!latest) { throw new Error('המדד העדכני חסר'); }
     const yoy = Statso.core.yearOverYear(map, doc.last_month); const mom = Statso.core.monthOverMonth(map, doc.last_month);
@@ -23,7 +23,7 @@
     Statso.data.setState(document.getElementById('cpi-kpi'), 'ready');
     Statso.data.setState(document.getElementById('calculator-section'), 'ready');
     Statso.calculator.init(doc, map);
-    if (Statso.tools) { Statso.tools.init(doc, map); }
+    if (Statso.tools) { Statso.tools.init(doc, map, constructionDoc || null); }
     if (typeof root.Chart === 'function') { Statso.chart.init(doc.observations); Statso.data.setState(document.getElementById('chart-section'), 'ready'); }
     else { Statso.chart.showUnavailable(); }
   }
@@ -67,8 +67,9 @@
     Statso.collapse.attach('fx-table-section', {collapsed: false});
     Statso.collapse.attach('chart-section', {collapsed: true, onOpen: function () { Statso.chart.activate(); }});
     Statso.data.loadAll().then(function (results) {
-      const cpi = results[0], boi = results[1], next = results[2], fx = results[3];
-      if (cpi.status === 'fulfilled') { try { showCpi(cpi.value); } catch (error) { failCpi(error.message); } } else { failCpi(cpi.reason.message); }
+      const cpi = results[0], boi = results[1], next = results[2], fx = results[3], construction = results[4];
+      const constructionDoc = construction && construction.status === 'fulfilled' ? construction.value : null;
+      if (cpi.status === 'fulfilled') { try { showCpi(cpi.value, constructionDoc); } catch (error) { failCpi(error.message); } } else { failCpi(cpi.reason.message); }
       if (boi.status === 'fulfilled') { try { showBoi(boi.value); } catch (error) { failCard('boi-kpi', 'kpi-boi-error', error.message, ['kpi-boi-rate', 'kpi-boi-prime']); } }
       else { failCard('boi-kpi', 'kpi-boi-error', boi.reason.message, ['kpi-boi-rate', 'kpi-boi-prime']); }
       if (next.status === 'fulfilled') { try { showNext(next.value); } catch (error) { showNextUnavailable(); } } else { showNextUnavailable(); }

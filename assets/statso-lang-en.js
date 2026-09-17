@@ -143,8 +143,8 @@
     'הצמדה למטבע': 'Currency linkage',
     'נתוני מדד היסטוריים': 'Historical index data',
     'הצמדת הסכם שכירות': 'Rent agreement linkage',
-    'הצמדת סכום בין שני חודשים לפי מדד המחירים לצרכן.':
-      'Link an amount between two months by the consumer price index.',
+    'הצמדת סכום בין שני חודשים לפי מדד שתבחרו — מחירים לצרכן או תשומות הבנייה למגורים.':
+      'Link an amount between two months by an index you choose — consumer prices or residential construction inputs.',
     'המרה לפי שער יציג, או הצמדה לפי שינוי השער בין שני תאריכים.':
       'Convert at a representative rate, or link by the change in that rate between two dates.',
     'טבלת מדד לטווח שתבחר, עם העתקה ישירה לאקסל.':
@@ -154,6 +154,10 @@
     'כלי 1': 'Tool 1', 'כלי 2': 'Tool 2', 'כלי 3': 'Tool 3', 'כלי 4': 'Tool 4',
     '← לכל הכלים': '← All tools',
     'סוג המדד לחישוב': 'Index basis',
+    'סדרת המדד': 'Index series',
+    'מדד תשומות הבנייה למגורים': 'Residential construction inputs price index',
+    'מדד תשומות הבנייה למגורים (משורשר)': 'Residential construction inputs price index (chained)',
+    'הצמדה למדד תשומות הבנייה למגורים': 'Residential construction inputs index linkage',
     'ייצוא לאקסל': 'Export to Excel',
     'ייצוא ל־PDF': 'Export to PDF',
     'העתקה לאקסל': 'Copy for Excel',
@@ -174,7 +178,11 @@
     'שינוי חודשי %': 'Month over month %',
     'שינוי שנתי %': 'Year over year %',
     'חודש ההתחלה חייב להיות מוקדם מחודש הסיום.': 'The start month must come before the end month.',
-    'נתוני מדד המחירים לצרכן ההיסטוריים, לפי חודש': 'Historical consumer price index data, by month',
+    'נתוני מדד היסטוריים, לפי חודש': 'Historical index data, by month',
+    'המדד המשורשר של מדד המחירים לצרכן מבוטא בבסיס 9/1951.':
+      'The chained consumer price index is expressed in the 9/1951 base.',
+    'המדד המשורשר של מדד תשומות הבנייה למגורים מבוטא בבסיס 7/1950, והסדרה המפורסמת מתחילה ב-1/2000.':
+      'The chained residential construction inputs price index is expressed in the 7/1950 base, and the published series starts at 1/2000.',
 
 
     // --- historical exchange rates tool --------------------------------------
@@ -523,8 +531,10 @@
     [/^בחודש (.+), מדד בגין הוא מדד (.+)\. מדד ידוע באותו חודש הוא מדד (.+)\. מדד בגין החודש מתפרסם ב-(.+)$/,
       'In $1, the index for the month is the $2 reading. The known index that month is the $3 reading. The index for $1 is published on $4'],
     [/^(.+)–(.+) · (.+) ₪ לחודש$/, '$1–$2 · $3 ₪ per month'],
-    [/^מדד (.+) = (.+) · מדד (.+) = (.+) \(באותו בסיס\) · מקדם (.+)$/,
-      'Index $1 = $2 · index $3 = $4 (same base) · coefficient $5'],
+    [/^מדד המחירים לצרכן · מדד (.+) = (.+) · מדד (.+) = (.+) \(באותו בסיס\) · מקדם (.+)$/,
+      'Consumer price index · index $1 = $2 · index $3 = $4 (same base) · coefficient $5'],
+    [/^מדד תשומות הבנייה למגורים · מדד (.+) = (.+) · מדד (.+) = (.+) \(באותו בסיס\) · מקדם (.+)$/,
+      'Residential construction inputs price index · index $1 = $2 · index $3 = $4 (same base) · coefficient $5'],
     [/^שער (.+) · לפי השער שפורסם ל־(.+)$/, 'Rate $1 · using the rate published for $2'],
     [/^שער (.+) ב־(.+) = (.+) · ב־(.+) = (.+) · הפרש (.+) ₪$/,
       'Rate $1 on $2 = $3 · on $4 = $5 · difference $6 ₪'],
@@ -547,9 +557,6 @@
     [/^לפי השער שפורסם ל־(.+)$/, 'Using the rate published for $1'],
     [/^מדד ידוע במועד ההסכם: (.+)$/, 'Known index at signing: $1'],
     [/^מדד בסיס מוסכם: (.+)$/, 'Agreed base index: $1'],
-    [/^(\d+) חודשים בטווח שנבחר\..*$/,
-      '$1 months in the selected range. The chained index is expressed in the 9/1951 base, '
-      + 'and the published column is the reading in the base in force that month.'],
     [/^שער ל־(.+)$/, 'Rate at $1'],
     [/^שער סוף (\d+)$/, 'Year-end $1'],
     [/^ממוצע (\d+)$/, '$1 average'],

@@ -21,7 +21,7 @@ class McodeTests(unittest.TestCase):
     def setUpClass(cls):
         cls.samples = node('''
 const out = {};
-for (const series of ['boi', 'cpi', 'fx']) {
+for (const series of ['boi', 'cpi', 'construction', 'fx']) {
   for (const currencies of (series === 'fx' ? [['usd'], ['usd', 'eur'], S.mcode.CURRENCIES] : [[]])) {
     for (const average of [false, true]) {
       const selection = {series, currencies, from: '2022-12-01', to: '2025-12-31', average};
@@ -60,6 +60,15 @@ process.stdout.write(JSON.stringify(out));
         self.assertNotIn('"value"', code.split('\nlet\n')[1])
         self.assertNotIn('#date(', code)
 
+    def test_construction_exports_only_chained_index(self):
+        code = self.samples['construction/0/false']
+        for expected in ('Table.SelectColumns(Promoted, {"month", "chained_1950_07"})',
+                         '"construction_chained"', '"2022-12"', '"2025-12"',
+                         'data/construction_inputs.csv', 'July 1950', 'January 2000'):
+            self.assertIn(expected, code)
+        self.assertNotIn('"value"', code.split('\nlet\n')[1])
+        self.assertNotIn('#date(', code)
+
     def test_single_currency(self):
         code = self.samples['fx/1/false']
         self.assertEqual(code.count('Web.Contents('), 1)
@@ -89,7 +98,7 @@ process.stdout.write(JSON.stringify(out));
             self.assertIn('Result = Table.InsertRows(', code)
             self.assertIn('Table.RowCount(', code)
             self.assertIn('List.Average(List.RemoveNulls(', code)
-            key = 'month' if name.startswith('cpi') else 'date'
+            key = 'month' if name.startswith(('cpi', 'construction')) else 'date'
             self.assertIn('{[' + key + ' = null, ', code)
             count = int(name.split('/')[1]) or 1
             self.assertEqual(code.count('List.Average('), count)

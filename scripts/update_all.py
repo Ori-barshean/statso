@@ -1,6 +1,6 @@
 import sys
 
-from . import boi_next_decision, boi_rate, cpi, fx_rates
+from . import boi_next_decision, boi_rate, construction_inputs, cpi, fx_rates
 from .common import DATA_DIR, StatsoError, http_get, read_published_json, write_atomic
 
 
@@ -9,6 +9,12 @@ def update(*, fetch=http_get, data_dir=None):
     cpi_rows, total = cpi.fetch_all_pages(fetch)
     cpi_records = cpi.build_records(cpi_rows)
     cpi.validate(cpi_records, total, read_published_json(target / "cpi.json"))
+
+    ci_rows, ci_total = construction_inputs.fetch_all_pages(fetch)
+    ci_all = construction_inputs.build_records(ci_rows)
+    construction_inputs.validate(ci_all, ci_total)
+    ci_records = construction_inputs.export_records(ci_all)
+    construction_inputs.validate_export(ci_records, read_published_json(target / "construction_inputs.json"))
 
     observations = boi_rate.parse_observations(fetch(boi_rate.BOI_URL))
     changes = boi_rate.derive_change_points(observations)
@@ -19,6 +25,8 @@ def update(*, fetch=http_get, data_dir=None):
 
     payloads = {"cpi.json": cpi.to_json_bytes(cpi_records),
         "cpi.csv": cpi.to_csv_bytes(cpi_records),
+        "construction_inputs.json": construction_inputs.to_json_bytes(ci_records),
+        "construction_inputs.csv": construction_inputs.to_csv_bytes(ci_records),
         "boi_interest_rate.json": boi_rate.to_json_bytes(changes),
         "boi_interest_rate.csv": boi_rate.to_csv_bytes(changes)}
     payloads.update(fx_payloads)
@@ -34,7 +42,9 @@ def update(*, fetch=http_get, data_dir=None):
     except (StatsoError, OSError) as exc:
         print(f"warning: next BOI decision date unavailable: {exc}", file=sys.stderr)
     fx_count = sum(len(items) for items in fx_series.values())
-    print(f"CPI: {len(cpi_records)} observations; BOI: {len(changes)} change points; "
+    print(f"CPI: {len(cpi_records)} observations; "
+          f"construction inputs: {len(ci_records)} observations; "
+          f"BOI: {len(changes)} change points; "
           f"FX: {fx_count} observations across {len(fx_series)} currencies; "
           f"files changed: {len(changed)}" + (f" ({', '.join(changed)})" if changed else ""))
     return changed

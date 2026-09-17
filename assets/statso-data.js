@@ -30,7 +30,8 @@
       loadDataset(document.getElementById('data-cpi')),
       loadDataset(document.getElementById('data-boi')),
       loadDataset(document.getElementById('data-next')),
-      loadDataset(document.getElementById('data-fx-summary'))
+      loadDataset(document.getElementById('data-fx-summary')),
+      loadDataset(document.getElementById('data-construction-inputs'))
     ]);
   }
 
