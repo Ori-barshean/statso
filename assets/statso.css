@@ -85,6 +85,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--blue); box-shado
 .data-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
 .data-table th, .data-table td { padding: 10px 12px; text-align: start; border-bottom: 1px solid var(--line); white-space: nowrap; }
 html[dir="rtl"] .data-table td[dir="ltr"] { text-align: right; }
+html[dir="rtl"] .kpi-value[dir="ltr"], html[dir="rtl"] .kpi-meta[dir="ltr"] { text-align: right; }
 .data-table thead th { color: var(--muted); font-size: .8rem; font-weight: 700; }
 .data-table tbody tr:last-child th, .data-table tbody tr:last-child td { border-bottom: 0; }
 .data-table tbody th { font-weight: 700; }
