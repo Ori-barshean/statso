@@ -13,12 +13,12 @@
   }
   function shortMonthHe(key) { const p = key.split('-'); return p[1] + '/' + p[0].slice(2); }
   function alignKpiFootnotes() {
-    const subs = document.querySelectorAll('.kpi-card .kpi-footnote-sub');
-    if (!subs.length) { return; }
-    subs.forEach(function (el) { el.style.minHeight = ''; });
+    const notes = document.querySelectorAll('.kpi-card .kpi-footnote');
+    if (!notes.length) { return; }
+    notes.forEach(function (el) { el.style.minHeight = ''; });
     let max = 0;
-    subs.forEach(function (el) { max = Math.max(max, el.getBoundingClientRect().height); });
-    subs.forEach(function (el) { el.style.minHeight = max + 'px'; });
+    notes.forEach(function (el) { max = Math.max(max, el.getBoundingClientRect().height); });
+    notes.forEach(function (el) { el.style.minHeight = max + 'px'; });
   }
   function showCpi(doc, constructionDoc) {
     const map = Statso.core.buildIndexMap(doc.observations); const latest = Statso.core.latestObservation(doc, map);
