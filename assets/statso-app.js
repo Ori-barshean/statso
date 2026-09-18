@@ -12,6 +12,14 @@
     Statso.data.setState(document.getElementById('calculator-section'), 'error', message);
   }
   function shortMonthHe(key) { const p = key.split('-'); return p[1] + '/' + p[0].slice(2); }
+  function alignKpiFootnotes() {
+    const subs = document.querySelectorAll('.kpi-card .kpi-footnote-sub');
+    if (!subs.length) { return; }
+    subs.forEach(function (el) { el.style.minHeight = ''; });
+    let max = 0;
+    subs.forEach(function (el) { max = Math.max(max, el.getBoundingClientRect().height); });
+    subs.forEach(function (el) { el.style.minHeight = max + 'px'; });
+  }
   function showCpi(doc, constructionDoc) {
     const map = Statso.core.buildIndexMap(doc.observations); const latest = Statso.core.latestObservation(doc, map);
     if (!latest) { throw new Error('המדד העדכני חסר'); }
@@ -76,9 +84,16 @@
       else { failCard('boi-kpi', 'kpi-boi-error', boi.reason.message, ['kpi-boi-rate', 'kpi-boi-prime']); }
       if (next.status === 'fulfilled') { try { showNext(next.value); } catch (error) { showNextUnavailable(); } } else { showNextUnavailable(); }
       if (fx.status === 'fulfilled') { try { showFx(fx.value); } catch (error) { failFx(error.message); } } else { failFx(fx.reason.message); }
+      alignKpiFootnotes();
       root.dispatchEvent(new CustomEvent('statso:app-ready'));
     });
   }
   document.addEventListener('DOMContentLoaded', init);
+  if (Statso.i18n) { Statso.i18n.onChange(alignKpiFootnotes); }
+  let kpiResizeTimer = null;
+  root.addEventListener('resize', function () {
+    clearTimeout(kpiResizeTimer);
+    kpiResizeTimer = setTimeout(alignKpiFootnotes, 150);
+  });
   Statso.app = {init: init};
 })(window);
