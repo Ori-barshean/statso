@@ -11,13 +11,14 @@
     Statso.data.setState(document.getElementById('chart-section'), 'error', message);
     Statso.data.setState(document.getElementById('calculator-section'), 'error', message);
   }
+  function shortMonthHe(key) { const p = key.split('-'); return p[1] + '/' + p[0].slice(2); }
   function showCpi(doc, constructionDoc) {
     const map = Statso.core.buildIndexMap(doc.observations); const latest = Statso.core.latestObservation(doc, map);
     if (!latest) { throw new Error('המדד העדכני חסר'); }
     const yoy = Statso.core.yearOverYear(map, doc.last_month); const mom = Statso.core.monthOverMonth(map, doc.last_month);
     if (!yoy.ok || !mom.ok) { throw new Error('לא ניתן לחשב את השינוי במדד'); }
     document.getElementById('kpi-cpi-yoy').textContent = Statso.core.formatPercent(yoy.percent);
-    document.getElementById('kpi-cpi-yoy-range').textContent = Statso.core.formatMonthHe(Statso.core.shiftMonth(doc.last_month, -12)) + '–' + Statso.core.formatMonthHe(doc.last_month);
+    document.getElementById('kpi-cpi-yoy-range').textContent = shortMonthHe(Statso.core.shiftMonth(doc.last_month, -12)) + '–' + shortMonthHe(doc.last_month);
     document.getElementById('kpi-cpi-mom').textContent = Statso.core.formatPercent(mom.percent);
     document.getElementById('kpi-cpi-mom-month').textContent = Statso.core.formatMonthHe(doc.last_month);
     document.getElementById('kpi-cpi-next').textContent = Statso.core.formatIsoDateHe(Statso.core.nextCpiPublicationDate(doc.last_month));
