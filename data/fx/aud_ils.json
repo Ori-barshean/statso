@@ -5,9 +5,9 @@
   "currency": "AUD",
   "counter_currency": "ILS",
   "unit": 1,
-  "count": 12909,
+  "count": 12910,
   "first_date": "1962-02-10",
-  "last_date": "2026-09-17",
+  "last_date": "2026-09-18",
   "observations": [
     {
       "date": "1962-02-10",
@@ -51644,6 +51644,10 @@
     {
       "date": "2026-09-17",
       "rate": 2.1597
+    },
+    {
+      "date": "2026-09-18",
+      "rate": 2.1569
     }
   ]
 }
