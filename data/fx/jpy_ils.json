@@ -5,9 +5,9 @@
   "currency": "JPY",
   "counter_currency": "ILS",
   "unit": 100,
-  "count": 12898,
+  "count": 12899,
   "first_date": "1974-11-10",
-  "last_date": "2026-09-24",
+  "last_date": "2026-09-25",
   "observations": [
     {
       "date": "1974-11-10",
@@ -51600,6 +51600,10 @@
     {
       "date": "2026-09-24",
       "rate": 1.9192
+    },
+    {
+      "date": "2026-09-25",
+      "rate": 1.9166
     }
   ]
 }
