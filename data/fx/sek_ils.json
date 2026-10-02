@@ -5,9 +5,9 @@
   "currency": "SEK",
   "counter_currency": "ILS",
   "unit": 1,
-  "count": 12908,
+  "count": 12909,
   "first_date": "1962-02-10",
-  "last_date": "2026-09-30",
+  "last_date": "2026-10-01",
   "observations": [
     {
       "date": "1962-02-10",
@@ -51640,6 +51640,10 @@
     {
       "date": "2026-09-30",
       "rate": 0.3069
+    },
+    {
+      "date": "2026-10-01",
+      "rate": 0.3065
     }
   ]
 }
