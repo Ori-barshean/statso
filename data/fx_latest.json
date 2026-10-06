@@ -8,82 +8,82 @@
     {
       "code": "USD",
       "unit": 1,
-      "latest_date": "2026-10-02",
-      "latest_rate": 3.06,
+      "latest_date": "2026-10-05",
+      "latest_rate": 3.059,
       "first_date": "1948-05-15",
-      "count": 13291
+      "count": 13292
     },
     {
       "code": "EUR",
       "unit": 1,
-      "latest_date": "2026-10-02",
-      "latest_rate": 3.4419,
+      "latest_date": "2026-10-05",
+      "latest_rate": 3.4299,
       "first_date": "1999-01-04",
-      "count": 6793
+      "count": 6794
     },
     {
       "code": "GBP",
       "unit": 1,
-      "latest_date": "2026-10-02",
-      "latest_rate": 4.0407,
+      "latest_date": "2026-10-05",
+      "latest_rate": 4.046,
       "first_date": "1962-02-10",
-      "count": 12915
+      "count": 12916
     },
     {
       "code": "CHF",
       "unit": 1,
-      "latest_date": "2026-10-02",
-      "latest_rate": 3.6921,
-      "first_date": "1962-02-10",
-      "count": 12910
-    },
-    {
-      "code": "JPY",
-      "unit": 100,
-      "latest_date": "2026-10-02",
-      "latest_rate": 1.9414,
-      "first_date": "1974-11-10",
-      "count": 12904
-    },
-    {
-      "code": "CAD",
-      "unit": 1,
-      "latest_date": "2026-10-02",
-      "latest_rate": 2.1496,
+      "latest_date": "2026-10-05",
+      "latest_rate": 3.6812,
       "first_date": "1962-02-10",
       "count": 12911
     },
     {
-      "code": "AUD",
-      "unit": 1,
-      "latest_date": "2026-10-02",
-      "latest_rate": 2.1239,
-      "first_date": "1962-02-10",
-      "count": 12919
+      "code": "JPY",
+      "unit": 100,
+      "latest_date": "2026-10-05",
+      "latest_rate": 1.9342,
+      "first_date": "1974-11-10",
+      "count": 12905
     },
     {
-      "code": "DKK",
+      "code": "CAD",
       "unit": 1,
-      "latest_date": "2026-10-02",
-      "latest_rate": 0.4604,
+      "latest_date": "2026-10-05",
+      "latest_rate": 2.1452,
       "first_date": "1962-02-10",
       "count": 12912
     },
     {
-      "code": "NOK",
+      "code": "AUD",
       "unit": 1,
-      "latest_date": "2026-10-02",
-      "latest_rate": 0.3176,
+      "latest_date": "2026-10-05",
+      "latest_rate": 2.1304,
+      "first_date": "1962-02-10",
+      "count": 12920
+    },
+    {
+      "code": "DKK",
+      "unit": 1,
+      "latest_date": "2026-10-05",
+      "latest_rate": 0.4589,
       "first_date": "1962-02-10",
       "count": 12913
     },
     {
+      "code": "NOK",
+      "unit": 1,
+      "latest_date": "2026-10-05",
+      "latest_rate": 0.3187,
+      "first_date": "1962-02-10",
+      "count": 12914
+    },
+    {
       "code": "SEK",
       "unit": 1,
-      "latest_date": "2026-10-02",
-      "latest_rate": 0.3049,
+      "latest_date": "2026-10-05",
+      "latest_rate": 0.305,
       "first_date": "1962-02-10",
-      "count": 12910
+      "count": 12911
     }
   ]
 }
