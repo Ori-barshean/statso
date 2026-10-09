@@ -36,10 +36,10 @@
       <div class="brand-group">
         <a class="brand" href="index.html" aria-label="statso — דף הבית"><span class="brand-mark">s</span><span>statso</span></a>
         <div class="lang-picker" id="lang-picker" data-i18n-skip>
-          <button type="button" class="lang-button" id="lang-toggle" aria-haspopup="true" aria-expanded="false" aria-controls="lang-menu">Switch Language</button>
+          <button type="button" class="lang-button" id="lang-toggle" lang="en" aria-haspopup="true" aria-expanded="false" aria-controls="lang-menu">Switch Language</button>
           <ul class="lang-menu" id="lang-menu" hidden>
-            <li><button type="button" class="lang-choice" data-lang-choice="he">עברית</button></li>
-            <li><button type="button" class="lang-choice" data-lang-choice="en">English</button></li>
+            <li><button type="button" class="lang-choice" data-lang-choice="he" lang="he">עברית</button></li>
+            <li><button type="button" class="lang-choice" data-lang-choice="en" lang="en">English</button></li>
           </ul>
         </div>
       </div>
@@ -99,7 +99,7 @@
       <div class="state-loading">טוען שערי חליפין…</div>
       <div class="state-error" id="fx-table-error"></div>
       <div class="state-ready">
-        <div class="table-wrap"><table class="data-table" id="fx-table">
+        <div class="table-wrap" tabindex="0" role="region" aria-label="שערי חליפין נבחרים מול השקל, לפי מטבע"><table class="data-table" id="fx-table">
           <caption class="sr-only">שערי חליפין נבחרים מול השקל, לפי מטבע</caption>
           <thead><tr id="fx-table-head"></tr></thead>
           <tbody id="fx-table-body"></tbody>
@@ -171,7 +171,7 @@
       </fieldset>
     </form>
     <p id="mc-error" role="alert"></p>
-    <div class="code-block mcode-output"><pre dir="ltr" data-i18n-skip><code id="mc-code"></code></pre><button type="button" id="mc-copy">העתקת הקוד</button></div>
+    <div class="code-block mcode-output"><pre dir="ltr" tabindex="0" aria-label="קוד לדוגמה" data-i18n-skip><code id="mc-code"></code></pre><button type="button" id="mc-copy">העתקת הקוד</button></div>
     <aside class="guide-note"><p>הסבר שלב-אחר-שלב איך מדביקים את הקוד באקסל נמצא בעמוד <a href="#/guides">מדריכים</a>.</p></aside>
   </main>
 
@@ -254,7 +254,7 @@
       </form>
       <p class="inline-error" id="th-error" role="alert"></p>
         <div class="tool-actions"><button type="button" class="btn-ghost btn-copy" id="th-copy">העתקה לאקסל</button><button type="button" class="btn-ghost" id="th-xlsx">ייצוא לאקסל</button><button type="button" class="btn-ghost" id="th-pdf">ייצוא ל־PDF</button></div>
-      <div class="table-wrap"><table class="data-table" id="th-table"><caption class="sr-only">נתוני מדד היסטוריים, לפי חודש</caption><thead><tr id="th-head"></tr></thead><tbody id="th-body"></tbody></table></div>
+      <div class="table-wrap" tabindex="0" role="region" aria-label="נתוני מדד היסטוריים, לפי חודש"><table class="data-table" id="th-table"><caption class="sr-only">נתוני מדד היסטוריים, לפי חודש</caption><thead><tr id="th-head"></tr></thead><tbody id="th-body"></tbody></table></div>
       <p class="table-note" id="th-note"></p>
     </section>
 
@@ -280,7 +280,7 @@
       </form>
       <p class="inline-error" id="trh-error" role="alert"></p>
       <div class="tool-actions"><button type="button" class="btn-ghost btn-copy" id="trh-copy">העתקה לאקסל</button><button type="button" class="btn-ghost" id="trh-xlsx">ייצוא לאקסל</button><button type="button" class="btn-ghost" id="trh-pdf">ייצוא ל־PDF</button></div>
-      <div class="table-wrap"><table class="data-table" id="trh-table"><caption class="sr-only">נתוני ריבית בנק ישראל ופריים ההיסטוריים</caption><thead><tr id="trh-head"></tr></thead><tbody id="trh-body"></tbody></table></div>
+      <div class="table-wrap" tabindex="0" role="region" aria-label="נתוני ריבית בנק ישראל ופריים ההיסטוריים"><table class="data-table" id="trh-table"><caption class="sr-only">נתוני ריבית בנק ישראל ופריים ההיסטוריים</caption><thead><tr id="trh-head"></tr></thead><tbody id="trh-body"></tbody></table></div>
       <p class="table-note" id="trh-note"></p>
     </section>
 
@@ -306,7 +306,7 @@
       <p class="inline-error" id="fxh-error" role="alert"></p>
       <div class="rent-summary" id="fxh-averages"></div>
       <div class="tool-actions"><button type="button" class="btn-ghost btn-copy" id="fxh-copy">העתקה לאקסל</button><button type="button" class="btn-ghost" id="fxh-xlsx">ייצוא לאקסל</button><button type="button" class="btn-ghost" id="fxh-pdf">ייצוא ל־PDF</button></div>
-      <div class="table-wrap"><table class="data-table" id="fxh-table"><caption class="sr-only">נתוני שערי חליפין היסטוריים, לפי מטבע ותאריך</caption><thead><tr id="fxh-head"></tr></thead><tbody id="fxh-body"></tbody></table></div>
+      <div class="table-wrap" tabindex="0" role="region" aria-label="נתוני שערי חליפין היסטוריים, לפי מטבע ותאריך"><table class="data-table" id="fxh-table"><caption class="sr-only">נתוני שערי חליפין היסטוריים, לפי מטבע ותאריך</caption><thead><tr id="fxh-head"></tr></thead><tbody id="fxh-body"></tbody></table></div>
       <p class="table-note" id="fxh-note"></p>
     </section>
 
@@ -528,22 +528,22 @@
         <section>
           <p>מפעיל האתר מחויב לאפשר שימוש נוח ככל האפשר באתר לאנשים עם מוגבלות, וממשיך לעבוד על שיפור הנגישות לאורך זמן.</p>
           <p>האתר נבנה תוך התייחסות לתקן הישראלי הרלוונטי (ת"י 5568) ולהנחיות <span dir="ltr">WCAG</span>.</p>
-          <p>בין ההתאמות שבוצעו בפועל: כפתור דילוג לתוכן המרכזי בתחילת כל עמוד; העברת פוקוס לכותרת העמוד החדש בכל מעבר בין עמודים, כך שקורא מסך מכריז עליה; תפריט "כלים" בניווט שפועל גם במקלדת, כולל סגירה במקש <span dir="ltr">Escape</span>; חלופה נגישה לתרשים המדד ההיסטורי — תיאור טקסטואלי וקישור לטבלת נתונים מקבילה; כותרות (<span dir="ltr">captions</span>) לטבלאות הנתונים; וכיבוד הגדרת "הפחתת תנועה" (<span dir="ltr">prefers-reduced-motion</span>) של המשתמש.</p>
-          <p>מגבלות ידועות: טבלאות רחבות מסוימות נגללות אופקית, ואזור הגלילה עצמו אינו בר־מיקוד עצמאי במקלדת; פרטי התרשים החזותי (<span dir="ltr">Canvas</span>) זמינים רק דרך התיאור הטקסטואלי והטבלה המקושרת אליו, לא מתוך הגרף עצמו; קובצי ה־<span dir="ltr">PDF</span> המיוצאים מהכלים אינם מתויגים לקורא מסך; מעבר בין השפות דורש <span dir="ltr">JavaScript</span> פעיל בדפדפן.</p>
-          <p>נגישות האתר נבדקה באופן אוטומטי וידני באמצעות דפדפן מבוסס <span dir="ltr">Chromium</span> ללא ממשק גרפי (<span dir="ltr">headless</span>) וניווט מקלדת מלא בכל הנתיבים באתר. בדיקה עם קורא מסך <span dir="ltr">VoiceOver</span> לא בוצעה בשלב זה.</p>
+          <p>בין ההתאמות שבוצעו בפועל: כפתור דילוג לתוכן המרכזי בתחילת כל עמוד; העברת פוקוס לכותרת העמוד החדש בכל מעבר בין עמודים, כך שקורא מסך מכריז עליה; תפריט "כלים" בניווט שפועל גם במקלדת, כולל סגירה במקש <span dir="ltr">Escape</span>; חלופה נגישה לתרשים המדד ההיסטורי — תיאור טקסטואלי וקישור לטבלת נתונים מקבילה; כותרות (<span dir="ltr">captions</span>) לטבלאות הנתונים; כותרת ייחודית בלשונית הדפדפן לכל עמוד; אזורי הגלילה האופקית — של טבלאות רחבות, איורי המדריכים וקטעי הקוד לדוגמה — ניתנים למיקוד וגלילה גם במקלדת; ניגודיות צבע תקינה בטקסטים המשניים ובמסגרות שדות הטופס; סימון בולט של מיקוד המקלדת בכל רכיב אינטראקטיבי; יעדי לחיצה בגובה של 24 פיקסלים לפחות; וכיבוד הגדרת "הפחתת תנועה" (<span dir="ltr">prefers-reduced-motion</span>) של המשתמש, כולל ביטול אנימציית הציור של התרשים.</p>
+          <p>מגבלות ידועות: פרטי התרשים החזותי (<span dir="ltr">Canvas</span>) זמינים רק דרך התיאור הטקסטואלי והטבלה המקושרת אליו, לא מתוך הגרף עצמו; קובצי ה־<span dir="ltr">PDF</span> המיוצאים מהכלים אינם מתויגים לקורא מסך; מעבר בין השפות דורש <span dir="ltr">JavaScript</span> פעיל בדפדפן.</p>
+          <p>נגישות האתר נבדקה באופן אוטומטי וידני: סריקת <span dir="ltr">axe-core</span> על כל עמודי האתר, ובדיקה ידנית בדפדפן מבוסס <span dir="ltr">Chromium</span>: ניווט מקלדת בכל הנתיבים והכלים באתר, תצוגה ברוחב 320 פיקסלים ללא גלילה אופקית של העמוד, הגדלת ריווח הטקסט, גודל יעדי לחיצה וניגודיות של רכיבי ממשק. בדיקה עם קורא מסך <span dir="ltr">VoiceOver</span> לא בוצעה בשלב זה.</p>
           <p>נתקלתם בבעיית נגישות? אפשר לדווח למפעיל האתר בכתובת <a href="mailto:ori.cpa.il@gmail.com" dir="ltr">ori.cpa.il@gmail.com</a>.</p>
-          <p>תאריך בדיקת הנגישות האחרונה: 11/09/2026.</p>
+          <p>תאריך בדיקת הנגישות האחרונה: 09/10/2026.</p>
         </section>
       </div>
       <div class="prose-guide" data-lang="en" hidden>
         <section>
           <p>The site operator is committed to making the site as usable as reasonably possible for people with disabilities, and continues working to improve its accessibility over time.</p>
           <p>The site was built with attention to the relevant Israeli standard (IS 5568) and to the <span dir="ltr">WCAG</span> guidelines.</p>
-          <p>Accommodations actually implemented include: a "skip to main content" button at the start of every page; moving focus to the new page's heading on every page transition, so screen readers announce it; a "Tools" navigation menu that is fully keyboard-operable, including closing with the <span dir="ltr">Escape</span> key; an accessible alternative for the historical index chart — a text description plus a link to an equivalent data table; captions on the data tables; and respecting the user's "reduce motion" (<span dir="ltr">prefers-reduced-motion</span>) preference.</p>
-          <p>Known limitations: some wide data tables scroll horizontally, and the scroll container itself is not independently keyboard-focusable; the visual detail of the canvas-based chart is available only through its text description and the linked table, not from the chart itself; <span dir="ltr">PDF</span> files exported from the tools are not tagged for screen readers; switching languages requires <span dir="ltr">JavaScript</span> to be enabled in the browser.</p>
-          <p>The site's accessibility was tested automatically and manually using a headless <span dir="ltr">Chromium</span>-based browser and full keyboard-only navigation across every route on the site. Testing with the <span dir="ltr">VoiceOver</span> screen reader was not performed at this stage.</p>
+          <p>Accommodations actually implemented include: a "skip to main content" button at the start of every page; moving focus to the new page's heading on every page transition, so screen readers announce it; a "Tools" navigation menu that is fully keyboard-operable, including closing with the <span dir="ltr">Escape</span> key; an accessible alternative for the historical index chart — a text description plus a link to an equivalent data table; captions on the data tables; a distinct browser-tab title for every page; keyboard-focusable, keyboard-scrollable containers for wide tables, guide illustrations, and sample-code blocks; adequate color contrast on secondary text and on form-field borders; a prominent keyboard-focus indicator on every interactive element; click targets at least 24 pixels tall; and respecting the user's "reduce motion" (<span dir="ltr">prefers-reduced-motion</span>) preference, including turning off the chart's draw-in animation.</p>
+          <p>Known limitations: the visual detail of the canvas-based chart is available only through its text description and the linked table, not from the chart itself; <span dir="ltr">PDF</span> files exported from the tools are not tagged for screen readers; switching languages requires <span dir="ltr">JavaScript</span> to be enabled in the browser.</p>
+          <p>The site's accessibility was tested automatically and manually: an <span dir="ltr">axe-core</span> scan across every page, plus manual testing in a <span dir="ltr">Chromium</span>-based browser: keyboard-only navigation across every route and tool on the site, a 320-pixel-wide view with no horizontal page scroll, increased text spacing, click-target size, and the contrast of interface components. Testing with the <span dir="ltr">VoiceOver</span> screen reader was not performed at this stage.</p>
           <p>Found an accessibility issue? You can report it to the site operator at <a href="mailto:ori.cpa.il@gmail.com" dir="ltr">ori.cpa.il@gmail.com</a>.</p>
-          <p>Last accessibility review date: 11 September 2026.</p>
+          <p>Last accessibility review date: 9 October 2026.</p>
         </section>
       </div>
       <a class="info-back" href="#/">← חזרה לעמוד הבית</a>

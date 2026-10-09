@@ -19,6 +19,9 @@
   };
   let firstRoute = true;
   let toolsMenuJustOpened = false;
+  // Read while the script is evaluated, before the i18n engine paints, so this
+  // is still the page's own Hebrew <title> whatever language was requested.
+  const siteTitle = document.title;
 
   function currentHeading() {
     const view = document.querySelector('main:not([hidden])');
@@ -29,10 +32,23 @@
       || view.querySelector('h1');
   }
 
+  // The tab title (and the history entry, and the screen reader's window
+  // name) has to follow the view, since a hash route never reloads the page.
+  // The dashboard keeps the site's own title; every other view is named after
+  // its heading, which the i18n engine has already put in the shown language.
+  function updateTitle() {
+    const dashboard = document.getElementById('dashboard-view');
+    const heading = dashboard && dashboard.hidden ? currentHeading() : null;
+    const label = heading && heading.textContent ? heading.textContent.trim() : '';
+    const i18n = Statso.i18n;
+    document.title = label ? label + ' \u2014 statso' : (i18n && i18n.t ? i18n.t(siteTitle) : siteTitle);
+  }
+
   // Moving focus to the new view's own heading is the announcement: screen
   // readers read a focused element's accessible name on their own, so a
   // parallel aria-live update of the same text would just repeat it.
   function focusView() {
+    updateTitle();
     const heading = currentHeading();
     if (!heading) { return; }
     if (!heading.hasAttribute('tabindex')) { heading.setAttribute('tabindex', '-1'); }
@@ -90,7 +106,7 @@
       });
     }
     if (toolsMenuJustOpened) { toolsMenuJustOpened = false; } else { closeToolsMenu(); }
-    if (firstRoute) { firstRoute = false; } else { focusView(); }
+    if (firstRoute) { firstRoute = false; updateTitle(); } else { focusView(); }
   }
 
   // Two independent ways to reveal the submenu: plain CSS :hover for a mouse
@@ -152,6 +168,9 @@
 
   function init() {
     root.addEventListener('hashchange', route);
+    // The guides re-render their open view on this same event, so read the
+    // heading once that has happened rather than whenever this listener runs.
+    if (Statso.i18n && Statso.i18n.onChange) { Statso.i18n.onChange(function () { root.setTimeout(updateTitle, 0); }); }
     initToolsMenu();
     initSkipLink();
     route();

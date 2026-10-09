@@ -125,7 +125,7 @@ process.stdout.write(JSON.stringify(out));
                          ', ולוחצים אישור/הבא.</p>')
             example = '<p>הקוד שלהלן הוא דוגמה מוכנה לריבית בנק ישראל לטווח 2022-12-01 עד 2025-12-31.</p>'
             self.assertIn(paragraph + example + '<div class="code-block"><button class="copy-url guide-copy-pill" '
-                          'type="button">העתקת הקוד</button><pre dir="ltr" data-i18n-skip><code>', third)
+                          'type="button">העתקת הקוד</button><pre dir="ltr" tabindex="0" aria-label="קוד לדוגמה" data-i18n-skip><code>', third)
             self.assertIn('</code></pre></div><div class="guide-mcode-cta">', third)
             cta = re.search(r'<div class="guide-mcode-cta">(.*?)</div>', third, re.S).group(1)
             self.assertEqual(cta.count('<p>'), 1)
@@ -134,7 +134,7 @@ process.stdout.write(JSON.stringify(out));
             self.assertNotIn('guide-mcode-button', third)
 
         self.assertIn('class="code-block"', mac[2])
-        self.assertIn('<pre dir="ltr" data-i18n-skip>', mac[2])
+        self.assertIn('<pre dir="ltr" tabindex="0" aria-label="קוד לדוגמה" data-i18n-skip>', mac[2])
         rendered_code = re.search(r'<pre[^>]*><code>(.*?)</code></pre>', mac[2], re.S).group(1)
         self.assertEqual(html.unescape(rendered_code), out['code'])
         self.assertEqual(out['he/mac'].count('href="#/mcode"'), 1)

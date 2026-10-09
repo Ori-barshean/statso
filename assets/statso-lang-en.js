@@ -17,6 +17,7 @@
     'תאריך סיום': 'End date',
     'להוסיף שורת ממוצע בסוף הטבלה': 'Add an average row at the end of the table',
     'העתקת הקוד': 'Copy code',
+    'קוד לדוגמה': 'Sample code',
     'הסבר שלב-אחר-שלב איך מדביקים את הקוד באקסל נמצא בעמוד': 'For step-by-step instructions on pasting the code into Excel, see',
     'יש לבחור תאריך התחלה ותאריך סיום.': 'Choose a start date and an end date.',
     'תאריך ההתחלה חייב להיות לפני תאריך הסיום.': 'The start date must be before the end date.',

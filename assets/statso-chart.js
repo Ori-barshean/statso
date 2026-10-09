@@ -88,7 +88,10 @@
     if (hasConstruction) {
       datasets.push({label: Statso.i18n.t('מדד תשומות הבנייה למגורים'), data: cpiRows.map(function (r) { return constructionByMonth.has(r.month) ? constructionByMonth.get(r.month) : null; }), borderColor: '#16a34a', backgroundColor: 'rgba(22,163,74,.1)', borderWidth: 2, pointRadius: 0, tension: 0, fill: false, spanGaps: false, yAxisID: 'y1'});
     }
-    return {type: 'line', plugins: [eventPlugin], data: {labels: cpiRows.map(function (r) { return Statso.core.formatMonthHe(r.month); }), datasets: datasets}, options: {responsive: true, maintainAspectRatio: false, locale: 'he-IL', interaction: {intersect: false, mode: 'index'}, scales: {x: {type: 'category', ticks: {autoSkip: true, maxTicksLimit: 12}}, y: {type: 'linear', position: 'left', beginAtZero: false, ticks: {callback: function (v) { return Statso.core.formatNumber(v, 0); }}}, y1: {type: 'linear', position: 'right', beginAtZero: false, display: hasConstruction, grid: {drawOnChartArea: false}, ticks: {callback: function (v) { return Statso.core.formatNumber(v, 0); }}}}, plugins: {legend: {rtl: true, display: true}, tooltip: {rtl: true, textDirection: 'rtl'}}}};
+    const config = {type: 'line', plugins: [eventPlugin], data: {labels: cpiRows.map(function (r) { return Statso.core.formatMonthHe(r.month); }), datasets: datasets}, options: {responsive: true, maintainAspectRatio: false, locale: 'he-IL', interaction: {intersect: false, mode: 'index'}, scales: {x: {type: 'category', ticks: {autoSkip: true, maxTicksLimit: 12}}, y: {type: 'linear', position: 'left', beginAtZero: false, ticks: {callback: function (v) { return Statso.core.formatNumber(v, 0); }}}, y1: {type: 'linear', position: 'right', beginAtZero: false, display: hasConstruction, grid: {drawOnChartArea: false}, ticks: {callback: function (v) { return Statso.core.formatNumber(v, 0); }}}}, plugins: {legend: {rtl: true, display: true}, tooltip: {rtl: true, textDirection: 'rtl'}}}};
+    // Chart.js draws the lines in over a second by default; a visitor who asked their OS for less motion gets the finished chart at once.
+    if (root.matchMedia && root.matchMedia('(prefers-reduced-motion: reduce)').matches) { config.options.animation = false; }
+    return config;
   }
 
   function render(cpiRows, constructionRows) {

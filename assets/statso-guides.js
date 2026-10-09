@@ -124,7 +124,7 @@
     return '<div class="url-block"><code dir="ltr">' + url + '</code><button class="copy-url" type="button" data-url="' + url + '">העתק</button></div>';
   }
   function codeBlock(code) {
-    return '<div class="code-block"><button class="copy-url guide-copy-pill" type="button">העתקת הקוד</button><pre dir="ltr" data-i18n-skip><code>' + Statso.core.escapeHtml(code) + '</code></pre></div>';
+    return '<div class="code-block"><button class="copy-url guide-copy-pill" type="button">העתקת הקוד</button><pre dir="ltr" tabindex="0" aria-label="קוד לדוגמה" data-i18n-skip><code>' + Statso.core.escapeHtml(code) + '</code></pre></div>';
   }
   function escAttr(value) { return String(value == null ? '' : value).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   function round1(value) { return Math.round(value * 10) / 10; }
@@ -146,7 +146,7 @@
   }
   function oneArtSlot(visual, lang) {
     const caption = lang === 'he' ? 'אקסל בעברית' : 'אקסל באנגלית';
-    return '<figure><div class="art-scroll art-scroll-' + (lang === 'he' ? 'rtl' : 'ltr') + '">' + visual + '</div><figcaption>' + caption + '</figcaption></figure>';
+    return '<figure><div class="art-scroll art-scroll-' + (lang === 'he' ? 'rtl' : 'ltr') + '" tabindex="0" aria-label="' + caption + '">' + visual + '</div><figcaption>' + caption + '</figcaption></figure>';
   }
   function artSlot(source, lang, stepNumber) {
     const shot = source.shots && source.shots[lang];
@@ -232,7 +232,7 @@
     document.getElementById('guide-content').innerHTML = '<header class="guide-header"><p class="eyebrow">מושגים במדד המחירים לצרכן</p><h1 id="cpi-guide-title">מדד בגין מול מדד ידוע — ומה המדד בכלל מודד</h1><p>ההבדל בין שני המדדים, מועד הפרסום והרכב סל הצריכה.</p></header>' +
       '<div class="prose-guide">' +
       '<section><h2>1. שני שמות, אותו מדד</h2><p><strong>מדד בגין חודש X</strong> הוא המדד שמודד את המחירים בחודש X עצמו. הוא מתפרסם ב-15 בחודש X+1.</p><p><strong>מדד ידוע במועד מסוים</strong> הוא המדד האחרון שפורסם עד אותו מועד — כלומר המדד של החודש הקודם.</p><p>לכן, לתשלום שחל בחודש X: מדד ידוע = המדד של חודש X-1; מדד בגין = המדד של חודש X.</p><p>אלה אותם מספרים בדיוק; ההבדל הוא רק לאיזה חודש מצמידים אותם. הפער ביניהם הוא חודש אחד. <a href="#/">המחשבון בדף הבית</a> מיישם בדיוק את ההבחנה הזו.</p><aside class="guide-note live-example"><h3>דוגמה מהנתונים העדכניים</h3><p data-cpi-live-example>לא ניתן להציג דוגמה מהנתונים כרגע</p></aside></section>' +
-      '<section><h2>2. מתי מתפרסם המדד</h2><p>לפי הלמ״ס, הודעות מדדי המחירים מתפרסמות ב-15 בכל חודש בשעה 18:30, עבור החודש שקדם לו.</p><p>אם ה-15 בחודש נופל ביום שישי, בשבת, בערב חג או בחג — הפרסום מוקדם ליום שישי או לערב החג, בשעה 14:00.</p><figure class="timeline-figure"><div class="art-scroll art-scroll-rtl">' + diagram + '</div><figcaption>ציר הזמן של מדד בגין ומדד ידוע: פער קבוע של חודש אחד.</figcaption></figure></section>' +
+      '<section><h2>2. מתי מתפרסם המדד</h2><p>לפי הלמ״ס, הודעות מדדי המחירים מתפרסמות ב-15 בכל חודש בשעה 18:30, עבור החודש שקדם לו.</p><p>אם ה-15 בחודש נופל ביום שישי, בשבת, בערב חג או בחג — הפרסום מוקדם ליום שישי או לערב החג, בשעה 14:00.</p><figure class="timeline-figure"><div class="art-scroll art-scroll-rtl" tabindex="0" aria-label="ציר הזמן של מדד בגין ומדד ידוע: פער קבוע של חודש אחד.">' + diagram + '</div><figcaption>ציר הזמן של מדד בגין ומדד ידוע: פער קבוע של חודש אחד.</figcaption></figure></section>' +
       '<section><h2>3. מה המדד כולל</h2><p>לפי הלמ״ס, המדד מודד את שינוי העלות של סל הצריכה של משק בית ממוצע; הלמ״ס מתמחרת מדי חודש כ-1,300 מוצרים ושירותים מייצגים.</p><p>עשר קבוצות הצריכה הראשיות הן: מזון (ללא ירקות ופירות); ירקות ופירות; דיור; תחזוקת הדירה; ריהוט וציוד לבית; הלבשה והנעלה; בריאות; חינוך, תרבות ובידור; תחבורה ותקשורת; שונות.</p><p><strong>מה המדד לא כולל:</strong> רכישת דירה. קבוצת ״דיור״ במדד מודדת את שירותי הדיור — בעיקר שכר דירה — ולא את מחיר קניית הדירה. מחירי רכישת דירות נמדדים במדד נפרד של הלמ״ס, ״מדד ומחירים ממוצעים משוק הדירות״.</p></section>' +
       '<section><h2>4. מדדים נגזרים</h2><p>הלמ״ס מפרסמת גם חתכים שמנטרלים רכיבים תנודתיים: המדד ללא ירקות ופירות; המדד ללא דיור; המדד ללא ירקות ופירות וללא דיור; המדד ללא אנרגיה.</p><p>החתכים האלה משמשים כדי לראות מגמה בסיסית בלי רעש עונתי או תנודות אנרגיה.</p></section></div>';
     fillCpiExample();
