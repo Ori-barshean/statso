@@ -268,7 +268,7 @@
     return code ? code.textContent : '';
   }
   function copy(button) {
-    const done = function (ok) { if (!ok) { return; } const old = button.textContent; button.textContent = 'הועתק'; root.setTimeout(function () { button.textContent = old; }, 1400); };
+    const done = function (ok) { if (!ok) { return; } const old = button.textContent; button.textContent = 'הועתק'; root.setTimeout(function () { button.textContent = old; }, 1400); if (root.Statso.exporter && root.Statso.exporter.announce) { root.Statso.exporter.announce('הועתק'); } };
     if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(payload(button)).then(function () { done(true); }).catch(function () { done(legacyCopy(payload(button))); }); }
     else { done(legacyCopy(payload(button))); }
   }

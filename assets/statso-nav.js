@@ -166,6 +166,52 @@
     link.addEventListener('click', function () { focusView(); });
   }
 
+  // The calculators recompute as the visitor types or picks, so the answer
+  // changes somewhere other than where the screen reader's cursor is. After a
+  // pause in the changes, say what the visible result now reads — its labels
+  // and figures, never the legal disclaimer underneath them. Errors already
+  // speak for themselves through their own role="alert".
+  function resultBlocks(target) {
+    if (!target || !target.closest) { return []; }
+    const scope = target.closest('.calc-layout, .tool-layout');
+    if (scope) {
+      return Array.from(scope.querySelectorAll('.calc-result')).filter(function (block) { return !block.hidden; });
+    }
+    if (target.closest('.rent-form')) {
+      const summary = document.getElementById('tr-summary');
+      return summary ? [summary] : [];
+    }
+    return [];
+  }
+
+  function spokenText(block) {
+    return Array.from(block.querySelectorAll('span, strong, small')).map(function (part) {
+      return part.textContent.trim();
+    }).filter(Boolean).join(' ');
+  }
+
+  function initResultAnnouncements() {
+    const live = document.getElementById('result-live');
+    if (!live) { return; }
+    let pending = null;
+    let clearing = null;
+    function speak(target) {
+      const text = resultBlocks(target).map(spokenText).filter(Boolean).join('. ');
+      if (!text || live.textContent === text) { return; }
+      live.textContent = text;
+      root.clearTimeout(clearing);
+      clearing = root.setTimeout(function () { live.textContent = ''; }, 5000);
+    }
+    function schedule(event) {
+      const target = event.target;
+      if (!resultBlocks(target).length) { return; }
+      root.clearTimeout(pending);
+      pending = root.setTimeout(function () { speak(target); }, 800);
+    }
+    document.addEventListener('input', schedule);
+    document.addEventListener('change', schedule);
+  }
+
   function init() {
     root.addEventListener('hashchange', route);
     // The guides re-render their open view on this same event, so read the
@@ -173,6 +219,7 @@
     if (Statso.i18n && Statso.i18n.onChange) { Statso.i18n.onChange(function () { root.setTimeout(updateTitle, 0); }); }
     initToolsMenu();
     initSkipLink();
+    initResultAnnouncements();
     route();
   }
   document.addEventListener('DOMContentLoaded', init);

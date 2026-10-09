@@ -89,6 +89,121 @@ process.stdout.write(JSON.stringify(seen));
         self.assertEqual(seen["afterLanguageChange"], "renamed \u2014 statso")
         self.assertEqual(seen["homeAgain"], "shown:site-title-he")
 
+    # ---------- spoken results and counters ------------------------------------
+    # The calculators recompute silently as the visitor types, and the contact
+    # form's character counter used to be a live region, which a screen reader
+    # reads out on every single keystroke.
+
+    def test_results_are_spoken_once_after_a_pause_and_never_with_the_disclaimer(self):
+        script = """
+global.window = {};
+const timers = []; let listeners = {};
+window.setTimeout = (fn, ms) => { timers.push({fn, ms, live: true}); return timers.length; };
+window.clearTimeout = id => { if (timers[id - 1]) { timers[id - 1].live = false; } };
+window.addEventListener = () => {};
+window.scrollTo = () => {};
+window.requestAnimationFrame = fn => fn();
+window.location = {hash: '#/'};
+const live = {textContent: ''};
+const block = (hidden, parts) => ({hidden, querySelectorAll: () => parts.map(text => ({textContent: ' ' + text + ' '}))});
+const blocks = [block(false, ['indexed', '1,234', 'NIS', 'difference', '234', 'NIS']), block(true, ['hidden', '9'])];
+const scope = {querySelectorAll: () => blocks};
+const field = {closest: selector => selector.includes('.calc-layout') ? scope : null};
+const elsewhere = {closest: () => null};
+global.document = {title: 't', addEventListener(type, fn) { listeners[type] = fn; },
+ getElementById(id) { if (id === 'result-live') { return live; } if (id === 'tools-trigger') { return null; }
+  return {hidden: false, addEventListener() {}, querySelectorAll() { return []; }}; },
+ querySelector() { return null; }, querySelectorAll() { return []; }};
+require(%s);
+window.Statso.nav.init();
+const seen = {};
+const runLive = () => timers.filter(t => t.live).forEach(t => { t.live = false; t.fn(); });
+listeners.input({target: elsewhere}); runLive(); seen.unrelated = live.textContent;
+listeners.input({target: field}); listeners.input({target: field}); listeners.change({target: field});
+seen.beforePause = live.textContent;
+seen.scheduled = timers.filter(t => t.live).length;
+runLive(); seen.afterPause = live.textContent;
+timers.length = 0;
+listeners.change({target: field}); runLive(); seen.repeatedChangeKeepsSameText = live.textContent;
+process.stdout.write(JSON.stringify(seen));
+""" % json.dumps(str(ROOT / "assets/statso-nav.js"))
+        seen = json.loads(subprocess.run(
+            ["node", "-e", script], check=True, capture_output=True, text=True, encoding="utf-8"
+        ).stdout)
+        self.assertEqual(seen["unrelated"], "")
+        self.assertEqual(seen["beforePause"], "")
+        self.assertEqual(seen["scheduled"], 1)  # three rapid events collapse into one announcement
+        self.assertEqual(seen["afterPause"], "indexed 1,234 NIS difference 234 NIS")
+        self.assertEqual(seen["repeatedChangeKeepsSameText"], "indexed 1,234 NIS difference 234 NIS")
+
+    def test_copy_feedback_keeps_keyboard_focus_and_is_spoken(self):
+        # flash() used to disable the button it was called from; disabling the
+        # element that holds keyboard focus drops focus to <body>.
+        script = """
+global.window = {};
+const timers = [];
+window.setTimeout = fn => { timers.push(fn); return timers.length; };
+window.clearTimeout = () => {};
+const live = {textContent: ''};
+global.document = {getElementById: id => id === 'result-live' ? live : null};
+require(%s);
+const attributes = {};
+const button = {textContent: 'copy to excel', disabled: false,
+ hasAttribute: name => name in attributes, setAttribute: (name, value) => { attributes[name] = value; },
+ removeAttribute: name => { delete attributes[name]; }};
+const seen = {};
+const flash = window.Statso.exporter.flash;
+flash(button, 'copied \u2713');
+seen.label = button.textContent; seen.disabled = button.disabled; seen.spoken = live.textContent;
+flash(button, 'again');                      // ignored while the first is showing
+seen.secondPressIgnored = button.textContent === 'copied \u2713' && timers.length === 2;
+timers.forEach(fn => fn());
+seen.restored = button.textContent; seen.flashingCleared = !('data-flashing' in attributes); seen.cleared = live.textContent;
+process.stdout.write(JSON.stringify(seen));
+""" % json.dumps(str(ROOT / "assets/statso-export.js"))
+        seen = json.loads(subprocess.run(
+            ["node", "-e", script], check=True, capture_output=True, text=True, encoding="utf-8"
+        ).stdout)
+        self.assertEqual(seen["label"], "copied \u2713")
+        self.assertFalse(seen["disabled"])
+        self.assertEqual(seen["spoken"], "copied")
+        self.assertTrue(seen["secondPressIgnored"])
+        self.assertEqual(seen["restored"], "copy to excel")
+        self.assertTrue(seen["flashingCleared"])
+        self.assertEqual(seen["cleared"], "")
+
+    def test_rent_periods_name_themselves_and_keep_keyboard_focus(self):
+        rent = (ROOT / "assets/statso-rent.js").read_text(encoding="utf-8")
+        language = (ROOT / "assets/statso-lang-en.js").read_text(encoding="utf-8")
+        # each period is a named group, and its remove button is named from its
+        # own visible text plus the period title (WCAG 2.5.3 label in name)
+        self.assertIn('role="group" aria-labelledby="', rent)
+        self.assertIn('class="rent-option-title sr-only"', rent)  # hidden: a visible title broke the row's grid
+        self.assertIn("aria-labelledby=\"' + removeId + ' ' + titleId", rent)
+        self.assertNotIn('aria-label="הסרת תקופה"', rent)
+        self.assertIn("'תקופה':", language)
+        # focus is never left on a node that no longer exists
+        self.assertIn("el('tr-add-option').focus()", rent)
+        self.assertIn("addOptionRow({}).querySelector('input').focus()", rent)
+        self.assertIn("renumberOptionRows();", rent)
+
+    def test_result_live_region_sits_outside_every_main_view(self):
+        match = re.search(r'<div class="sr-only" id="result-live" role="status" aria-live="polite" aria-atomic="true"></div>', self.html)
+        self.assertIsNotNone(match)
+        self.assertGreater(match.start(), self.html.rindex("</main>"))
+        self.assertIn("initResultAnnouncements();", self.nav)
+
+    def test_message_counter_is_not_a_live_region_but_the_limit_is_spoken(self):
+        counter = re.search(r'<span id="contact-message-count"[^>]*>', self.html).group(0)
+        self.assertNotIn("aria-live", counter)
+        self.assertNotIn("role=", counter)
+        self.assertRegex(self.html, r'id="contact-message-limit" role="status" aria-live="polite"')
+        contact = (ROOT / "assets/statso-contact.js").read_text(encoding="utf-8")
+        language = (ROOT / "assets/statso-lang-en.js").read_text(encoding="utf-8")
+        for message in re.findall(r"const LIMIT_(?:NEAR|REACHED) = '([^']+)'", contact):
+            self.assertIn("'" + message + "':", language)
+        self.assertEqual(len(re.findall(r"const LIMIT_(?:NEAR|REACHED) =", contact)), 2)
+
     # ---------- accessible tools disclosure ----------------------------------
 
     def test_tools_trigger_starts_collapsed_and_wired(self):

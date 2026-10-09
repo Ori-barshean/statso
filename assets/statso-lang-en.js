@@ -18,6 +18,8 @@
     'להוסיף שורת ממוצע בסוף הטבלה': 'Add an average row at the end of the table',
     'העתקת הקוד': 'Copy code',
     'קוד לדוגמה': 'Sample code',
+    'נותרו 20 תווים או פחות.': 'Twenty characters or fewer left.',
+    'הגעת למגבלה של 300 התווים.': 'You have reached the 300-character limit.',
     'הסבר שלב-אחר-שלב איך מדביקים את הקוד באקסל נמצא בעמוד': 'For step-by-step instructions on pasting the code into Excel, see',
     'יש לבחור תאריך התחלה ותאריך סיום.': 'Choose a start date and an end date.',
     'תאריך ההתחלה חייב להיות לפני תאריך הסיום.': 'The start date must be before the end date.',
@@ -228,7 +230,6 @@
     'קיימות תקופות אופציה': 'The agreement has option periods',
     'הוספת תקופה': 'Add a period',
     'הסרה': 'Remove',
-    'הסרת תקופה': 'Remove period',
     'מדד הבסיס': 'Base index',
     'מדד בסיס מוסכם אחר (במקום המדד הידוע במועד ההסכם)':
       'A different agreed base index (instead of the known index at signing)',

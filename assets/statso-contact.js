@@ -4,6 +4,9 @@ const WEB3FORMS_ACCESS_KEY = '3524f864-d933-41b9-862c-79f6b1d5b281';  // public 
   'use strict';
   const MAX_MESSAGE_LENGTH = 300;
   const SUCCESS_MESSAGE = 'ההודעה נשלחה ותענה בהקדם האפשרי לתיבת המייל שציינת לחזרה.';
+  const LIMIT_NEAR = 'נותרו 20 תווים או פחות.';
+  const LIMIT_REACHED = 'הגעת למגבלה של 300 התווים.';
+  let lastWarning = '';
   const fields = {
     name: {id: 'contact-name', errorId: 'contact-name-error'},
     email: {id: 'contact-email', errorId: 'contact-email-error'},
@@ -33,9 +36,20 @@ const WEB3FORMS_ACCESS_KEY = '3524f864-d933-41b9-862c-79f6b1d5b281';  // public 
     return true;
   }
 
+  // The counter itself is not a live region (it would be read out on every
+  // keystroke); only crossing into the last 20 characters, and the hard stop
+  // the maxlength attribute silently enforces, are spoken.
   function updateCount() {
     const length = document.getElementById(fields.message.id).value.length;
     document.getElementById('contact-message-count').textContent = length + '/' + MAX_MESSAGE_LENGTH;
+    const left = MAX_MESSAGE_LENGTH - length;
+    const warning = left <= 0 ? LIMIT_REACHED : (left <= 20 ? LIMIT_NEAR : '');
+    // Compared with the last warning, not with the element's text, which the
+    // translation engine may already have rewritten into English.
+    if (warning !== lastWarning) {
+      lastWarning = warning;
+      document.getElementById('contact-message-limit').textContent = warning;
+    }
   }
 
   function setSending(sending) {

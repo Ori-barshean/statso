@@ -22,13 +22,30 @@
   function key(periodIndex, month) { return periodIndex + ':' + month; }
 
   // ---------- reading the form ---------------------------------------------
+  // Every extra period names itself ("תקופה 1", "תקופה 2"…): without that, a
+  // screen reader hears the same "מחודש / עד חודש / הסרה" once per row with no
+  // way to tell which period a field belongs to. The title is the group's
+  // name (visually hidden, so the row layout stays as it was), and the remove
+  // button is named from its own text plus that title.
+  let optionSerial = 0;
   function optionRowHtml(index, values) {
-    return '<div class="rent-option" data-option="' + index + '">'
+    optionSerial += 1;
+    const titleId = 'tr-opt-title-' + optionSerial;
+    const removeId = 'tr-opt-remove-' + optionSerial;
+    return '<div class="rent-option" role="group" aria-labelledby="' + titleId + '" data-option="' + index + '">'
+      + '<p class="rent-option-title sr-only" id="' + titleId + '">תקופה <span class="tr-opt-num">' + (index + 1) + '</span></p>'
       + '<label>מחודש <input type="month" class="tr-opt-start" value="' + (values.start || '') + '"></label>'
       + '<label>עד חודש <input type="month" class="tr-opt-end" value="' + (values.end || '') + '"></label>'
       + '<label>דמי שכירות חודשיים (₪) <input type="number" min="0" step="any" class="tr-opt-rent" value="'
       + (values.rent || '') + '"></label>'
-      + '<button type="button" class="btn-ghost tr-opt-remove" aria-label="הסרת תקופה">הסרה</button></div>';
+      + '<button type="button" class="btn-ghost tr-opt-remove" id="' + removeId + '" aria-labelledby="' + removeId + ' ' + titleId
+      + '">הסרה</button></div>';
+  }
+
+  function renumberOptionRows() {
+    el('tr-option-rows').querySelectorAll('.rent-option').forEach(function (row, i) {
+      row.querySelector('.tr-opt-num').textContent = String(i + 1);
+    });
   }
 
   function readOptions() {
@@ -336,8 +353,13 @@
     host.insertAdjacentHTML('beforeend', optionRowHtml(index, values || {}));
     const row = host.lastElementChild;
     row.querySelectorAll('input').forEach(function (input) { input.addEventListener('change', compute); });
-    row.querySelector('.tr-opt-remove').addEventListener('click', function () { row.remove(); compute(); });
+    // Removing the row that holds keyboard focus would drop focus to <body>;
+    // hand it to the button that adds a period instead.
+    row.querySelector('.tr-opt-remove').addEventListener('click', function () {
+      row.remove(); renumberOptionRows(); compute(); el('tr-add-option').focus();
+    });
     compute();
+    return row;
   }
 
   function init(cpiDoc, map) {
@@ -374,7 +396,7 @@
       el('tr-custom-base-fields').hidden = !el('tr-custom-base').checked;
       compute();
     });
-    on('tr-add-option', 'click', function () { addOptionRow({}); });
+    on('tr-add-option', 'click', function () { addOptionRow({}).querySelector('input').focus(); });
     ['tr-export-period', 'tr-export-from', 'tr-export-to', 'tr-exclude-paid'].forEach(function (id) {
       on(id, 'change', function () { el('tr-error').textContent = ''; });
     });

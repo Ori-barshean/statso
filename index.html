@@ -371,27 +371,27 @@
       <div class="prose-guide" data-lang="he">
         <section>
           <p>statso אוסף נתונים כלכליים ישראליים ממקורות רשמיים ומפרסם אותם כקבצים בכתובות קבועות, כדי שכלים אחרים — גיליונות אקסל, אתרים, מחשבונים — יוכלו למשוך מהם נתונים ישירות.</p>
-          <p>כרגע נאספים שני מקורות: מדד המחירים לצרכן מהלשכה המרכזית לסטטיסטיקה, וריבית בנק ישראל.</p>
+          <p>הנתונים נאספים מהלשכה המרכזית לסטטיסטיקה (מדד המחירים לצרכן ומדד תשומות הבנייה למגורים) ומבנק ישראל (ריבית בנק ישראל, מועד ההחלטה הבאה ושערי החליפין היציגים של המטבעות).</p>
           <p>הנתונים מתרעננים אוטומטית כל לילה ב־<span dir="ltr">02:00</span> שעון ישראל. אם התוכן שנוצר זהה לקיים, לא נשמרת גרסה חדשה.</p>
         </section>
         <section>
           <p>statso הוא מיזם אישי וחובבני של מפעיל האתר, לא חברה או שירות מסחרי. השימוש באתר חינמי לחלוטין.</p>
           <p>statso הוא אתר אישי וחובבני, שאינו מופעל מטעם הלשכה המרכזית לסטטיסטיקה, בנק ישראל או גוף ממשלתי אחר.</p>
           <p>אפשר לפנות למפעיל האתר בכתובת <a href="mailto:ori.cpa.il@gmail.com" dir="ltr">ori.cpa.il@gmail.com</a>, או דרך <a href="#/contact">טופס יצירת הקשר</a>. פירוט מלא של מקורות הנתונים ושיטת החישוב מופיע ב<a href="#/method">עמוד שיטת החישוב</a>.</p>
-          <p>עדכון אחרון לעמוד זה: 11/09/2026.</p>
+          <p>עדכון אחרון לעמוד זה: 09/10/2026.</p>
         </section>
       </div>
       <div class="prose-guide" data-lang="en" hidden>
         <section>
           <p>statso collects Israeli economic data from official sources and publishes it as files at stable addresses, so that other tools — spreadsheets, websites, calculators — can pull the numbers directly.</p>
-          <p>Two sources are collected today: the consumer price index from the Central Bureau of Statistics, and the Bank of Israel interest rate.</p>
+          <p>The data is collected from the Central Bureau of Statistics (the consumer price index and the residential construction inputs price index) and from the Bank of Israel (the Bank of Israel interest rate, the next decision date, and the representative exchange rates of the currencies).</p>
           <p>The data refreshes automatically every night at <span dir="ltr">02:00</span> Israel time. If the generated content is identical to what is already published, no new version is stored.</p>
         </section>
         <section>
           <p>statso is a personal hobby project of the site operator, not a company or a commercial service. Using the site is completely free.</p>
           <p>statso is a personal, hobby website, not operated on behalf of the Central Bureau of Statistics, the Bank of Israel, or any other government body.</p>
           <p>You can contact the site operator at <a href="mailto:ori.cpa.il@gmail.com" dir="ltr">ori.cpa.il@gmail.com</a>, or through the <a href="#/contact">contact form</a>. Full details of the data sources and calculation method are on the <a href="#/method">method page</a>.</p>
-          <p>This page was last updated on 11 September 2026.</p>
+          <p>This page was last updated on 9 October 2026.</p>
         </section>
       </div>
       <a class="info-back" href="#/">← חזרה לעמוד הבית</a>
@@ -404,9 +404,11 @@
           <h2>מקורות הנתונים</h2>
           <ul class="source-list">
             <li>הלמ״ס, מדד המחירים לצרכן (סדרה <span dir="ltr">120010</span>, ״מדד המחירים לצרכן - כללי״): <a href="https://api.cbs.gov.il/index/data/price?id=120010&amp;format=json&amp;download=false&amp;coef=true" dir="ltr">api.cbs.gov.il</a></li>
+            <li>הלמ״ס, מדד תשומות הבנייה למגורים (סדרה <span dir="ltr">200010</span>, ״מדד תשומות הבנייה למגורים - כללי״): <a href="https://api.cbs.gov.il/index/data/price?id=200010&amp;format=json&amp;download=false&amp;coef=true" dir="ltr">api.cbs.gov.il</a></li>
             <li>הלמ״ס, פורטל המפתחים: <a href="https://www.cbs.gov.il/he/Pages/%D7%9E%D7%9E%D7%A9%D7%A7-API.aspx" dir="ltr">cbs.gov.il</a></li>
             <li>בנק ישראל, ה־<span dir="ltr">API</span> הסטטיסטי (<span dir="ltr">SDMX</span>), סדרה <span dir="ltr">MNT_RIB_BOI_D “Bank Of Israel nominal interest rate”</span>: <a href="https://edge.boi.gov.il/FusionEdgeServer/sdmx/v2/" dir="ltr">edge.boi.gov.il</a></li>
             <li>בנק ישראל, ריבית נוכחית ומועד ההחלטה הבאה: <a href="https://boi.org.il/PublicApi/GetInterest" dir="ltr">boi.org.il/PublicApi/GetInterest</a></li>
+            <li>בנק ישראל, ה־<span dir="ltr">API</span> הסטטיסטי (<span dir="ltr">SDMX</span>), שערי החליפין היציגים של המטבעות מול השקל (סדרות <span dir="ltr">RER_&lt;קוד מטבע&gt;_ILS</span>): <a href="https://edge.boi.gov.il/FusionEdgeServer/sdmx/v2/" dir="ltr">edge.boi.gov.il</a></li>
           </ul>
         </section>
         <section>
@@ -435,9 +437,11 @@
           <h2>Data sources</h2>
           <ul class="source-list">
             <li>CBS, consumer price index (series <span dir="ltr">120010</span>, “Consumer Price Index — General”): <a href="https://api.cbs.gov.il/index/data/price?id=120010&amp;format=json&amp;download=false&amp;coef=true" dir="ltr">api.cbs.gov.il</a></li>
+            <li>CBS, residential construction inputs price index (series <span dir="ltr">200010</span>, “Residential Construction Inputs Price Index — General”): <a href="https://api.cbs.gov.il/index/data/price?id=200010&amp;format=json&amp;download=false&amp;coef=true" dir="ltr">api.cbs.gov.il</a></li>
             <li>CBS, developers portal: <a href="https://www.cbs.gov.il/he/Pages/%D7%9E%D7%9E%D7%A9%D7%A7-API.aspx" dir="ltr">cbs.gov.il</a></li>
             <li>Bank of Israel, statistical <span dir="ltr">API</span> (<span dir="ltr">SDMX</span>), series <span dir="ltr">MNT_RIB_BOI_D “Bank Of Israel nominal interest rate”</span>: <a href="https://edge.boi.gov.il/FusionEdgeServer/sdmx/v2/" dir="ltr">edge.boi.gov.il</a></li>
             <li>Bank of Israel, current rate and next decision date: <a href="https://boi.org.il/PublicApi/GetInterest" dir="ltr">boi.org.il/PublicApi/GetInterest</a></li>
+            <li>Bank of Israel, statistical <span dir="ltr">API</span> (<span dir="ltr">SDMX</span>), representative exchange rates of the currencies against the shekel (series <span dir="ltr">RER_&lt;currency code&gt;_ILS</span>): <a href="https://edge.boi.gov.il/FusionEdgeServer/sdmx/v2/" dir="ltr">edge.boi.gov.il</a></li>
           </ul>
         </section>
         <section>
@@ -528,7 +532,7 @@
         <section>
           <p>מפעיל האתר מחויב לאפשר שימוש נוח ככל האפשר באתר לאנשים עם מוגבלות, וממשיך לעבוד על שיפור הנגישות לאורך זמן.</p>
           <p>האתר נבנה תוך התייחסות לתקן הישראלי הרלוונטי (ת"י 5568) ולהנחיות <span dir="ltr">WCAG</span>.</p>
-          <p>בין ההתאמות שבוצעו בפועל: כפתור דילוג לתוכן המרכזי בתחילת כל עמוד; העברת פוקוס לכותרת העמוד החדש בכל מעבר בין עמודים, כך שקורא מסך מכריז עליה; תפריט "כלים" בניווט שפועל גם במקלדת, כולל סגירה במקש <span dir="ltr">Escape</span>; חלופה נגישה לתרשים המדד ההיסטורי — תיאור טקסטואלי וקישור לטבלת נתונים מקבילה; כותרות (<span dir="ltr">captions</span>) לטבלאות הנתונים; כותרת ייחודית בלשונית הדפדפן לכל עמוד; אזורי הגלילה האופקית — של טבלאות רחבות, איורי המדריכים וקטעי הקוד לדוגמה — ניתנים למיקוד וגלילה גם במקלדת; ניגודיות צבע תקינה בטקסטים המשניים ובמסגרות שדות הטופס; סימון בולט של מיקוד המקלדת בכל רכיב אינטראקטיבי; יעדי לחיצה בגובה של 24 פיקסלים לפחות; וכיבוד הגדרת "הפחתת תנועה" (<span dir="ltr">prefers-reduced-motion</span>) של המשתמש, כולל ביטול אנימציית הציור של התרשים.</p>
+          <p>בין ההתאמות שבוצעו בפועל: כפתור דילוג לתוכן המרכזי בתחילת כל עמוד; העברת פוקוס לכותרת העמוד החדש בכל מעבר בין עמודים, כך שקורא מסך מכריז עליה; תפריט "כלים" בניווט שפועל גם במקלדת, כולל סגירה במקש <span dir="ltr">Escape</span>; חלופה נגישה לתרשים המדד ההיסטורי — תיאור טקסטואלי וקישור לטבלת נתונים מקבילה; כותרות (<span dir="ltr">captions</span>) לטבלאות הנתונים; כותרת ייחודית בלשונית הדפדפן לכל עמוד; הקראת תוצאות המחשבונים ואישורי ההעתקה לקורא מסך באמצעות אזור סטטוס; שמות ברורים לתקופות בכלי הצמדת הסכם שכירות והעברת מיקוד תקינה בהוספה ובהסרה שלהן; אזורי הגלילה האופקית — של טבלאות רחבות, איורי המדריכים וקטעי הקוד לדוגמה — ניתנים למיקוד וגלילה גם במקלדת; ניגודיות צבע תקינה בטקסטים המשניים ובמסגרות שדות הטופס; סימון בולט של מיקוד המקלדת בכל רכיב אינטראקטיבי; יעדי לחיצה בגובה של 24 פיקסלים לפחות; וכיבוד הגדרת "הפחתת תנועה" (<span dir="ltr">prefers-reduced-motion</span>) של המשתמש, כולל ביטול אנימציית הציור של התרשים.</p>
           <p>מגבלות ידועות: פרטי התרשים החזותי (<span dir="ltr">Canvas</span>) זמינים רק דרך התיאור הטקסטואלי והטבלה המקושרת אליו, לא מתוך הגרף עצמו; קובצי ה־<span dir="ltr">PDF</span> המיוצאים מהכלים אינם מתויגים לקורא מסך; מעבר בין השפות דורש <span dir="ltr">JavaScript</span> פעיל בדפדפן.</p>
           <p>נגישות האתר נבדקה באופן אוטומטי וידני: סריקת <span dir="ltr">axe-core</span> על כל עמודי האתר, ובדיקה ידנית בדפדפן מבוסס <span dir="ltr">Chromium</span>: ניווט מקלדת בכל הנתיבים והכלים באתר, תצוגה ברוחב 320 פיקסלים ללא גלילה אופקית של העמוד, הגדלת ריווח הטקסט, גודל יעדי לחיצה וניגודיות של רכיבי ממשק. בדיקה עם קורא מסך <span dir="ltr">VoiceOver</span> לא בוצעה בשלב זה.</p>
           <p>נתקלתם בבעיית נגישות? אפשר לדווח למפעיל האתר בכתובת <a href="mailto:ori.cpa.il@gmail.com" dir="ltr">ori.cpa.il@gmail.com</a>.</p>
@@ -539,7 +543,7 @@
         <section>
           <p>The site operator is committed to making the site as usable as reasonably possible for people with disabilities, and continues working to improve its accessibility over time.</p>
           <p>The site was built with attention to the relevant Israeli standard (IS 5568) and to the <span dir="ltr">WCAG</span> guidelines.</p>
-          <p>Accommodations actually implemented include: a "skip to main content" button at the start of every page; moving focus to the new page's heading on every page transition, so screen readers announce it; a "Tools" navigation menu that is fully keyboard-operable, including closing with the <span dir="ltr">Escape</span> key; an accessible alternative for the historical index chart — a text description plus a link to an equivalent data table; captions on the data tables; a distinct browser-tab title for every page; keyboard-focusable, keyboard-scrollable containers for wide tables, guide illustrations, and sample-code blocks; adequate color contrast on secondary text and on form-field borders; a prominent keyboard-focus indicator on every interactive element; click targets at least 24 pixels tall; and respecting the user's "reduce motion" (<span dir="ltr">prefers-reduced-motion</span>) preference, including turning off the chart's draw-in animation.</p>
+          <p>Accommodations actually implemented include: a "skip to main content" button at the start of every page; moving focus to the new page's heading on every page transition, so screen readers announce it; a "Tools" navigation menu that is fully keyboard-operable, including closing with the <span dir="ltr">Escape</span> key; an accessible alternative for the historical index chart — a text description plus a link to an equivalent data table; captions on the data tables; a distinct browser-tab title for every page; calculator results and copy confirmations announced to screen readers through a status region; clear names for the periods in the rental-agreement tool, with focus handled when they are added or removed; keyboard-focusable, keyboard-scrollable containers for wide tables, guide illustrations, and sample-code blocks; adequate color contrast on secondary text and on form-field borders; a prominent keyboard-focus indicator on every interactive element; click targets at least 24 pixels tall; and respecting the user's "reduce motion" (<span dir="ltr">prefers-reduced-motion</span>) preference, including turning off the chart's draw-in animation.</p>
           <p>Known limitations: the visual detail of the canvas-based chart is available only through its text description and the linked table, not from the chart itself; <span dir="ltr">PDF</span> files exported from the tools are not tagged for screen readers; switching languages requires <span dir="ltr">JavaScript</span> to be enabled in the browser.</p>
           <p>The site's accessibility was tested automatically and manually: an <span dir="ltr">axe-core</span> scan across every page, plus manual testing in a <span dir="ltr">Chromium</span>-based browser: keyboard-only navigation across every route and tool on the site, a 320-pixel-wide view with no horizontal page scroll, increased text spacing, click-target size, and the contrast of interface components. Testing with the <span dir="ltr">VoiceOver</span> screen reader was not performed at this stage.</p>
           <p>Found an accessibility issue? You can report it to the site operator at <a href="mailto:ori.cpa.il@gmail.com" dir="ltr">ori.cpa.il@gmail.com</a>.</p>
@@ -568,7 +572,7 @@
             <textarea id="contact-message" name="message" maxlength="300" required aria-describedby="contact-message-error contact-message-count"></textarea>
             <div class="contact-field-meta">
               <p class="field-error" id="contact-message-error"></p>
-              <span id="contact-message-count" role="status" aria-live="polite" aria-atomic="true" dir="ltr">0/300</span>
+              <span id="contact-message-count" dir="ltr">0/300</span><span class="sr-only" id="contact-message-limit" role="status" aria-live="polite" aria-atomic="true"></span>
             </div>
           </div>
           <div class="contact-honeypot" aria-hidden="true"><label>השאירו שדה זה ריק <input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off"></label></div>
@@ -581,6 +585,7 @@
     </article>
   </main>
 
+  <div class="sr-only" id="result-live" role="status" aria-live="polite" aria-atomic="true"></div>
   <footer><div class="shell footer-inner"><div class="footer-meta"><span class="brand"><span class="brand-mark">s</span><span>statso</span></span><span>נתונים ממקורות רשמיים<span id="app-version-line" hidden> · גרסה <span id="app-version" dir="ltr"></span></span></span></div><nav class="footer-links" aria-label="מידע"><a href="#/about">אודות</a><span aria-hidden="true">·</span><a href="#/method">שיטת החישוב</a><span aria-hidden="true">·</span><a href="#/terms">תנאי שימוש והבהרות</a><span aria-hidden="true">·</span><a href="#/privacy">מדיניות פרטיות</a><span aria-hidden="true">·</span><a href="#/accessibility">הצהרת נגישות</a><span aria-hidden="true">·</span><a href="#/contact">צור קשר</a></nav></div><div class="shell footer-legal"><p>statso הוא אתר אישי וחובבני, שאינו מופעל מטעם הלשכה המרכזית לסטטיסטיקה, בנק ישראל או גוף ממשלתי אחר.</p><p>© 2026 מפעיל האתר. נתוני המקור שייכים לגופים המפרסמים.</p></div></footer>
 
   <script type="application/json" id="data-cpi" data-inline="json" data-src="data/cpi.json" data-label="מדד המחירים לצרכן"></script>

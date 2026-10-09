@@ -171,6 +171,19 @@ class UiSourceTests(unittest.TestCase):
         self.assertIn(">22</span> בסיסים", method)
         self.assertIn(">22</span> different bases", method)
 
+    def test_about_and_method_pages_name_every_published_source(self):
+        # The About page used to say only the CPI and the BOI rate were collected,
+        # long after construction inputs and exchange rates were published too.
+        about = re.search(r'<article class="info-page" id="about-page".*?</article>', self.html, re.DOTALL).group(0)
+        method = re.search(r'<article class="info-page" id="method-page".*?</article>', self.html, re.DOTALL).group(0)
+        self.assertNotIn("שני מקורות", about)
+        self.assertNotIn("Two sources", about)
+        for marker in ("מדד תשומות הבנייה למגורים", "שערי החליפין היציגים",
+                       "residential construction inputs price index", "representative exchange rates"):
+            self.assertIn(marker, about)
+        for marker in ('<span dir="ltr">200010</span>', "RER_&lt;קוד מטבע&gt;_ILS", "RER_&lt;currency code&gt;_ILS"):
+            self.assertIn(marker, method)
+
     def test_privacy_page_no_longer_claims_no_browser_storage(self):
         privacy = re.search(r'<article class="info-page" id="privacy-page".*?</article>', self.html, re.DOTALL).group(0)
         self.assertNotIn("אינו שומר דבר בדפדפן שלך", privacy)

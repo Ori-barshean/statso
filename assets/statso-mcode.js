@@ -141,6 +141,7 @@
         if (!ok) { return; }
         const t = function (label) { return Statso.i18n ? Statso.i18n.t(label) : label; };
         button.textContent = t('הועתק'); root.setTimeout(function () { button.textContent = t('העתקת הקוד'); }, 1400);
+        if (Statso.exporter && Statso.exporter.announce) { Statso.exporter.announce(t('הועתק')); }
       };
       if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(function () { done(true); }).catch(function () { done(legacyCopy(text)); }); }
       else { done(legacyCopy(text)); }

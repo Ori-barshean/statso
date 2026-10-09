@@ -108,14 +108,31 @@
       + ' · נתוני מקור: הלשכה המרכזית לסטטיסטיקה ובנק ישראל · statso</footer>';
   }
 
+  // A copy or export button changing its own label is silent to a screen
+  // reader, so the outcome is also spoken through the page's shared status
+  // region (the same one the calculators use) and cleared again afterwards.
+  let announcement = null;
+  function announce(message) {
+    const live = document.getElementById('result-live');
+    if (!live) { return; }
+    live.textContent = String(message).replace(/\s*\u2713$/, '');
+    root.clearTimeout(announcement);
+    announcement = root.setTimeout(function () { live.textContent = ''; }, 4000);
+  }
+
+  // The button is never disabled while the label is showing: disabling the
+  // control that has keyboard focus drops focus to the page body and the
+  // visitor loses their place. A second press is simply ignored instead.
   function flash(button, message) {
+    if (button.hasAttribute('data-flashing')) { return; }
     const previous = button.textContent;
+    button.setAttribute('data-flashing', 'true');
     button.textContent = message;
-    button.disabled = true;
-    root.setTimeout(function () { button.textContent = previous; button.disabled = false; }, 1600);
+    announce(message);
+    root.setTimeout(function () { button.textContent = previous; button.removeAttribute('data-flashing'); }, 1600);
   }
 
   Statso.exporter = {downloadBytes: downloadBytes, downloadWorkbook: downloadWorkbook, toTsv: toTsv,
     copyText: copyText, printDocument: printDocument, tableHtml: tableHtml, documentHtml: documentHtml,
-    flash: flash, stamp: stamp, XLSX_MIME: XLSX_MIME};
+    flash: flash, announce: announce, stamp: stamp, XLSX_MIME: XLSX_MIME};
 })(window);
