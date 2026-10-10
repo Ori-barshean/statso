@@ -5,9 +5,9 @@
   "currency": "USD",
   "counter_currency": "ILS",
   "unit": 1,
-  "count": 13295,
+  "count": 13296,
   "first_date": "1948-05-15",
-  "last_date": "2026-10-08",
+  "last_date": "2026-10-09",
   "observations": [
     {
       "date": "1948-05-15",
@@ -53188,6 +53188,10 @@
     {
       "date": "2026-10-08",
       "rate": 3.084
+    },
+    {
+      "date": "2026-10-09",
+      "rate": 3.055
     }
   ]
 }
