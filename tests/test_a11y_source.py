@@ -187,6 +187,28 @@ process.stdout.write(JSON.stringify(seen));
         self.assertIn("addOptionRow({}).querySelector('input').focus()", rent)
         self.assertIn("renumberOptionRows();", rent)
 
+    def test_rent_edits_patch_the_tables_in_place_so_focus_and_clicks_survive(self):
+        rent = (ROOT / "assets/statso-rent.js").read_text(encoding="utf-8")
+        render = rent[rent.index("  function render() {"):rent.index("  // One listener on the container")]
+        # the tables are rebuilt only when their shape changed, never on an edit that only changes numbers
+        self.assertEqual(render.count("host.innerHTML = periods.map(periodHtml).join('')"), 1)
+        self.assertIn("if (renderedShape === shape && host.firstElementChild) {", render)
+        self.assertIn("patchPeriods(host);", render)
+        self.assertNotIn("el('tr-periods').innerHTML", rent)
+        patch = rent[rent.index("  function patchPeriods(host) {"):rent.index("  function render() {")]
+        self.assertNotIn("innerHTML", patch)
+        for cell in ("cells[1]", "cells[4]", "cells[6]", "cells[7]", "foot[7]"):
+            self.assertIn(cell, patch)
+        self.assertIn("input.value = String(row.actual)", patch)
+        self.assertIn("cells[8].firstElementChild.checked = row.paid", patch)
+        self.assertIn("section.querySelector('.tr-period-paid').checked = allPaid(period)", patch)
+        # the listeners live on the container that is never replaced, so nothing is re-bound per render
+        self.assertIn("on('tr-periods', 'change', onPeriodsChange);", rent)
+        self.assertNotIn("bindRows", rent)
+        # a freshly built period box mirrors its rows instead of always starting unticked
+        self.assertIn("(allPaid(period) ? ' checked' : '')", rent)
+        self.assertIn('<caption class="sr-only">\' + period.label', rent)
+
     def test_chart_events_are_named_in_text_for_the_current_range(self):
         # The five event markers are drawn on the canvas only; a screen reader
         # needs them in the chart's description, limited to what is on screen.
@@ -1138,15 +1160,36 @@ process.stdout.write(JSON.stringify({before, after, fallback: target.textContent
         self.assertIn('did not include a screen reader', en)
         self.assertIn('VoiceOver</span>, <span dir="ltr">NVDA</span>', en)
         self.assertIn('not a professional accessibility audit', en)
-        self.assertNotIn('are not tagged for screen readers', en)
+        self.assertNotIn('are not tagged for screen readers', en)   # not verified either way, so not claimed
+        # the rules live in the README and the statement says so; the export checks that were really run are listed
+        # freeze + AutoFilter exist only on the three historical exports (statso-tools/ratehistory/fxhistory), so the claim names them
+        self.assertIn('בקובצי הייצוא של נתוני המדד, הריבית ושערי החליפין ההיסטוריים', he)
+        self.assertIn('in the historical index, interest-rate and exchange-rate exports', en)
+        self.assertNotIn('שהם טבלה אחת', he)
+        self.assertNotIn('sheets that hold a single table', en)
+        # touch use was never tried on a real device, so the slider claim stops at keyboard and mouse
+        self.assertIn('שפועל במקלדת ובעכבר', he)
+        self.assertIn('works with the keyboard and the mouse', en)
+        self.assertIn('כללי הנגישות מתועדים בקובץ <span dir="ltr">README</span>', he)
+        self.assertIn('accessibility rules are documented in the project\'s <span dir="ltr">README</span>', en)
+        self.assertIn('נבדקו גם קובצי הייצוא', he)
+        self.assertIn('The export files were checked too', en)
         # the PDF facts are what a real Chrome print-to-PDF check showed (tagged, Scope=Column, Lang, title; no Caption tag)
         self.assertIn('יצא מתויג', he)
         self.assertIn('came out tagged', en)
         self.assertIn('כיתוב הטבלה אינו נשמר בתיוג', he)
         self.assertIn('the table caption is not kept in the tags', en)
-        # known rent-tool limitation, stated until it is fixed
-        self.assertIn('ועריכת סכום ששולם או סימון "שולם" בונה אותן מחדש', he)
-        self.assertIn('rebuilds them and moves keyboard focus to the top of the page', en)   # not verified either way, so not claimed
+        # the rent tool patches its tables in place (verified in a browser with real key presses: focus, scroll and
+        # the click that follows an edit survive) and names each table with a caption
+        self.assertIn('כיתוב לכל טבלת תקופה בכלי הזה, ועדכון הטבלה במקומה בעריכת סכום ששולם או בסימון "שולם", כך שהמיקוד ומקום הגלילה נשמרים', he)
+        self.assertIn('a caption on each period table in that tool, and the table updating in place when a paid amount is edited or "paid" is ticked, so keyboard focus and scroll position are kept', en)
+        # what is still open in that tool: the scroll area has no tab stop of its own (the fields inside are focusable)
+        self.assertIn('לאזור הגלילה האופקי של הטבלאות אין עצירת מקלדת משלו', he)
+        self.assertIn("horizontal scroll area has no keyboard stop of its own", en)
+        for stale in ('בונה אותן מחדש', 'מעבירה את המיקוד לראש הדף', 'אינן כוללות כיתוב'):
+            self.assertNotIn(stale, he)
+        for stale in ('rebuilds them', 'moves keyboard focus to the top of the page', 'have no caption'):
+            self.assertNotIn(stale, en)
         self.assertNotRegex(en, r'[֐-׿]')
         for text in ('מחוון לבחירת חודש', 'סיכום נתונים', 'שורת כותרות שנשארת גלויה', 'מסנן אוטומטי', 'ללא תאים ממוזגים',
                      'כיתוב (<span dir="ltr">caption</span>)', 'כל האתר דורש <span dir="ltr">JavaScript</span>',

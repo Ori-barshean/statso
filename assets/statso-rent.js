@@ -158,6 +158,24 @@
     }, {nominal: 0, actual: 0, indexed: 0, difference: 0, payable: 0});
   }
 
+  function rowText(row) {
+    const n = Statso.core.formatNumber;
+    return {nominal: n(row.nominal, 2), index: n(row.indexValue, 2), ratio: n(row.ratio, 4),
+      indexed: n(row.indexed, 2), difference: n(row.difference, 2), payable: n(row.payable, 2)};
+  }
+
+  function totalsText(totals) {
+    const n = Statso.core.formatNumber;
+    return {nominal: n(totals.nominal, 2), indexed: n(totals.indexed, 2), actual: n(totals.actual, 2),
+      difference: n(totals.difference, 2), payable: n(totals.payable, 2)};
+  }
+
+  // The period's "mark everything as paid" box mirrors its rows: ticked when every published month is settled.
+  function allPaid(period) {
+    const rows = period.rows.filter(function (row) { return row.available; });
+    return rows.length > 0 && rows.every(function (row) { return row.paid; });
+  }
+
   function rowHtml(periodIndex, row) {
     const id = key(periodIndex, row.month);
     if (!row.available) {
@@ -165,39 +183,81 @@
         + '<td dir="ltr">' + Statso.core.formatNumber(row.nominal, 2) + '</td>'
         + '<td colspan="6">המדד לחודש ' + Statso.core.formatMonthHe(row.indexMonth) + ' טרם פורסם</td></tr>';
     }
+    const text = rowText(row);
     return '<tr><th scope="row" dir="ltr">' + Statso.core.formatMonthHe(row.month) + '</th>'
-      + '<td dir="ltr">' + Statso.core.formatNumber(row.nominal, 2) + '</td>'
-      + '<td dir="ltr">' + Statso.core.formatNumber(row.indexValue, 2) + '</td>'
-      + '<td dir="ltr">' + Statso.core.formatNumber(row.ratio, 4) + '</td>'
-      + '<td dir="ltr">' + Statso.core.formatNumber(row.indexed, 2) + '</td>'
+      + '<td dir="ltr">' + text.nominal + '</td>'
+      + '<td dir="ltr">' + text.index + '</td>'
+      + '<td dir="ltr">' + text.ratio + '</td>'
+      + '<td dir="ltr">' + text.indexed + '</td>'
       + '<td><input type="number" step="any" min="0" class="tr-actual" data-key="' + id
       + '" value="' + row.actual + '" aria-label="סכום ששולם בפועל"></td>'
-      + '<td dir="ltr" class="' + (row.difference < 0 ? 'rent-negative' : '') + '">'
-      + Statso.core.formatNumber(row.difference, 2) + '</td>'
-      + '<td dir="ltr">' + Statso.core.formatNumber(row.payable, 2) + '</td>'
+      + '<td dir="ltr" class="' + (row.difference < 0 ? 'rent-negative' : '') + '">' + text.difference + '</td>'
+      + '<td dir="ltr">' + text.payable + '</td>'
       + '<td><input type="checkbox" class="tr-paid" data-key="' + id + '"' + (row.paid ? ' checked' : '')
       + ' aria-label="ההפרש שולם"></td></tr>';
   }
 
   function periodHtml(period) {
-    const totals = totalsOf(period.rows);
+    const totals = totalsText(totalsOf(period.rows));
     return '<section class="rent-period"><header class="rent-period-head">'
       + '<h3>' + period.label + '</h3>'
       + '<span>' + Statso.core.formatMonthHe(period.start) + '–' + Statso.core.formatMonthHe(period.end)
       + ' · ' + Statso.core.formatNumber(period.rent, 2) + ' ₪ לחודש</span>'
       + '<label class="rent-mark-all"><input type="checkbox" class="tr-period-paid" data-period="' + period.index
-      + '"> סימון כל התקופה כשולמה</label></header>'
-      + '<div class="table-wrap"><table class="data-table rent-table"><thead><tr>'
+      + '"' + (allPaid(period) ? ' checked' : '') + '> סימון כל התקופה כשולמה</label></header>'
+      + '<div class="table-wrap"><table class="data-table rent-table"><caption class="sr-only">' + period.label
+      + '</caption><thead><tr>'
       + ['חודש', 'נומינלי', 'מדד בבסיס ההסכם', 'מקדם', 'ממודד', 'שולם בפועל', 'הפרש', 'הפרש לתשלום', 'שולם']
         .map(function (text) { return '<th scope="col">' + text + '</th>'; }).join('')
       + '</tr></thead><tbody>' + period.rows.map(function (row) { return rowHtml(period.index, row); }).join('')
       + '</tbody><tfoot><tr><th scope="row">סה״כ</th>'
-      + '<td dir="ltr">' + Statso.core.formatNumber(totals.nominal, 2) + '</td><td></td><td></td>'
-      + '<td dir="ltr">' + Statso.core.formatNumber(totals.indexed, 2) + '</td>'
-      + '<td dir="ltr">' + Statso.core.formatNumber(totals.actual, 2) + '</td>'
-      + '<td dir="ltr">' + Statso.core.formatNumber(totals.difference, 2) + '</td>'
-      + '<td dir="ltr">' + Statso.core.formatNumber(totals.payable, 2) + '</td><td></td></tr></tfoot></table></div>'
+      + '<td dir="ltr">' + totals.nominal + '</td><td></td><td></td>'
+      + '<td dir="ltr">' + totals.indexed + '</td>'
+      + '<td dir="ltr">' + totals.actual + '</td>'
+      + '<td dir="ltr">' + totals.difference + '</td>'
+      + '<td dir="ltr">' + totals.payable + '</td><td></td></tr></tfoot></table></div>'
       + '</section>';
+  }
+
+  // The tables are rebuilt only when their shape changes (other dates, rents or months, which come from the form
+  // above them). Editing "paid in practice" or ticking "paid" changes numbers only, so those are written into the
+  // existing cells: replacing the table would drop keyboard focus to <body>, reset the scroll position and swallow
+  // the click that follows an edit (its target would be gone between mouse-down and mouse-up).
+  let renderedShape = null;
+
+  function shapeOf(list) {
+    return list.map(function (period) {
+      return [period.index, period.label, period.start, period.end, period.rent].concat(period.rows.map(function (row) {
+        return row.month + (row.available ? '+' : '-' + row.indexMonth);
+      })).join('|');
+    }).join('\n');
+  }
+
+  function setText(node, text) { if (node.textContent !== text) { node.textContent = text; } }
+
+  function patchPeriods(host) {
+    const sections = host.querySelectorAll('.rent-period');
+    periods.forEach(function (period, i) {
+      const section = sections[i];
+      const bodyRows = section.querySelectorAll('tbody tr');
+      period.rows.forEach(function (row, j) {
+        if (!row.available) { return; }
+        const text = rowText(row);
+        const cells = bodyRows[j].children;
+        setText(cells[1], text.nominal); setText(cells[2], text.index); setText(cells[3], text.ratio);
+        setText(cells[4], text.indexed);
+        const input = cells[5].firstElementChild;
+        if (Number(input.value) !== row.actual) { input.value = String(row.actual); }
+        cells[6].classList.toggle('rent-negative', row.difference < 0);
+        setText(cells[6], text.difference); setText(cells[7], text.payable);
+        cells[8].firstElementChild.checked = row.paid;
+      });
+      const foot = section.querySelector('tfoot tr').children;
+      const totals = totalsText(totalsOf(period.rows));
+      setText(foot[1], totals.nominal); setText(foot[4], totals.indexed); setText(foot[5], totals.actual);
+      setText(foot[6], totals.difference); setText(foot[7], totals.payable);
+      section.querySelector('.tr-period-paid').checked = allPaid(period);
+    });
   }
 
   function render() {
@@ -209,7 +269,14 @@
       + '<div><span>סה״כ שולם בפועל</span><strong dir="ltr">' + Statso.core.formatNumber(totals.actual, 2) + ' ₪</strong></div>'
       + '<div class="rent-summary-highlight"><span>יתרת הפרשים לתשלום</span><strong dir="ltr">'
       + Statso.core.formatNumber(totals.payable, 2) + ' ₪</strong></div></div>';
-    el('tr-periods').innerHTML = periods.map(periodHtml).join('');
+    const host = el('tr-periods');
+    const shape = shapeOf(periods);
+    if (renderedShape === shape && host.firstElementChild) {
+      patchPeriods(host);
+    } else {
+      host.innerHTML = periods.map(periodHtml).join('');
+      renderedShape = shape;
+    }
     const select = el('tr-export-period');
     const current = select.value;
     select.innerHTML = '<option value="all">כל התקופות</option>' + periods.map(function (period) {
@@ -220,32 +287,26 @@
       el('tr-export-from').value = all[0].month;
       el('tr-export-to').value = all[all.length - 1].month;
     }
-    bindRows();
   }
 
-  function bindRows() {
-    document.querySelectorAll('#tr-periods .tr-actual').forEach(function (input) {
-      input.addEventListener('change', function () {
-        const value = Number(input.value);
-        if (Number.isFinite(value) && value >= 0) { overrides[input.dataset.key] = value; compute(); }
+  // One listener on the container (the tables inside it are replaced, the container is not).
+  function onPeriodsChange(event) {
+    const box = event.target;
+    if (!box || !box.classList) { return; }
+    if (box.classList.contains('tr-actual')) {
+      const value = Number(box.value);
+      if (Number.isFinite(value) && value >= 0) { overrides[box.dataset.key] = value; compute(); }
+    } else if (box.classList.contains('tr-paid')) {
+      if (box.checked) { paid[box.dataset.key] = true; } else { delete paid[box.dataset.key]; }
+      compute();
+    } else if (box.classList.contains('tr-period-paid')) {
+      const period = periods[Number(box.dataset.period)];
+      if (!period) { return; }
+      period.rows.forEach(function (row) {
+        if (box.checked) { paid[key(period.index, row.month)] = true; } else { delete paid[key(period.index, row.month)]; }
       });
-    });
-    document.querySelectorAll('#tr-periods .tr-paid').forEach(function (box) {
-      box.addEventListener('change', function () {
-        if (box.checked) { paid[box.dataset.key] = true; } else { delete paid[box.dataset.key]; }
-        compute();
-      });
-    });
-    document.querySelectorAll('#tr-periods .tr-period-paid').forEach(function (box) {
-      box.addEventListener('change', function () {
-        const period = periods[Number(box.dataset.period)];
-        if (!period) { return; }
-        period.rows.forEach(function (row) {
-          if (box.checked) { paid[key(period.index, row.month)] = true; } else { delete paid[key(period.index, row.month)]; }
-        });
-        compute();
-      });
-    });
+      compute();
+    }
   }
 
   // ---------- export --------------------------------------------------------
@@ -396,6 +457,7 @@
       el('tr-custom-base-fields').hidden = !el('tr-custom-base').checked;
       compute();
     });
+    on('tr-periods', 'change', onPeriodsChange);
     on('tr-add-option', 'click', function () { addOptionRow({}).querySelector('input').focus(); });
     ['tr-export-period', 'tr-export-from', 'tr-export-to', 'tr-exclude-paid'].forEach(function (id) {
       on(id, 'change', function () { el('tr-error').textContent = ''; });
