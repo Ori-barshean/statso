@@ -118,18 +118,18 @@
     const title = indexResult.series.title;
     if (kind === 'xlsx') {
       const sheet = {name: 'הצמדה למדד', columns: [{width: 26}, {width: 20}],
-        merges: ['A1:B1'], rows: [[{v: say(title), s: S().title}], []]};
+        rows: [[{v: say(title), s: S().title}], []]};
       rows.forEach(function (row) {
         sheet.rows.push([{v: row[0], s: S().header},
           typeof row[1] === 'number' ? {v: row[1], s: S().money} : {v: row[1], s: S().boxed}]);
       });
-      Statso.exporter.downloadWorkbook('statso-' + Statso.i18n.t(title) + '-' + Statso.exporter.stamp() + '.xlsx', [sheet]);
+      Statso.exporter.downloadWorkbook('statso-' + Statso.i18n.t(title) + '-' + Statso.exporter.stamp() + '.xlsx', [sheet], {title: say(title)});
       return;
     }
     Statso.exporter.printDocument(title,
       Statso.exporter.documentHtml(title,
         Statso.core.formatMonthHe(indexResult.input.baseMonth) + ' → ' + Statso.core.formatMonthHe(indexResult.input.targetMonth),
-        [Statso.exporter.tableHtml(['פריט', 'ערך'], rows)]));
+        [Statso.exporter.tableHtml(['פריט', 'ערך'], rows, 'פרטי החישוב')]));
   }
 
   function switchIndexSeries() {
@@ -238,18 +238,18 @@
     const rows = fxRows();
     const title = fxResult.kind === 'link' ? 'הצמדה למטבע' : 'המרת מטבע';
     if (kind === 'xlsx') {
-      const sheet = {name: title, columns: [{width: 26}, {width: 22}], merges: ['A1:B1'],
+      const sheet = {name: title, columns: [{width: 26}, {width: 22}],
         rows: [[{v: say(title) + ' — ' + say('שערים יציגים של בנק ישראל'), s: S().title}], []]};
       rows.forEach(function (row) {
         sheet.rows.push([{v: row[0], s: S().header},
           typeof row[1] === 'number' ? {v: row[1], s: S().money} : {v: row[1], s: S().boxed}]);
       });
-      Statso.exporter.downloadWorkbook('statso-' + Statso.i18n.t(title) + '-' + Statso.exporter.stamp() + '.xlsx', [sheet]);
+      Statso.exporter.downloadWorkbook('statso-' + Statso.i18n.t(title) + '-' + Statso.exporter.stamp() + '.xlsx', [sheet], {title: say(title) + ' — ' + say('שערים יציגים של בנק ישראל')});
       return;
     }
     Statso.exporter.printDocument(title,
       Statso.exporter.documentHtml(title, 'שערים יציגים של בנק ישראל',
-        [Statso.exporter.tableHtml(['פריט', 'ערך'], rows)]));
+        [Statso.exporter.tableHtml(['פריט', 'ערך'], rows, 'פרטי החישוב')]));
   }
 
   function showFxKind() {
@@ -392,7 +392,7 @@
     if (kind === 'xlsx') {
       const columns = head.map(function (_, i) { return {width: i === 0 ? 12 : 15}; });
       const sheet = {name: 'מדד היסטורי', columns: columns,
-        merges: ['A1:' + Statso.xlsx.columnName(head.length - 1) + '1'],
+        freezeRows: 3, autoFilter: 'A3:' + Statso.xlsx.columnName(head.length - 1) + (3 + historyRows.length),
         rows: [[{v: title + ' — ' + subtitle, s: S().title}], [],
           head.map(function (text) { return {v: text, s: S().header}; })]};
       historyMatrix().forEach(function (row) {
@@ -400,12 +400,12 @@
           return v === '' ? '' : {v: v, s: S().money};
         })));
       });
-      Statso.exporter.downloadWorkbook('statso-' + say('מדד היסטורי') + '-' + Statso.exporter.stamp() + '.xlsx', [sheet]);
+      Statso.exporter.downloadWorkbook('statso-' + say('מדד היסטורי') + '-' + Statso.exporter.stamp() + '.xlsx', [sheet], {title: title + ' — ' + subtitle});
       return;
     }
     Statso.exporter.printDocument(title + ' — ' + subtitle,
       Statso.exporter.documentHtml(title, subtitle,
-        [Statso.exporter.tableHtml(head, historyMatrix())]));
+        [Statso.exporter.tableHtml(head, historyMatrix(), title + ' — ' + subtitle)]));
   }
 
   function copyHistory() {

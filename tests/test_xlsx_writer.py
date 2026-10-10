@@ -1,4 +1,6 @@
 import json
+from datetime import datetime
+import xml.etree.ElementTree as ET
 import shutil
 import subprocess
 import tempfile
@@ -15,8 +17,8 @@ DRIVER = """
 global.window = {};
 require(process.argv[2]);
 const X = global.window.Statso.xlsx, S = X.STYLE;
-const bytes = X.build([
-  {name: 'גיליון ראשון', columns: [{width: 18}, {width: 12}], merges: ['A1:B1'], rows: [
+const sheets = [
+  {name: 'גיליון ראשון', freezeRows: 3, autoFilter: 'A3:B5', columns: [{width: 18}, {width: 12}], rows: [
     [{v: 'כותרת עם "מרכאות" & <תו>', s: S.title}],
     [],
     [{v: 'חודש', s: S.header}, {v: 'סכום', s: S.header}],
@@ -24,13 +26,28 @@ const bytes = X.build([
     [{v: 'סה"כ', s: S.header}, {v: 5137.42, s: S.moneyBold}]
   ]},
   {name: 'שני', rows: [[{v: 'א', s: S.header}, 'ב']]}
-]);
-require('fs').writeFileSync(process.argv[3], Buffer.from(bytes));
+ ];
+const options = {title: 'כותרת החוברת', created: '2026-10-10T08:00:00Z'};
+const write = (suffix, meta) => require('fs').writeFileSync(process.argv[3] + suffix, Buffer.from(X.build(sheets, meta)));
+write('', options); write('.again', options); write('.now', {title: options.title});
+window.Statso.i18n = {t: s => s, locale: () => 'en-GB'};
+write('.en', options);
 """
 
-EXPECTED_PARTS = {"[Content_Types].xml", "_rels/.rels", "xl/workbook.xml",
+EXPECTED_PARTS = {"docProps/core.xml", "[Content_Types].xml", "_rels/.rels", "xl/workbook.xml",
                   "xl/_rels/workbook.xml.rels", "xl/styles.xml",
                   "xl/worksheets/sheet1.xml", "xl/worksheets/sheet2.xml"}
+
+
+class XlsxSourceTests(unittest.TestCase):
+    def test_site_scripts_have_no_merge_support(self):
+        scripts = sorted((ROOT / 'assets').glob('statso-*.js'))
+        self.assertTrue(scripts)
+        for path in scripts:
+            with self.subTest(file=path.name):
+                source = path.read_text(encoding='utf-8')
+                self.assertNotIn('merges', source)
+                self.assertNotIn('mergeCell', source)
 
 
 @unittest.skipIf(NODE is None, "node is not installed")
@@ -63,7 +80,24 @@ class XlsxWriterTests(unittest.TestCase):
             sheet = archive.read("xl/worksheets/sheet1.xml").decode("utf-8")
         self.assertIn('rightToLeft="1"', sheet)
         self.assertIn('width="18"', sheet)
-        self.assertIn('<mergeCell ref="A1:B1"/>', sheet)
+
+    def test_every_sheet_has_no_merged_cells(self):
+        with zipfile.ZipFile(self.path) as archive:
+            for name in archive.namelist():
+                if name.startswith('xl/worksheets/') and name.endswith('.xml'):
+                    with self.subTest(part=name):
+                        self.assertNotIn('mergeCell', archive.read(name).decode('utf-8'))
+        try:
+            import openpyxl   # optional: CI installs no dependencies, the raw-XML check above always runs
+        except ImportError:
+            return
+        book = openpyxl.load_workbook(self.path)
+        try:
+            for sheet in book.worksheets:
+                with self.subTest(sheet=sheet.title):
+                    self.assertFalse(sheet.merged_cells.ranges)
+        finally:
+            book.close()
 
     def test_special_characters_survive_as_escaped_xml(self):
         with zipfile.ZipFile(self.path) as archive:
@@ -79,12 +113,66 @@ class XlsxWriterTests(unittest.TestCase):
         self.assertIn("<v>5137.42</v>", sheet)
         self.assertIn('t="inlineStr"', sheet)
 
+    def test_core_properties_and_package_relationships(self):
+        with zipfile.ZipFile(self.path) as archive:
+            core = ET.fromstring(archive.read('docProps/core.xml'))
+            types = archive.read('[Content_Types].xml').decode()
+            rels = archive.read('_rels/.rels').decode()
+        dc = '{http://purl.org/dc/elements/1.1/}'
+        cp = '{http://schemas.openxmlformats.org/package/2006/metadata/core-properties}'
+        dt = '{http://purl.org/dc/terms/}'
+        self.assertEqual(core.find(dc + 'title').text, 'כותרת החוברת')
+        self.assertEqual(core.find(dc + 'creator').text, 'statso')
+        self.assertEqual(core.find(cp + 'lastModifiedBy').text, 'statso')
+        self.assertEqual(core.find(dc + 'language').text, 'he-IL')
+        for tag in ('created', 'modified'):
+            node = core.find(dt + tag)
+            self.assertEqual(node.text, '2026-10-10T08:00:00Z')
+            self.assertEqual(node.attrib['{http://www.w3.org/2001/XMLSchema-instance}type'], 'dcterms:W3CDTF')
+        self.assertIn('<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>', types)
+        self.assertIn('<Relationship Id="rId2" Target="docProps/core.xml" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties"/>', rels)
+
+    def test_fixed_created_is_byte_identical(self):
+        self.assertEqual(self.path.read_bytes(), Path(str(self.path) + '.again').read_bytes())
+
+    def test_current_timestamp_and_language_fallback(self):
+        with zipfile.ZipFile(str(self.path) + '.now') as archive:
+            core = ET.fromstring(archive.read('docProps/core.xml'))
+            created = core.find('{http://purl.org/dc/terms/}created').text
+            self.assertRegex(created, r'^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$')
+        with zipfile.ZipFile(str(self.path) + '.en') as archive:
+            core = ET.fromstring(archive.read('docProps/core.xml'))
+            self.assertEqual(core.find('{http://purl.org/dc/elements/1.1/}language').text, 'en-GB')
+
+    def test_freeze_filter_and_defined_name_only_on_requested_sheet(self):
+        with zipfile.ZipFile(self.path) as archive:
+            sheet = archive.read('xl/worksheets/sheet1.xml').decode()
+            other = archive.read('xl/worksheets/sheet2.xml').decode()
+            workbook = archive.read('xl/workbook.xml').decode()
+        pane = '<pane ySplit="3" topLeftCell="A4" activePane="bottomLeft" state="frozen"/>'
+        self.assertEqual(sheet.count(pane), 1)
+        self.assertIn('<selection pane="bottomLeft" activeCell="A4" sqref="A4"/>', sheet)
+        self.assertLess(sheet.index('</sheetData>'), sheet.index('<autoFilter ref="A3:B5"/>'))
+        self.assertLess(sheet.index('<autoFilter ref="A3:B5"/>'), sheet.index('</worksheet>'))
+        self.assertNotIn('<pane', other)
+        self.assertNotIn('<autoFilter', other)
+        self.assertIn('<definedName name="_xlnm._FilterDatabase" localSheetId="0" hidden="1">&apos;גיליון ראשון&apos;!$A$3:$B$5</definedName>', workbook)
+        self.assertEqual(workbook.count('<definedName '), 1)
+
     def test_a_spreadsheet_library_can_open_it(self):
         try:
             import openpyxl
         except ImportError:
             self.skipTest("openpyxl is not installed")
         book = openpyxl.load_workbook(self.path)
+        self.assertEqual(book.properties.title, 'כותרת החוברת')
+        self.assertEqual(book.properties.creator, 'statso')
+        self.assertEqual(book.properties.language, 'he-IL')
+        self.assertEqual(book.properties.created, datetime(2026, 10, 10, 8, 0))
+        self.assertEqual(book['גיליון ראשון'].freeze_panes, 'A4')
+        self.assertEqual(book['גיליון ראשון'].auto_filter.ref, 'A3:B5')
+        self.assertIsNone(book['שני'].freeze_panes)
+        self.assertIsNone(book['שני'].auto_filter.ref)
         self.assertEqual(book.sheetnames, ["גיליון ראשון", "שני"])
         sheet = book["גיליון ראשון"]
         self.assertTrue(sheet.sheet_view.rightToLeft)

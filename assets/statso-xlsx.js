@@ -89,6 +89,37 @@
     return Statso.i18n ? Statso.i18n.t(text) : text;
   }
 
+  function sheetName(sheet, i) { return say(sheet.name || ('גיליון' + (i + 1))).slice(0, 31); }
+  function freezeOf(sheet) { return Number.isInteger(sheet.freezeRows) && sheet.freezeRows > 0 ? sheet.freezeRows : 0; }
+  function filterOf(sheet) { return /^[A-Z]{1,3}[1-9]\d*:[A-Z]{1,3}[1-9]\d*$/.test(sheet.autoFilter) ? sheet.autoFilter : null; }
+  function isoSeconds(v) {
+    let date = new Date(v ?? Date.now());
+    if (!Number.isFinite(date.getTime())) { date = new Date(); }
+    return date.toISOString().replace(/\.\d{3}Z$/, 'Z');
+  }
+
+  function coreXml(options, firstSheet) {
+    const stamp = isoSeconds(options.created);
+    const language = options.language || (Statso.i18n && Statso.i18n.locale ? Statso.i18n.locale() : 'he-IL');
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+      + '<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">'
+      + '<dc:title>' + escapeXml(say(options.title || sheetName(firstSheet, 0))) + '</dc:title>'
+      + '<dc:creator>statso</dc:creator><cp:lastModifiedBy>statso</cp:lastModifiedBy>'
+      + '<dc:language>' + escapeXml(language) + '</dc:language>'
+      + '<dcterms:created xsi:type="dcterms:W3CDTF">' + stamp + '</dcterms:created>'
+      + '<dcterms:modified xsi:type="dcterms:W3CDTF">' + stamp + '</dcterms:modified></cp:coreProperties>';
+  }
+
+  function definedNamesXml(sheets) {
+    const names = sheets.map(function (sheet, i) {
+      const ref = filterOf(sheet);
+      if (!ref) { return ''; }
+      const range = "'" + sheetName(sheet, i).replace(/'/g, "''") + "'!" + ref.replace(/([A-Z]+)(\d+)/g, '$$$1$$$2');
+      return '<definedName name="_xlnm._FilterDatabase" localSheetId="' + i + '" hidden="1">' + escapeXml(range) + '</definedName>';
+    }).join('');
+    return names ? '<definedNames>' + names + '</definedNames>' : '';
+  }
+
   function cellXml(cell, reference) {
     if (cell === null || cell === undefined || cell === '') { return ''; }
     const value = typeof cell === 'object' ? cell.v : cell;
@@ -103,9 +134,14 @@
 
   function sheetXml(sheet) {
     const rows = sheet.rows || [];
+    const freeze = freezeOf(sheet);
+    const filter = filterOf(sheet);
     let xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
       + '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
-      + '<sheetViews><sheetView rightToLeft="1" workbookViewId="0"/></sheetViews>';
+      + (freeze ? '<sheetViews><sheetView rightToLeft="1" workbookViewId="0"><pane ySplit="' + freeze
+        + '" topLeftCell="A' + (freeze + 1) + '" activePane="bottomLeft" state="frozen"/>'
+        + '<selection pane="bottomLeft" activeCell="A' + (freeze + 1) + '" sqref="A' + (freeze + 1) + '"/></sheetView></sheetViews>'
+        : '<sheetViews><sheetView rightToLeft="1" workbookViewId="0"/></sheetViews>');
     if (sheet.columns && sheet.columns.length) {
       xml += '<cols>';
       sheet.columns.forEach(function (column, index) {
@@ -123,12 +159,7 @@
       xml += '</row>';
     });
     xml += '</sheetData>';
-    const merges = sheet.merges || [];
-    if (merges.length) {
-      xml += '<mergeCells count="' + merges.length + '">';
-      merges.forEach(function (ref) { xml += '<mergeCell ref="' + ref + '"/>'; });
-      xml += '</mergeCells>';
-    }
+    if (filter) { xml += '<autoFilter ref="' + filter + '"/>'; }
     return xml + '</worksheet>';
   }
 
@@ -164,10 +195,12 @@
       + '<cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>' + '</' + 'styleSheet>';
   }
 
-  function build(sheets) {
+  function build(sheets, options) {
+    options = options || {};
     const list = (sheets || []).filter(Boolean);
     if (!list.length) { throw new Error('חוברת העבודה ריקה'); }
     const files = [
+      {name: 'docProps/core.xml', data: utf8(coreXml(options, list[0]))},
       {name: '[Content_Types].xml', data: utf8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
         + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
         + '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
@@ -178,20 +211,22 @@
             + 'ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>';
         }).join('')
         + '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'
+        + '<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>'
         + '</Types>')},
       {name: '_rels/.rels', data: utf8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
         + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
         + '<Relationship Id="rId1" Target="xl/workbook.xml" '
         + 'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument"/>'
+        + '<Relationship Id="rId2" Target="docProps/core.xml" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties"/>'
         + '</Relationships>')},
       {name: 'xl/workbook.xml', data: utf8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
         + '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '
         + 'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>'
         + list.map(function (sheet, index) {
-          return '<sheet name="' + escapeXml(say(sheet.name || ('גיליון' + (index + 1))).slice(0, 31))
+          return '<sheet name="' + escapeXml(sheetName(sheet, index))
             + '" sheetId="' + (index + 1) + '" r:id="rId' + (index + 1) + '"/>';
         }).join('')
-        + '</sheets></workbook>')},
+        + '</sheets>' + definedNamesXml(list) + '</workbook>')},
       {name: 'xl/_rels/workbook.xml.rels', data: utf8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
         + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
         + list.map(function (sheet, index) {

@@ -45,7 +45,8 @@
     sectionEl.dataset.state = state;
     if (state === 'error') {
       const target = sectionEl.querySelector('.state-error');
-      if (target) { target.textContent = messageHe || 'הנתונים אינם זמינים כרגע'; }
+      // The failure message appears by itself, so it has to announce itself (role set before the text).
+      if (target) { target.setAttribute('role', 'alert'); target.textContent = messageHe || 'הנתונים אינם זמינים כרגע'; }
     }
   }
 

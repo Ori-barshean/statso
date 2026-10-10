@@ -83,6 +83,9 @@ input:focus, select:focus, textarea:focus { border-color: var(--blue); }
 [data-collapsed="true"] .toggle-caret { transform: rotate(90deg); }
 [data-collapsed="true"] .range-controls { display: none; }
 .table-wrap { overflow-x: auto; }
+/* Only the read-only data tables are height-bounded: the rent tool rebuilds its tables on every edit, which would send a scrolled table back to the top. */
+.table-wrap[role="region"] { max-height: min(70vh, 640px); overflow: auto; scroll-padding-top: 3rem; }
+.table-wrap[role="region"] thead th { position: sticky; top: 0; z-index: 1; background: #eef3f9; box-shadow: inset 0 -1px 0 var(--line); }
 .data-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
 .data-table th, .data-table td { padding: 10px 12px; text-align: start; border-bottom: 1px solid var(--line); white-space: nowrap; }
 html[dir="rtl"] .data-table td[dir="ltr"] { text-align: right; }
@@ -180,12 +183,12 @@ body.is-printing #print-root { display: block; }
 .print-total { margin: 16px 0 4px; font-size: 1.05rem; }
 .print-note { color: #475569; font-size: .82rem; line-height: 1.6; }
 .print-foot { margin-top: 22px; padding-top: 10px; border-top: 1px solid #cbd5e1; color: #64748b; font-size: .75rem; }
-@media print { @page { margin: 14mm; } body { background: white; } #print-root { display: block; } .print-head { break-after: avoid; } #print-root tr { break-inside: avoid; } }
+@media print { @page { margin: 14mm; } body { background: white; } #print-root { display: block; } .print-head { break-after: avoid; } #print-root tr { break-inside: avoid; } .table-wrap[role="region"] { max-height: none; overflow: visible; } .table-wrap[role="region"] thead th { position: static; box-shadow: none; } }
 .search-label { display: grid; gap: 5px; min-width: min(290px, 100%); }
 .table-summary { color: var(--muted); font-size: .84rem; }
 .table-scroll { overflow: auto; max-height: 540px; border: 1px solid var(--line); border-radius: 12px; }
 table { width: 100%; border-collapse: collapse; font-size: .9rem; }
-th { position: sticky; top: 0; z-index: 1; background: #eef3f9; text-align: right; color: #475569; }
+th { background: #eef3f9; text-align: right; color: #475569; }
 th, td { padding: 11px 15px; border-bottom: 1px solid var(--line); }
 tbody tr:hover { background: #f8fbff; }
 td.numeric { text-align: left; font-variant-numeric: tabular-nums; }
@@ -296,6 +299,9 @@ footer { margin-top: 42px; background: white; border-top: 1px solid var(--line);
 
 .skip-link { position: fixed; inset-block-start: 12px; inset-inline-start: 50%; transform: translate(-50%, -140%); z-index: 100; padding: 10px 20px; border: 0; border-radius: 10px; background: var(--blue); color: #fff; font: inherit; font-weight: 750; cursor: pointer; transition: transform .15s ease; }
 .skip-link:focus { transform: translate(-50%, 0); }
+.noscript-notice { padding: 12px 16px; border-bottom: 1px solid #fed7aa; background: #fff7ed; color: var(--ink); text-align: center; font-weight: 650; line-height: 1.6; }
+.noscript-notice p { max-width: 78ch; margin: 0 auto; }
+.noscript-notice p + p { margin-top: 4px; }
 
 .result-disclaimer { margin: 14px 0 0; color: var(--muted); font-size: .78rem; line-height: 1.5; }
 .calc-output .result-disclaimer { color: #cbd5e1; }
@@ -307,6 +313,9 @@ footer { margin-top: 42px; background: white; border-top: 1px solid var(--line);
 .chart-alt a { color: var(--blue); }
 .chart-series { min-width: 0; margin: 14px 0 0; padding: 0; border: 0; }
 .chart-series legend { margin-bottom: 8px; padding: 0; color: #45556c; font-size: .86rem; font-weight: 700; }
+.chart-month { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin: 14px 0 0; }
+.chart-month-track { flex: 1 1 240px; min-width: 0; display: flex; }
+.chart-month input[type="range"] { flex: 1 1 auto; width: 100%; min-width: 0; min-height: 24px; margin: 0; padding: 0; border: 0; border-radius: 0; background: transparent; accent-color: var(--blue); cursor: pointer; }
 
 .nav-group[data-open="true"] .nav-submenu { opacity: 1; visibility: visible; transform: translateY(0); }
 /* Escape closes the menu but returns focus to the trigger, which sits inside

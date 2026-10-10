@@ -146,7 +146,7 @@
     const columns = [{width: 16}].concat(selected.map(function () { return {width: 15}; }));
     if (kind === 'xlsx') {
       const sheet = {name: 'ריבית היסטורית', columns: columns,
-        merges: ['A1:' + Statso.xlsx.columnName(selected.length) + '1'],
+        freezeRows: 3, autoFilter: 'A3:' + Statso.xlsx.columnName(selected.length) + (3 + rows.length),
         rows: [[{v: t('ריבית היסטורית') + ' — ' + subtitle(), s: S().title}], [],
           head(mode).map(function (text) { return {v: text, s: S().header}; })]};
       matrix().forEach(function (row) {
@@ -157,10 +157,10 @@
         sheet.rows.push([]);
         notes.forEach(function (note) { sheet.rows.push([{v: note, s: S().muted}]); });
       }
-      Statso.exporter.downloadWorkbook('statso-' + t('ריבית היסטורית') + '-' + Statso.exporter.stamp() + '.xlsx', [sheet]);
+      Statso.exporter.downloadWorkbook('statso-' + t('ריבית היסטורית') + '-' + Statso.exporter.stamp() + '.xlsx', [sheet], {title: t('ריבית היסטורית') + ' — ' + subtitle()});
       return;
     }
-    const blocks = [Statso.exporter.tableHtml(head(mode), matrix())];
+    const blocks = [Statso.exporter.tableHtml(head(mode), matrix(), t('ריבית היסטורית') + ' — ' + subtitle())];
     notes.forEach(function (note) { blocks.push('<p class="print-note">' + Statso.xlsx.escapeXml(note) + '</p>'); });
     Statso.exporter.printDocument(t('ריבית היסטורית') + ' — ' + subtitle(),
       Statso.exporter.documentHtml('ריבית היסטורית', subtitle(), blocks));

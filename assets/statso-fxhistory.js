@@ -148,7 +148,7 @@
     const columns = [{width: 16}].concat(selected.map(function () { return {width: 15}; }));
     if (kind === 'xlsx') {
       const sheet = {name: 'שערי חליפין', columns: columns,
-        merges: ['A1:' + Statso.xlsx.columnName(selected.length) + '1'],
+        freezeRows: 3, autoFilter: 'A3:' + Statso.xlsx.columnName(selected.length) + (3 + rows.length),
         rows: [[{v: t('שערי חליפין היסטוריים') + ' — ' + subtitle(), s: S().title}], [],
           head().map(function (text) { return {v: text, s: S().header}; })]};
       const body = matrix();
@@ -157,12 +157,12 @@
         sheet.rows.push([{v: row[0], s: index === body.length - 1 ? S().header : S().boxed}]
           .concat(row.slice(1).map(function (value) { return value === '' ? '' : {v: value, s: style}; })));
       });
-      Statso.exporter.downloadWorkbook('statso-' + t('שערי חליפין') + '-' + Statso.exporter.stamp() + '.xlsx', [sheet]);
+      Statso.exporter.downloadWorkbook('statso-' + t('שערי חליפין') + '-' + Statso.exporter.stamp() + '.xlsx', [sheet], {title: t('שערי חליפין היסטוריים') + ' — ' + subtitle()});
       return;
     }
     Statso.exporter.printDocument(t('שערי חליפין היסטוריים') + ' — ' + subtitle(),
       Statso.exporter.documentHtml('שערי חליפין היסטוריים', subtitle(),
-        [Statso.exporter.tableHtml(head(), matrix())]));
+        [Statso.exporter.tableHtml(head(), matrix(), t('שערי חליפין היסטוריים') + ' — ' + subtitle())]));
   }
 
   function copyRates() {

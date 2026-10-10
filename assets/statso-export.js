@@ -19,8 +19,8 @@
     root.setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
   }
 
-  function downloadWorkbook(filename, sheets) {
-    downloadBytes(filename, Statso.xlsx.build(sheets), XLSX_MIME);
+  function downloadWorkbook(filename, sheets, meta) {
+    downloadBytes(filename, Statso.xlsx.build(sheets, meta), XLSX_MIME);
   }
 
   function toTsv(rows) {
@@ -63,6 +63,9 @@
     if (!container) { return false; }
     const previous = document.title;
     container.innerHTML = html;
+    const lang = Statso.i18n && Statso.i18n.current ? Statso.i18n.current() : 'he';
+    container.setAttribute('lang', lang);
+    container.setAttribute('dir', lang === 'he' ? 'rtl' : 'ltr');
     // The mutation observer runs on a microtask, but print() is called
     // synchronously below, so translate the document before it goes out.
     if (Statso.i18n) { Statso.i18n.apply(container); }
@@ -82,9 +85,11 @@
     return true;
   }
 
-  function tableHtml(head, rows) {
-    let html = '<table><thead><tr>';
-    head.forEach(function (cell) { html += '<th>' + Statso.xlsx.escapeXml(cell) + '</th>'; });
+  function tableHtml(head, rows, caption) {
+    let html = '<table>';
+    if (caption) { html += '<caption class="sr-only">' + Statso.xlsx.escapeXml(caption) + '</caption>'; }
+    html += '<thead><tr>';
+    head.forEach(function (cell) { html += '<th scope="col">' + Statso.xlsx.escapeXml(cell) + '</th>'; });
     html += '</tr></thead><tbody>';
     rows.forEach(function (row) {
       html += '<tr>';

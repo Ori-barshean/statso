@@ -16,6 +16,31 @@ class ToolsSourceTests(unittest.TestCase):
         cls.html = (ROOT / "index.html").read_text(encoding="utf-8")
         cls.scripts = {p.name: p.read_text(encoding="utf-8") for p in (ROOT / "assets").glob("*.js")}
 
+    def test_exports_name_their_workbooks_and_tables(self):
+        tools = self.scripts['statso-tools.js']
+        self.assertEqual(tools.count("tableHtml(['פריט', 'ערך'], rows, 'פרטי החישוב')"), 2)
+        self.assertIn("tableHtml(head, historyMatrix(), title + ' — ' + subtitle)", tools)
+        self.assertIn("[sheet], {title: say(title)}", tools)
+        self.assertIn("[sheet], {title: say(title) + ' — ' + say('שערים יציגים של בנק ישראל')}", tools)
+        self.assertIn("[sheet], {title: title + ' — ' + subtitle}", tools)
+        self.assertIn("autoFilter: 'A3:' + Statso.xlsx.columnName(head.length - 1) + (3 + historyRows.length)", tools)
+        for name, title, head in [('ratehistory', 'ריבית היסטורית', 'head(mode)'),
+                                  ('fxhistory', 'שערי חליפין היסטוריים', 'head()')]:
+            source = self.scripts['statso-' + name + '.js']
+            self.assertIn("tableHtml(" + head + ", matrix(), t('" + title + "') + ' — ' + subtitle())", source)
+            self.assertIn("[sheet], {title: t('" + title + "') + ' — ' + subtitle()}", source)
+            self.assertIn("autoFilter: 'A3:' + Statso.xlsx.columnName(selected.length) + (3 + rows.length)", source)
+        for name in ('tools', 'ratehistory', 'fxhistory'):
+            source = self.scripts['statso-' + name + '.js']
+            self.assertEqual(source.count('freezeRows: 3'), 1)
+            self.assertEqual(source.count("autoFilter: 'A3:'"), 1)
+        rent = self.scripts['statso-rent.js']
+        self.assertIn("tableHtml(['פריט', 'ערך'], contractRows(), 'פרטי ההסכם')", rent)
+        self.assertIn("tableHtml(HEAD, matrix(period.rows), say(period.label) + ' · ' + Statso.core.formatMonthHe(period.start) + '–' + Statso.core.formatMonthHe(period.end))", rent)
+        self.assertIn("[details, sheet], {title: say('הצמדת הסכם שכירות למדד')}", rent)
+        self.assertNotIn('freezeRows', rent)
+        self.assertNotIn('autoFilter', rent)
+
     def test_every_tool_has_a_route_a_page_and_both_exports(self):
         nav = self.scripts["statso-nav.js"]
         for route, page, prefix in TOOLS:
@@ -64,7 +89,8 @@ class ToolsSourceTests(unittest.TestCase):
         for month, label in (("2008-09", "סאב"), ("2020-03", "קורונה"), ("2023-10", "7 באוקטובר"),
                              ("2025-06", "הראשונה"), ("2026-02", "השנייה")):
             self.assertRegex(text, r"month: '" + month + r"', label: '[^']*" + label)
-        self.assertIn("#e8590c", text)
+        self.assertIn("const EVENT_COLOR = '#c2410c'", text)
+        self.assertEqual(text.count("EVENT_COLOR;"), 2)  # the dashed line and the chip fill share it
 
     def test_rent_tool_covers_every_field_the_brief_asked_for(self):
         for field in ('id="tr-contract-date"', 'id="tr-landlord"', 'id="tr-tenant"',

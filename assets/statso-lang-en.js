@@ -46,6 +46,8 @@
     'הקוד שלהלן הוא דוגמה מוכנה לריבית בנק ישראל לטווח 2022-12-01 עד 2025-12-31.': 'The code below is a ready-made Bank of Israel interest rate example for 2022-12-01 to 2025-12-31.',
     'בעמוד ״קודים לייצוא (Power Query)״ אפשר לבחור כל סדרה, טווח תאריכים והשוואה שהאתר מציע, להוסיף שורת ממוצע לפי הצורך ולקבל קוד M מוכן להעתקה למקרה שלכם.': 'On the Export code (Power Query) page, choose any series, date range, and comparison the site offers, optionally add an average row, and get copy-ready M code for your own case.',
 
+    'כל האתר דורש JavaScript — לטעינת הנתונים ולמעבר בין העמודים. כדי להשתמש בו יש להפעיל JavaScript בדפדפן.': 'The whole site needs JavaScript — to load the data and to move between pages. To use it, turn on JavaScript in your browser.',
+
     // --- chrome -----------------------------------------------------------
     'statso — נתונים בזריזות - ישראל': 'statso — Israeli economic data, fast',
     'נתונים בזריזות - ישראל': 'Israeli economic data, fast',
@@ -94,6 +96,17 @@
     'שערי חליפין נבחרים מול השקל, לפי מטבע': 'Selected exchange rates against the shekel, by currency',
 
     // --- chart --------------------------------------------------------------
+    'בחירת חודש בתרשים': 'Select a month in the chart',
+    'לא נבחר חודש.': 'No month selected.',
+    'סיכום הנתונים בטווח שנבחר:': 'Data summary for the selected range:',
+    'ציר שמאלי': 'left axis',
+    'ציר ימני': 'right axis',
+    'ערך ראשון': 'first value',
+    'ערך אחרון': 'last value',
+    'ערך נמוך ביותר': 'lowest value',
+    'ערך גבוה ביותר': 'highest value',
+    'אין נתונים בטווח שנבחר': 'no data in the selected range',
+    'פרטי החישוב': 'Calculation details',
     'מגמה היסטורית': 'Historical trend',
     'המדד המשורשר לאורך זמן': 'The chained index over time',
     'תרשים מדד המחירים לצרכן ומדד תשומות הבנייה למגורים, משורשרים': 'Consumer price index and residential construction inputs index chart, chained',

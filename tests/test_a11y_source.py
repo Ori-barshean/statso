@@ -217,7 +217,7 @@ process.stdout.write(JSON.stringify(seen));
         self.assertEqual(seen["none"], "")
         self.assertTrue(seen["noneHidden"])
         self.assertEqual(seen["all"].count("\u2014"), 5)
-        self.assertRegex(self.html, r'role="img" aria-describedby="chart-alt-text chart-alt-events chart-keys-help"')
+        self.assertRegex(self.html, r'role="img" aria-describedby="chart-alt-text chart-alt-summary chart-alt-events chart-keys-help"')
         canvas = re.search(r'<canvas id="cpi-chart"[^>]*>', self.html).group(0)
         self.assertIn('tabindex="0"', canvas)
         self.assertRegex(self.html, r'<p class="sr-only" id="chart-alt-events" hidden></p>')
@@ -558,6 +558,248 @@ process.stdout.write(JSON.stringify({success: await run(false), failure: await r
             for tag in tags:
                 self.assertIn('placeholder="YYYY-MM"', tag)
 
+    def test_chart_slider_and_summary_helpers_are_pure(self):
+        script = """
+global.document = new Proxy({}, {get() { throw new Error('DOM access'); }});
+const translations = {'סיכום הנתונים בטווח שנבחר:': 'Data summary for the selected range:',
+ 'ציר שמאלי': 'left axis', 'ציר ימני': 'right axis', 'ערך ראשון': 'first value', 'ערך אחרון': 'last value',
+ 'ערך נמוך ביותר': 'lowest value', 'ערך גבוה ביותר': 'highest value', 'אין נתונים בטווח שנבחר': 'no data in the selected range'};
+global.window = {setTimeout() { throw new Error('timer'); },
+ Statso: {i18n: {onChange() {}, t: s => translations[s] || s}}};
+require(%s); require(%s);
+const C = window.Statso.chart;
+const rows = ['2019-01','2019-02','2019-03','2019-04','2019-05'].map(month => ({month}));
+const series = [{label: 'CPI', data: [40962585.6, 5, 3], axis: 'left', visible: true},
+ {label: 'Build', data: [null, 8, 9], axis: 'right', visible: false}];
+const cases = [['End',2],['ArrowRight',2],['ArrowUp',2],['PageUp',2],['ArrowLeft',2],['Home',2],
+ ['Home',0],['ArrowLeft',0],['ArrowDown',0],['PageDown',0],['a',0],['toString',0],['Escape',0]];
+process.stdout.write(JSON.stringify({neutral: C.sliderState(rows.slice(0,3),series,null,'none'),
+ selected: C.sliderState(rows.slice(0,3),series,1,'none'), announcement: C.announcementText(rows,series,1),
+ empty: C.sliderState([],[],null,'none'), keys: cases.map(([key,value]) => C.sliderKeyIsInert(key,value,2)),
+ extremes: C.seriesExtremes(rows,[null,5,3,5,null]), nulls: C.seriesExtremes(rows,[null,null]),
+ nonfinite: C.seriesExtremes(rows,[Infinity,NaN]),
+ summary: C.summaryText(rows.slice(0,3),series), emptySeries: C.summaryText(rows,[{label:'Empty',data:[],axis:'right'}]),
+ noRows: C.summaryText([],series), noSeries: C.summaryText(rows,[])}));
+""" % (json.dumps(str(ROOT / 'assets/statso-core.js')), json.dumps(str(ROOT / 'assets/statso-chart.js')))
+        seen = json.loads(subprocess.run(['node', '-e', script], check=True, capture_output=True, text=True).stdout)
+        self.assertEqual(seen['neutral'], dict(min=0, max=2, value=2, valuetext='none', disabled=False))
+        self.assertEqual(seen['selected'], dict(min=0, max=2, value=1, valuetext=seen['announcement'], disabled=False))
+        self.assertEqual(seen['empty'], dict(min=0, max=0, value=0, valuetext='none', disabled=True))
+        self.assertEqual(seen['keys'], [True]*4 + [False]*2 + [True]*4 + [False]*3)
+        self.assertEqual(seen['extremes'], {
+            'first': dict(index=1, month='2019-02', value=5), 'last': dict(index=3, month='2019-04', value=5),
+            'min': dict(index=2, month='2019-03', value=3), 'max': dict(index=1, month='2019-02', value=5)})
+        self.assertIsNone(seen['nulls'])
+        self.assertIsNone(seen['nonfinite'])
+        self.assertEqual(seen['summary'], 'Data summary for the selected range: left axis — CPI; right axis — Build. '
+                         'CPI: first value 40,962,585.6 (01/2019); last value 3.0 (03/2019); lowest value 3.0 (03/2019); '
+                         'highest value 40,962,585.6 (01/2019). Build: first value 8.0 (02/2019); last value 9.0 (03/2019); '
+                         'lowest value 8.0 (02/2019); highest value 9.0 (03/2019).')
+        self.assertEqual(seen['emptySeries'], 'Data summary for the selected range: right axis — Empty. Empty: no data in the selected range.')
+        self.assertEqual(seen['noRows'], '')
+        self.assertEqual(seen['noSeries'], '')
+
+    def test_chart_month_slider_stays_in_step_with_the_canvas(self):
+        script = """
+let languageListener, language = 'he';
+global.window = {Statso: {i18n: {onChange(fn) { languageListener = fn; },
+ t: s => ({'מדד המחירים לצרכן': 'CPI', 'מדד תשומות הבנייה למגורים': 'Build', 'קורונה': 'Covid'})[s] || (language === 'en' ? window.Statso.lang.en[s] : s) || s}}};
+const timers = [];
+window.setTimeout = (fn, ms) => { timers.push({fn, ms, live: true}); return timers.length; };
+window.clearTimeout = id => { if (timers[id - 1]) { timers[id - 1].live = false; } };
+const flush = () => timers.filter(t => t.live).forEach(t => { t.live = false; t.fn(); });
+function element() { return {textContent: '', value: '', min: '', max: '', disabled: true, attrs: {},
+ setAttribute(k,v) { this.attrs[k] = v; }, getAttribute(k) { return this.attrs[k]; }, checked: true, label: {hidden: false}, handlers: {},
+ addEventListener(type, fn) { this.handlers[type] = fn; }, closest() { return this.label; }, getContext() { return {}; }}; }
+const els = {};
+['cpi-chart', 'chart-start-year', 'chart-end-year', 'chart-range-error', 'chart-live',
+ 'chart-series-cpi', 'chart-series-construction', 'chart-month', 'chart-alt-summary'].forEach(id => { els[id] = element(); });
+global.document = {getElementById: id => els[id] || null};
+const charts = [];
+window.Chart = class {
+ constructor(ctx, config) {
+  this.data = config.data; this.options = config.options;
+  this.meta = this.data.datasets.map(d => ({hidden: null, data: d.data.map((v, i) => ({x: i, y: v}))}));
+  this.active = []; this.updates = [];
+  this.tooltip = {active: [], setActiveElements(active, position) { this.active = active; this.position = position; }};
+  charts.push(this);
+ }
+ isDatasetVisible(i) { return !(this.meta[i].hidden === null ? this.data.datasets[i].hidden : this.meta[i].hidden); }
+ setDatasetVisibility(i, visible) { this.meta[i].hidden = !visible; }
+ getDatasetMeta(i) { return this.meta[i]; }
+ setActiveElements(active) { this.active = active; }
+ update(mode) { this.updates.push(mode); }
+ destroy() { this.destroyed = true; }
+};
+require(%s); require(%s); require(%s);
+const S = window.Statso;
+const rows = Array.from({length: 24}, (_, i) => ({year: 2019 + Math.floor(i / 12),
+ month: String(2019 + Math.floor(i / 12)) + '-' + String(i %% 12 + 1).padStart(2, '0'), chained_1951_09: 100 + i}));
+const construction = rows.slice(12).map((row, i) => ({...row, chained_1950_07: 2000 + i}));
+S.chart.init(rows, construction); S.chart.activate();
+let chart = charts[0];
+const slider = els['chart-month'], summary = els['chart-alt-summary'], live = els['chart-live'];
+const snapshot = () => ({min:slider.min,max:slider.max,value:slider.value,disabled:slider.disabled,
+ text:slider.getAttribute('aria-valuetext'),hidden:slider.label.hidden,summary:summary.textContent,summaryHidden:summary.hidden});
+const seen = {initial:snapshot()};
+function key(id, name, modifiers = {}) {
+ let prevented = false;
+ els[id].handlers.keydown({key:name,...modifiers,preventDefault() { prevented = true; }});
+ return prevented;
+}
+const canvasKey = name => key('cpi-chart',name), sliderKey = (name,modifiers) => key('chart-month',name,modifiers);
+seen.focusSelects = !!slider.handlers.focus;
+canvasKey('End'); seen.end = snapshot(); flush();
+seen.liveBeforeInput = live.textContent;
+canvasKey('Home');
+slider.value = '5'; slider.handlers.input();
+seen.input = {state:snapshot(),active:chart.tooltip.active,pending:timers.filter(t => t.live).length,live:live.textContent};
+canvasKey('ArrowRight'); seen.canvasAfterInput = snapshot();
+canvasKey('End');
+const construct = els['chart-series-construction'];
+construct.checked = false; construct.handlers.change(); seen.hiddenSeries = snapshot();
+construct.checked = true; construct.handlers.change(); seen.shownSeries = snapshot();
+canvasKey('Escape'); seen.escape = {state:snapshot(),active:chart.tooltip.active};
+const timerCount = timers.length;
+seen.neutralEndPrevented = sliderKey('End');
+seen.neutralEnd = {state:snapshot(),active:chart.tooltip.active,pending:timers.filter(t => t.live).length,
+ newTimers:timers.length-timerCount};
+seen.sliderEscapePrevented = sliderKey('Escape'); seen.sliderEscape = snapshot();
+seen.neutralLeftPrevented = sliderKey('ArrowLeft'); seen.neutralLeft = {state:snapshot(),active:chart.tooltip.active};
+seen.modified = ['altKey','ctrlKey','metaKey'].map(m => sliderKey('End',{[m]:true}));
+seen.modifiedActive = chart.tooltip.active;
+slider.handlers.click(); seen.click = {state:snapshot(),active:chart.tooltip.active};
+sliderKey('Escape');
+els['chart-start-year'].value = '2019'; els['chart-end-year'].value = '2019'; S.chart.onRangeChange();
+chart = charts[charts.length-1]; seen.range = snapshot();
+els['chart-start-year'].value = '2020';
+language = 'en'; languageListener(); seen.english = snapshot(); seen.invalidKeptChart = charts[charts.length-1] === chart;
+S.chart.render([],[]); seen.empty = snapshot();
+process.stdout.write(JSON.stringify(seen));
+""" % tuple(json.dumps(str(ROOT / ('assets/statso-' + name + '.js'))) for name in ('core','chart','lang-en'))
+        seen = json.loads(subprocess.run(['node', '-e', script], check=True, capture_output=True, text=True).stdout)
+        initial = seen['initial']
+        self.assertEqual((initial['min'], initial['max'], initial['value']), ('0', '23', '23'))
+        self.assertFalse(initial['disabled'])
+        self.assertFalse(initial['hidden'])
+        self.assertFalse(initial['summaryHidden'])
+        self.assertIn('סיכום הנתונים בטווח שנבחר:', initial['summary'])
+        self.assertIn('ציר ימני — Build', initial['summary'])
+        self.assertEqual(initial['text'], 'לא נבחר חודש.')
+        self.assertFalse(seen['focusSelects'])
+        self.assertEqual(seen['end']['value'], '23')
+        self.assertEqual(seen['end']['text'], '12/2020: CPI 123.0; Build 2,011.0')
+        self.assertEqual(seen['input']['active'], [{'datasetIndex': 0, 'index': 5}])
+        self.assertEqual(seen['input']['pending'], 0)
+        self.assertEqual(seen['input']['live'], seen['liveBeforeInput'])
+        self.assertEqual(seen['input']['state']['text'], '06/2019: CPI 105.0')
+        self.assertEqual(seen['canvasAfterInput']['value'], '6')
+        self.assertEqual(seen['hiddenSeries']['text'], '12/2020: CPI 123.0')
+        self.assertEqual(seen['shownSeries']['text'], '12/2020: CPI 123.0; Build 2,011.0')
+        self.assertIn('Build:', seen['hiddenSeries']['summary'])
+        self.assertEqual(seen['escape']['state']['value'], '23')
+        self.assertEqual(seen['escape']['state']['text'], 'לא נבחר חודש.')
+        self.assertEqual(seen['escape']['active'], [])
+        self.assertTrue(seen['neutralEndPrevented'])
+        self.assertEqual(seen['neutralEnd']['state']['text'], seen['end']['text'])
+        self.assertEqual(seen['neutralEnd']['pending'], 0)
+        self.assertEqual(seen['neutralEnd']['newTimers'], 0)
+        self.assertTrue(seen['sliderEscapePrevented'])
+        self.assertEqual(seen['sliderEscape']['text'], 'לא נבחר חודש.')
+        self.assertFalse(seen['neutralLeftPrevented'])
+        self.assertEqual(seen['neutralLeft']['active'], [])
+        self.assertEqual(seen['neutralLeft']['state']['text'], 'לא נבחר חודש.')
+        self.assertEqual(seen['modified'], [False]*3)
+        self.assertEqual(seen['modifiedActive'], [])
+        self.assertEqual(seen['click']['state']['text'], seen['end']['text'])
+        self.assertEqual(seen['click']['active'], seen['neutralEnd']['active'])
+        self.assertEqual(seen['range']['max'], '11')
+        self.assertEqual(seen['range']['value'], '11')
+        self.assertEqual(seen['range']['text'], 'לא נבחר חודש.')
+        self.assertTrue(seen['invalidKeptChart'])
+        self.assertEqual(seen['english']['text'], 'No month selected.')
+        self.assertIn('Data summary for the selected range: left axis — CPI.', seen['english']['summary'])
+        self.assertNotRegex(seen['english']['summary'], r'[֐-׿]')
+        self.assertTrue(seen['empty']['disabled'])
+        self.assertTrue(seen['empty']['hidden'])
+        self.assertTrue(seen['empty']['summaryHidden'])
+        self.assertEqual(seen['empty']['summary'], '')
+
+    def test_chart_month_slider_markup_and_strings(self):
+        self.assertIn('<label for="chart-month">בחירת חודש בתרשים</label>', self.html)
+        self.assertIn('<div class="chart-month-track" dir="ltr">', self.html)
+        self.assertIn('<input id="chart-month" type="range" min="0" max="0" step="1" value="0" disabled>', self.html)
+        self.assertIn('<p class="sr-only" id="chart-alt-summary" hidden></p>', self.html)
+        chart = (ROOT / 'assets/statso-chart.js').read_text(encoding='utf-8')
+        language = (ROOT / 'assets/statso-lang-en.js').read_text(encoding='utf-8')
+        for literal in re.findall(r"'([^'\n]*)'", chart):
+            if re.search(r'[֐-׿]', literal):
+                self.assertIn("'" + literal.strip() + "':", language)
+        rule = re.search(r'\.chart-month input\[type="range"\] \{([^}]+)\}', self.css).group(1)
+        self.assertIn('border: 0;', rule)
+        self.assertIn('min-height: 24px;', rule)
+        self.assertNotIn('outline', rule)
+
+    def test_tall_tables_scroll_in_a_bounded_box_with_a_sticky_header(self):
+        wrap = re.search(r'^\.table-wrap\[role="region"\] \{([^}]+)\}', self.css, re.M).group(1)
+        # the rent tool rebuilds its (unlabelled) tables on every edit, so they must stay unbounded
+        self.assertIn('overflow-x: auto', re.search(r'^\.table-wrap \{([^}]+)\}', self.css, re.M).group(1))
+        self.assertNotIn('max-height', re.search(r'^\.table-wrap \{([^}]+)\}', self.css, re.M).group(1))
+        for declaration in ('max-height: min(70vh, 640px)', 'overflow: auto', 'scroll-padding-top: 3rem'):
+            self.assertIn(declaration, wrap)
+        header = re.search(r'^\.table-wrap\[role="region"\] thead th \{([^}]+)\}', self.css, re.M).group(1)
+        for declaration in ('position: sticky', 'top: 0', 'background: #eef3f9', 'z-index: 1'):
+            self.assertIn(declaration, header)
+        global_header = re.search(r'^th \{([^}]+)\}', self.css, re.M).group(1)
+        self.assertNotIn('sticky', global_header)
+        self.assertNotIn('z-index', global_header)
+        printing = re.search(r'^@media print \{.*$', self.css, re.M).group(0)
+        self.assertIn('.table-wrap[role="region"] { max-height: none; overflow: visible; }', printing)
+        self.assertIn('.table-wrap[role="region"] thead th { position: static; box-shadow: none; }', printing)
+
+    def test_noscript_notice_is_bilingual_and_first(self):
+        self.assertLess(self.html.index('<body>'), self.html.index('<noscript>'))
+        self.assertLess(self.html.index('</noscript>'), self.html.index('id="skip-link"'))
+        notice = re.search(r'<noscript>(.*?)</noscript>', self.html, re.S).group(1)
+        he = re.search(r'<p lang="he" dir="rtl">([^<]+)</p>', notice).group(1)
+        en = re.search(r'<p lang="en" dir="ltr">([^<]+)</p>', notice).group(1)
+        self.assertEqual(he, 'כל האתר דורש JavaScript — לטעינת הנתונים ולמעבר בין העמודים. כדי להשתמש בו יש להפעיל JavaScript בדפדפן.')
+        self.assertEqual(en, 'The whole site needs JavaScript — to load the data and to move between pages. To use it, turn on JavaScript in your browser.')
+        self.assertNotRegex(en, r'[֐-׿]')
+        self.assertNotIn('data-lang', notice)
+        self.assertIn('.noscript-notice', self.css)
+        self.assertIn('NOSCRIPT: true', (ROOT / 'assets/statso-i18n.js').read_text())
+
+    def test_print_sheet_tables_have_captions_and_column_scope(self):
+        script = """
+global.window = {addEventListener(type, fn) { this.afterprint = fn; }, removeEventListener() { this.afterprint = null; }};
+const container = {innerHTML: '', attrs: {}, setAttribute(k,v) { this.attrs[k] = v; }};
+const classes = new Set();
+global.document = {title: 'Original', getElementById: () => container,
+ body: {classList: {add(s) { classes.add(s); }, remove(s) { classes.delete(s); }}}};
+require(%s); require(%s); require(%s);
+const S = window.Statso, seen = {prints: []};
+seen.table = S.exporter.tableHtml(['a','b'], [['x',1.5]], 'Cap & <b>');
+seen.noCaption = S.exporter.tableHtml(['a'], [['x']]);
+let lang = 'en';
+S.i18n = {current: () => lang, apply(c) { c.innerHTML += ':translated'; }};
+window.print = () => { seen.prints.push({lang:container.attrs.lang,dir:container.attrs.dir,
+ printing:classes.has('is-printing'),title:document.title,html:container.innerHTML}); window.afterprint(); };
+S.exporter.printDocument('Doc', 'Content');
+seen.restored = {title:document.title,printing:classes.has('is-printing'),listener:window.afterprint};
+lang = 'he'; S.exporter.printDocument('Doc', 'Content');
+process.stdout.write(JSON.stringify(seen));
+""" % tuple(json.dumps(str(ROOT / ('assets/statso-' + name + '.js'))) for name in ('core', 'xlsx', 'export'))
+        seen = json.loads(subprocess.run(['node', '-e', script], check=True, capture_output=True, text=True).stdout)
+        self.assertEqual(seen['table'], '<table><caption class="sr-only">Cap &amp; &lt;b&gt;</caption><thead><tr>'
+                         '<th scope="col">a</th><th scope="col">b</th></tr></thead><tbody><tr><td>x</td>'
+                         '<td dir="ltr">1.50</td></tr></tbody></table>')
+        self.assertNotIn('<caption', seen['noCaption'])
+        self.assertEqual(seen['prints'], [dict(lang=lang, dir=direction, printing=True, title='Doc', html='Content:translated')
+                                         for lang, direction in [('en','ltr'),('he','rtl')]])
+        self.assertEqual(seen['restored'], dict(title='Original', printing=False, listener=None))
+        self.assertIn('<div id="print-root"></div>', self.html)
+
     def test_chart_keyboard_helpers_are_pure(self):
         script = """
 global.window = {Statso: {i18n: {onChange() {}, t: s => ({'קורונה': 'Covid'})[s] || s}}};
@@ -818,6 +1060,51 @@ process.stdout.write(JSON.stringify([t('אין שער לדולר ארה״ב לפ
         ).stdout)
         self.assertEqual(seen, ["No rate for US dollar before 15/05/1948.", "No rate data for Euro.", "No rate data for XYZ."])
 
+    def test_chart_event_labels_and_series_do_not_rely_on_low_contrast_or_color_alone(self):
+        # The event chips are canvas text, which axe cannot see: white 11px labels on the chip colour
+        # need 4.5:1, and the line in that colour needs 3:1. The second series is also dashed.
+        chart = (ROOT / "assets/statso-chart.js").read_text(encoding="utf-8")
+        color = re.search(r"const EVENT_COLOR = '(#[0-9a-fA-F]{6})'", chart).group(1)
+        self.assertGreaterEqual(self._contrast('#ffffff', color), 4.5, f"white on {color}")
+        script = """
+global.window = {};
+window.Statso = {i18n: {onChange() {}, t: text => text}};
+global.document = {getElementById: () => null};
+require(%s); require(%s);
+const rows = [{year: 2020, month: '2020-01', chained_1951_09: 100}, {year: 2020, month: '2020-02', chained_1951_09: 101}];
+const construction = rows.map(row => ({...row, chained_1950_07: 2000}));
+const datasets = window.Statso.chart.buildConfig(rows, construction).data.datasets;
+process.stdout.write(JSON.stringify(datasets.map(d => ({dash: d.borderDash || null, color: d.borderColor}))));
+""" % (json.dumps(str(ROOT / "assets/statso-core.js")), json.dumps(str(ROOT / "assets/statso-chart.js")))
+        datasets = json.loads(subprocess.run(
+            ["node", "-e", script], check=True, capture_output=True, text=True, encoding="utf-8"
+        ).stdout)
+        self.assertIsNone(datasets[0]["dash"])
+        self.assertEqual(datasets[1]["dash"], [7, 4])
+        self.assertGreaterEqual(self._contrast(datasets[1]["color"], '#ffffff'), 3.0)
+        self.assertIn("dashed line", self.html)
+        self.assertIn("בקו מקווקו", self.html)
+
+    def test_data_errors_announce_themselves(self):
+        script = """
+global.window = {};
+require(%s);
+const target = {attrs: {}, textContent: '', setAttribute(name, value) { this.attrs[name] = value; this.order = (this.order || []).concat(name + (this.textContent === '' ? '@empty' : '@filled')); }};
+const section = {dataset: {}, querySelector: selector => selector === '.state-error' ? target : null};
+window.Statso.data.setState(section, 'ready');
+const before = {role: target.attrs.role || null, state: section.dataset.state};
+window.Statso.data.setState(section, 'error', 'message');
+const after = {role: target.attrs.role, text: target.textContent, state: section.dataset.state, roleSetBeforeText: target.order[0] === 'role@empty'};
+window.Statso.data.setState(section, 'error');
+process.stdout.write(JSON.stringify({before, after, fallback: target.textContent}));
+""" % json.dumps(str(ROOT / "assets/statso-data.js"))
+        seen = json.loads(subprocess.run(
+            ["node", "-e", script], check=True, capture_output=True, text=True, encoding="utf-8"
+        ).stdout)
+        self.assertEqual(seen["before"], {"role": None, "state": "ready"})
+        self.assertEqual(seen["after"], {"role": "alert", "text": "message", "state": "error", "roleSetBeforeText": True})
+        self.assertEqual(seen["fallback"], "הנתונים אינם זמינים כרגע")
+
     def test_chart_markup_and_strings(self):
         section = re.search(r'<section[^>]*id="chart-section".*?</section>', self.html, re.DOTALL).group(0)
         self.assertIn('<div class="sr-only" id="chart-live" role="status" aria-live="polite" aria-atomic="true"></div>', section)
@@ -844,9 +1131,35 @@ process.stdout.write(JSON.stringify([t('אין שער לדולר ארה״ב לפ
             self.assertIn('Page Up/Page Down', block)
             self.assertIn('Home/End', block)
             self.assertIn('NVDA/JAWS', block)
-        self.assertIn('VoiceOver</span> לא בוצעה בשלב זה.', he)
-        self.assertIn('VoiceOver</span> screen reader was not performed at this stage.', en)
+        # the testing limits are stated plainly: no real screen reader, one browser, no user testing
+        self.assertIn('לא כללו קורא מסך', he)
+        self.assertIn('VoiceOver</span>, <span dir="ltr">NVDA</span>', he)
+        self.assertIn('ואינן ביקורת נגישות מקצועית', he)
+        self.assertIn('did not include a screen reader', en)
+        self.assertIn('VoiceOver</span>, <span dir="ltr">NVDA</span>', en)
+        self.assertIn('not a professional accessibility audit', en)
+        self.assertNotIn('are not tagged for screen readers', en)
+        # the PDF facts are what a real Chrome print-to-PDF check showed (tagged, Scope=Column, Lang, title; no Caption tag)
+        self.assertIn('יצא מתויג', he)
+        self.assertIn('came out tagged', en)
+        self.assertIn('כיתוב הטבלה אינו נשמר בתיוג', he)
+        self.assertIn('the table caption is not kept in the tags', en)
+        # known rent-tool limitation, stated until it is fixed
+        self.assertIn('ועריכת סכום ששולם או סימון "שולם" בונה אותן מחדש', he)
+        self.assertIn('rebuilds them and moves keyboard focus to the top of the page', en)   # not verified either way, so not claimed
         self.assertNotRegex(en, r'[֐-׿]')
+        for text in ('מחוון לבחירת חודש', 'סיכום נתונים', 'שורת כותרות שנשארת גלויה', 'מסנן אוטומטי', 'ללא תאים ממוזגים',
+                     'כיתוב (<span dir="ltr">caption</span>)', 'כל האתר דורש <span dir="ltr">JavaScript</span>',
+                     'ולא אומת', 'בודק הנגישות של <span dir="ltr">Excel</span> לא הורץ'):
+            self.assertIn(text, he)
+        for text in ('month slider', 'data summary', 'header row that stays visible', 'AutoFilter', 'no merged cells',
+                     'tables with a caption', 'the whole site requires <span dir="ltr">JavaScript</span>',
+                     'has not been verified', "Excel's accessibility checker has not been run"):
+            self.assertIn(text, en)
+        for text in ('החלק העליון של הטבלה עשוי להיות מחוץ לתצוגה', 'the top of the table may sit out of view',
+                     'מעבר בין השפות דורש', 'switching languages requires', 'לא נבדקה נגישותם של קובצי',
+                     'has not been checked'):
+            self.assertNotIn(text, page)
         for old in ('09/10/2026', '9 October 2026', 'לא מתוך הגרף עצמו', 'not from the chart itself'):
             self.assertNotIn(old, page)
 

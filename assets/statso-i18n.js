@@ -3,7 +3,7 @@
   const Statso = root.Statso = root.Statso || {};
   const STORAGE_KEY = 'statso:lang';
   const ATTRIBUTES = ['placeholder', 'title', 'aria-label', 'alt'];
-  const SKIP_TAGS = {SCRIPT: true, STYLE: true, TEXTAREA: true};
+  const SKIP_TAGS = {SCRIPT: true, STYLE: true, TEXTAREA: true, NOSCRIPT: true};
 
   const originalText = new WeakMap();   // text node -> Hebrew source
   const originalAttrs = new WeakMap();  // element -> {attribute: Hebrew source}

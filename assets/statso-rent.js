@@ -299,7 +299,7 @@
       + ' · מדד בסיס ' + Statso.core.formatMonthHe(model.baseIndexMonth);
 
     if (kind === 'xlsx') {
-      const details = {name: 'פרטי ההסכם', columns: [{width: 28}, {width: 30}], merges: ['A1:B1'],
+      const details = {name: 'פרטי ההסכם', columns: [{width: 28}, {width: 30}],
         rows: [[{v: 'הצמדת הסכם שכירות למדד', s: S().title}], []]};
       contractRows().forEach(function (row) {
         details.rows.push([{v: row[0], s: S().header},
@@ -307,7 +307,7 @@
       });
       const sheet = {name: 'הפרשי הצמדה',
         columns: [{width: 12}, {width: 13}, {width: 14}, {width: 10}, {width: 13}, {width: 13}, {width: 13}, {width: 15}],
-        merges: ['A1:H1'], rows: [[{v: say('הפרשי הצמדה') + ' — ' + subtitle, s: S().title}], []]};
+        rows: [[{v: say('הפרשי הצמדה') + ' — ' + subtitle, s: S().title}], []]};
       selection.forEach(function (period) {
         sheet.rows.push([{v: say(period.label) + ' · ' + Statso.core.formatMonthHe(period.start) + '–'
           + Statso.core.formatMonthHe(period.end), s: S().title}]);
@@ -328,15 +328,15 @@
         {v: '', s: S().header}, {v: '', s: S().header}, {v: '', s: S().header}, {v: '', s: S().header},
         {v: grand.payable, s: S().moneyBold}]);
       Statso.exporter.downloadWorkbook('statso-' + Statso.i18n.t('הפרשי הצמדה') + '-' + Statso.exporter.stamp() + '.xlsx',
-        [details, sheet]);
+        [details, sheet], {title: say('הצמדת הסכם שכירות למדד')});
       return;
     }
 
-    const blocks = ['<h2>פרטי ההסכם</h2>' + Statso.exporter.tableHtml(['פריט', 'ערך'], contractRows())];
+    const blocks = ['<h2>פרטי ההסכם</h2>' + Statso.exporter.tableHtml(['פריט', 'ערך'], contractRows(), 'פרטי ההסכם')];
     selection.forEach(function (period) {
       blocks.push('<h2>' + Statso.xlsx.escapeXml(period.label) + ' · '
         + Statso.core.formatMonthHe(period.start) + '–' + Statso.core.formatMonthHe(period.end) + '</h2>'
-        + Statso.exporter.tableHtml(HEAD, matrix(period.rows)));
+        + Statso.exporter.tableHtml(HEAD, matrix(period.rows), say(period.label) + ' · ' + Statso.core.formatMonthHe(period.start) + '–' + Statso.core.formatMonthHe(period.end)));
     });
     blocks.push('<p class="print-total">סך ההפרשים לתשלום: <strong dir="ltr">'
       + Statso.core.formatNumber(grand.payable, 2) + ' ₪</strong></p>');

@@ -2,6 +2,12 @@
   'use strict';
   const Statso = root.Statso = root.Statso || {};
   const CHIP_HEIGHT = 17;
+  const SLIDER_ID = 'chart-month';
+  const NO_MONTH = 'לא נבחר חודש.';
+  const SUMMARY = {intro: 'סיכום הנתונים בטווח שנבחר:', left: 'ציר שמאלי', right: 'ציר ימני', first: 'ערך ראשון', last: 'ערך אחרון', min: 'ערך נמוך ביותר', max: 'ערך גבוה ביותר', empty: 'אין נתונים בטווח שנבחר'};
+  // White 11px labels on the chips need 4.5:1; the earlier orange (#e8590c) only reached 3.58:1. Canvas text is
+  // invisible to axe, so the test suite computes this ratio itself.
+  const EVENT_COLOR = '#c2410c';
   let chartInstance = null;
   // Months whose CPI reading is worth calling out on the trend line.
   const EVENTS = [
@@ -40,7 +46,7 @@
         const x = scale.getPixelForValue(index);
         if (!isFinite(x) || x < area.left || x > area.right) { return; }
         ctx.save();
-        ctx.strokeStyle = '#e8590c';
+        ctx.strokeStyle = EVENT_COLOR;
         ctx.lineWidth = 1.5;
         ctx.setLineDash([5, 3]);
         ctx.beginPath(); ctx.moveTo(x, area.top); ctx.lineTo(x, area.bottom); ctx.stroke();
@@ -54,7 +60,7 @@
         const top = placeAtBottom
           ? area.bottom - 4 - CHIP_HEIGHT - (bottomLane % 2) * 21
           : area.top + 4 + (topLane % 2) * 21;
-        ctx.fillStyle = '#e8590c';
+        ctx.fillStyle = EVENT_COLOR;
         chip(ctx, Math.min(Math.max(x - width / 2, area.left), area.right - width), top, width, CHIP_HEIGHT);
         ctx.fillStyle = '#ffffff';
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -108,13 +114,103 @@
     return text;
   }
 
+  function sliderState(rows, series, index, neutralText) {
+    const max = Math.max(rows.length - 1, 0);
+    return {min: 0, max: max, value: index === null ? max : index,
+      valuetext: index === null ? neutralText : announcementText(rows, series, index), disabled: !rows.length};
+  }
+
+  function sliderKeyIsInert(key, value, max) {
+    switch (key) {
+      case 'ArrowRight': case 'ArrowUp': case 'PageUp': case 'End': return value >= max;
+      case 'ArrowLeft': case 'ArrowDown': case 'PageDown': case 'Home': return value <= 0;
+      default: return false;
+    }
+  }
+
+  function seriesExtremes(rows, data) {
+    let result = null;
+    rows.forEach(function (row, index) {
+      const value = data[index];
+      if (value === null || value === undefined || !Number.isFinite(value)) { return; }
+      const point = {index: index, month: row.month, value: value};
+      if (!result) { result = {first: point, last: point, min: point, max: point}; }
+      result.last = point;
+      if (value < result.min.value) { result.min = point; }
+      if (value > result.max.value) { result.max = point; }
+    });
+    return result;
+  }
+
+  function summaryText(rows, series) {
+    if (!rows.length || !series.length) { return ''; }
+    const t = Statso.i18n.t;
+    const axes = series.map(function (s) { return t(s.axis === 'right' ? SUMMARY.right : SUMMARY.left) + ' — ' + s.label; }).join('; ');
+    const parts = series.map(function (s) {
+      const extremes = seriesExtremes(rows, s.data);
+      if (!extremes) { return s.label + ': ' + t(SUMMARY.empty) + '.'; }
+      return s.label + ': ' + ['first', 'last', 'min', 'max'].map(function (key) {
+        const p = extremes[key];
+        return t(SUMMARY[key]) + ' ' + Statso.core.formatNumber(p.value, 1) + ' (' + Statso.core.formatMonthHe(p.month) + ')';
+      }).join('; ') + '.';
+    });
+    return t(SUMMARY.intro) + ' ' + axes + '. ' + parts.join(' ');
+  }
+
   // The series names are read in the language of the moment of the key press, not the one the chart
   // was last built in: with an invalid year range the chart is not rebuilt on a language switch.
   const SERIES_LABELS = ['מדד המחירים לצרכן', 'מדד תשומות הבנייה למגורים'];
   function seriesOf(chart) {
     return chart.data.datasets.map(function (d, i) {
-      return {label: SERIES_LABELS[i] ? Statso.i18n.t(SERIES_LABELS[i]) : d.label, data: d.data, visible: chart.isDatasetVisible(i)};
+      return {label: SERIES_LABELS[i] ? Statso.i18n.t(SERIES_LABELS[i]) : d.label, data: d.data, visible: chart.isDatasetVisible(i), axis: d.yAxisID === 'y1' ? 'right' : 'left'};
     });
+  }
+
+  function syncSlider() {
+    const slider = document.getElementById(SLIDER_ID);
+    if (!slider) { return; }
+    const rows = chartInstance ? chartInstance.$statsoRows || [] : [];
+    const state = sliderState(rows, chartInstance ? seriesOf(chartInstance) : [], selectedIndex, Statso.i18n.t(NO_MONTH));
+    slider.min = String(state.min);
+    slider.max = String(state.max);
+    slider.value = String(state.value);
+    slider.disabled = state.disabled;
+    slider.setAttribute('aria-valuetext', state.valuetext);
+    const wrapper = slider.closest && slider.closest('.chart-month');
+    if (wrapper) { wrapper.hidden = state.disabled; }
+  }
+
+  function selectFromSlider() {
+    const slider = document.getElementById(SLIDER_ID);
+    const rows = chartInstance && chartInstance.$statsoRows;
+    if (!slider || !rows || !rows.length) { return; }
+    const index = Math.min(rows.length - 1, Math.max(0, Math.round(Number(slider.value))));
+    root.clearTimeout(announceTimer);
+    applySelection(index, false);
+  }
+
+  function onSliderKey(e) {
+    if (e.altKey || e.ctrlKey || e.metaKey) { return; }
+    const slider = document.getElementById(SLIDER_ID);
+    if (!slider) { return; }
+    if (e.key === 'Escape') {
+      if (selectedIndex !== null) { e.preventDefault(); clearSelection(); }
+    } else if (sliderKeyIsInert(e.key, Number(slider.value), Number(slider.max))) {
+      e.preventDefault(); selectFromSlider();
+    }
+  }
+
+  function onSliderClick() {
+    if (selectedIndex === null) { selectFromSlider(); }
+  }
+
+  function describeData() {
+    const holder = document.getElementById('chart-alt-summary');
+    if (!holder) { return; }
+    const rows = chartInstance ? chartInstance.$statsoRows || [] : [];
+    const text = rows.length ? summaryText(rows, seriesOf(chartInstance)) : '';
+    holder.textContent = text;
+    holder.hidden = !text;
   }
 
   function activeAt(chart, index) {
@@ -143,6 +239,7 @@
     chart.setActiveElements(active);
     chart.tooltip.setActiveElements(active, anchor ? {x: anchor.x, y: anchor.y} : {x: 0, y: 0});
     chart.update('none');
+    syncSlider();
     if (announce) { scheduleAnnouncement(announcementText(chart.$statsoRows || [], seriesOf(chart), index)); }
   }
 
@@ -155,10 +252,12 @@
 
   function clearSelection() {
     resetSelection();
-    if (!chartInstance) { return; }
-    chartInstance.setActiveElements([]);
-    chartInstance.tooltip.setActiveElements([], {x: 0, y: 0});
-    chartInstance.update('none');
+    if (chartInstance) {
+      chartInstance.setActiveElements([]);
+      chartInstance.tooltip.setActiveElements([], {x: 0, y: 0});
+      chartInstance.update('none');
+    }
+    syncSlider();
   }
 
   function onChartKey(event) {
@@ -180,11 +279,12 @@
     const input = document.getElementById(SERIES_INPUT_IDS[index]);
     if (input) { input.checked = visible; }
     const chart = chartInstance;
-    if (!chart || index >= chart.data.datasets.length) { return; }
+    if (!chart || index >= chart.data.datasets.length) { syncSlider(); return; }
     chart.setDatasetVisibility(index, visible);
     root.clearTimeout(announceTimer);   // a queued announcement may still name the series that was just hidden
     if (selectedIndex === null) { chart.update(); }
     else { chart.update('none'); applySelection(selectedIndex, false); }
+    syncSlider();
   }
 
   function onLegendClick(e, item) {
@@ -201,6 +301,12 @@
   }
 
   function wireChartControls() {
+    const slider = document.getElementById(SLIDER_ID);
+    if (slider) {
+      slider.addEventListener('input', selectFromSlider);
+      slider.addEventListener('keydown', onSliderKey);
+      slider.addEventListener('click', onSliderClick);
+    }
     document.getElementById('cpi-chart').addEventListener('keydown', onChartKey);
     SERIES_INPUT_IDS.forEach(function (id, i) {
       const input = document.getElementById(id);
@@ -224,7 +330,7 @@
     const constructionByMonth = new Map((constructionRows || []).map(function (r) { return [r.month, r.chained_1950_07]; }));
     const datasets = [{label: Statso.i18n.t('מדד המחירים לצרכן'), data: cpiRows.map(function (r) { return r.chained_1951_09; }), borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,.1)', borderWidth: 2, pointRadius: 0, tension: 0, fill: true, yAxisID: 'y', hidden: !seriesVisible[0]}];
     if (hasConstruction) {
-      datasets.push({label: Statso.i18n.t('מדד תשומות הבנייה למגורים'), data: cpiRows.map(function (r) { return constructionByMonth.has(r.month) ? constructionByMonth.get(r.month) : null; }), borderColor: '#16a34a', backgroundColor: 'rgba(22,163,74,.1)', borderWidth: 2, pointRadius: 0, tension: 0, fill: false, spanGaps: false, yAxisID: 'y1', hidden: !seriesVisible[1]});
+      datasets.push({label: Statso.i18n.t('מדד תשומות הבנייה למגורים'), data: cpiRows.map(function (r) { return constructionByMonth.has(r.month) ? constructionByMonth.get(r.month) : null; }), borderColor: '#16a34a', borderDash: [7, 4], backgroundColor: 'rgba(22,163,74,.1)', borderWidth: 2, pointRadius: 0, tension: 0, fill: false, spanGaps: false, yAxisID: 'y1', hidden: !seriesVisible[1]});
     }
     const config = {type: 'line', plugins: [eventPlugin], data: {labels: cpiRows.map(function (r) { return Statso.core.formatMonthHe(r.month); }), datasets: datasets}, options: {responsive: true, maintainAspectRatio: false, locale: 'he-IL', interaction: {intersect: false, mode: 'index'}, scales: {x: {type: 'category', ticks: {autoSkip: true, maxTicksLimit: 12}}, y: {type: 'linear', display: 'auto', position: 'left', beginAtZero: false, ticks: {callback: function (v) { return Statso.core.formatNumber(v, 0); }}}, y1: {type: 'linear', position: 'right', beginAtZero: false, display: hasConstruction ? 'auto' : false, grid: {drawOnChartArea: false}, ticks: {callback: function (v) { return Statso.core.formatNumber(v, 0); }}}}, plugins: {legend: {rtl: true, display: true, onClick: onLegendClick}, tooltip: {rtl: true, textDirection: 'rtl'}}}};
     // Chart.js draws the lines in over a second by default; a visitor who asked their OS for less motion gets the finished chart at once.
@@ -263,6 +369,8 @@
     chartInstance = new root.Chart(document.getElementById('cpi-chart').getContext('2d'), config);
     chartInstance.$statsoRows = cpiRows;
     syncSeriesControls(config.data.datasets.length);
+    describeData();
+    syncSlider();
     chartInstance.update('none');
   }
 
@@ -294,6 +402,8 @@
   Statso.i18n.onChange(function () {
     if (!chartInstance || !document.getElementById('chart-start-year') || !document.getElementById('chart-end-year') || !document.getElementById('chart-range-error') || !document.getElementById('cpi-chart')) { return; }
     onRangeChange();
+    describeData();
+    syncSlider();
   });
-  Statso.chart = {EVENTS: EVENTS, eventIndex: eventIndex, populateYearSelects: populateYearSelects, sliceByYears: sliceByYears, buildConfig: buildConfig, describeEvents: describeEvents, render: render, onRangeChange: onRangeChange, init: init, activate: activate, showUnavailable: showUnavailable, resize: resize, nextIndex: nextIndex, announcementText: announcementText};
+  Statso.chart = {EVENTS: EVENTS, eventIndex: eventIndex, populateYearSelects: populateYearSelects, sliceByYears: sliceByYears, buildConfig: buildConfig, describeEvents: describeEvents, render: render, onRangeChange: onRangeChange, init: init, activate: activate, showUnavailable: showUnavailable, resize: resize, nextIndex: nextIndex, announcementText: announcementText, sliderState: sliderState, sliderKeyIsInert: sliderKeyIsInert, seriesExtremes: seriesExtremes, summaryText: summaryText};
 })(window);
