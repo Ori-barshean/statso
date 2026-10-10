@@ -212,6 +212,27 @@
     document.addEventListener('change', schedule);
   }
 
+  function syncHeaderOffset() {
+    const header = typeof document.querySelector === 'function' ? document.querySelector('.site-header') : null;
+    const html = document.documentElement;
+    if (!header || typeof header.getBoundingClientRect !== 'function' || !html || !html.style) { return; }
+    const height = Math.ceil(header.getBoundingClientRect().height);
+    if (height > 0) { html.style.setProperty('--header-height', height + 'px'); }
+  }
+  function initHeaderOffset() {
+    syncHeaderOffset();
+    const header = typeof document.querySelector === 'function' ? document.querySelector('.site-header') : null;
+    if (typeof root.ResizeObserver === 'function' && header && header.nodeType === 1) {
+      new root.ResizeObserver(syncHeaderOffset).observe(header);
+    }
+    if (typeof root.addEventListener === 'function') { root.addEventListener('resize', syncHeaderOffset); }
+    // Both of the above run with rendering; Tab is the moment the browser decides how far to scroll, so
+    // measure the header right before it as well (this also covers a page that was resized while hidden).
+    if (typeof document.addEventListener === 'function') {
+      document.addEventListener('keydown', function (event) { if (event.key === 'Tab') { syncHeaderOffset(); } }, true);
+    }
+  }
+
   function init() {
     root.addEventListener('hashchange', route);
     // The guides re-render their open view on this same event, so read the
@@ -220,6 +241,7 @@
     initToolsMenu();
     initSkipLink();
     initResultAnnouncements();
+    initHeaderOffset();
     route();
   }
   document.addEventListener('DOMContentLoaded', init);

@@ -34,8 +34,8 @@
     const removeId = 'tr-opt-remove-' + optionSerial;
     return '<div class="rent-option" role="group" aria-labelledby="' + titleId + '" data-option="' + index + '">'
       + '<p class="rent-option-title sr-only" id="' + titleId + '">תקופה <span class="tr-opt-num">' + (index + 1) + '</span></p>'
-      + '<label>מחודש <input type="month" class="tr-opt-start" value="' + (values.start || '') + '"></label>'
-      + '<label>עד חודש <input type="month" class="tr-opt-end" value="' + (values.end || '') + '"></label>'
+      + '<label>מחודש <input type="month" placeholder="YYYY-MM" class="tr-opt-start" value="' + (values.start || '') + '"></label>'
+      + '<label>עד חודש <input type="month" placeholder="YYYY-MM" class="tr-opt-end" value="' + (values.end || '') + '"></label>'
       + '<label>דמי שכירות חודשיים (₪) <input type="number" min="0" step="any" class="tr-opt-rent" value="'
       + (values.rent || '') + '"></label>'
       + '<button type="button" class="btn-ghost tr-opt-remove" id="' + removeId + '" aria-labelledby="' + removeId + ' ' + titleId

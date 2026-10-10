@@ -7,6 +7,7 @@ const WEB3FORMS_ACCESS_KEY = '3524f864-d933-41b9-862c-79f6b1d5b281';  // public 
   const LIMIT_NEAR = 'נותרו 20 תווים או פחות.';
   const LIMIT_REACHED = 'הגעת למגבלה של 300 התווים.';
   let lastWarning = '';
+  let sending = false;
   const fields = {
     name: {id: 'contact-name', errorId: 'contact-name-error'},
     email: {id: 'contact-email', errorId: 'contact-email-error'},
@@ -52,10 +53,11 @@ const WEB3FORMS_ACCESS_KEY = '3524f864-d933-41b9-862c-79f6b1d5b281';  // public 
     }
   }
 
-  function setSending(sending) {
+  function setSending(next) {
+    sending = next;
     const button = document.getElementById('contact-submit');
-    button.disabled = sending;
-    button.textContent = sending ? 'שולח…' : 'שלח';
+    next ? button.setAttribute('aria-disabled', 'true') : button.removeAttribute('aria-disabled');
+    button.textContent = next ? 'שולח…' : 'שלח';
   }
 
   function showFailure(message) {
@@ -65,6 +67,7 @@ const WEB3FORMS_ACCESS_KEY = '3524f864-d933-41b9-862c-79f6b1d5b281';  // public 
 
   function submit(event) {
     event.preventDefault();
+    if (sending) { return; }
     document.getElementById('contact-status').textContent = '';
     if (!validate()) { return; }
     if (!WEB3FORMS_ACCESS_KEY) {
@@ -91,8 +94,10 @@ const WEB3FORMS_ACCESS_KEY = '3524f864-d933-41b9-862c-79f6b1d5b281';  // public 
       const success = document.createElement('p');
       success.className = 'contact-success';
       success.setAttribute('role', 'status');
+      success.setAttribute('tabindex', '-1');
       area.appendChild(success);
       success.textContent = SUCCESS_MESSAGE;
+      success.focus();
     }).catch(function () {
       showFailure('לא ניתן היה לשלוח את ההודעה כרגע. התוכן נשמר בטופס ואפשר לנסות שוב.');
     });

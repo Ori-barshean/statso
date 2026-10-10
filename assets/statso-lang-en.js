@@ -107,11 +107,14 @@
     'שנת ההתחלה חייבת להיות מוקדמת משנת הסיום.': 'The start year must come before the end year.',
     'ספריית התרשים אינה זמינה. יתר הכלים ממשיכים לפעול.':
       'The chart library is unavailable. Everything else keeps working.',
+    'אירועים המסומנים בתרשים:': 'Events marked on the chart:',
     'משבר הסאב־פריים': 'Subprime crisis',
     'קורונה': 'Covid',
     '7 באוקטובר': '7 October',
     'מלחמת איראן הראשונה': 'First Iran war',
     'מלחמת איראן השנייה': 'Second Iran war',
+    'סדרות בתרשים': 'Series in the chart',
+    'ניווט בתרשים במקלדת: חץ ימינה עובר לחודש מאוחר יותר וחץ שמאלה לחודש מוקדם יותר, Page Down ו־Page Up קופצים שנה קדימה או אחורה, Home ו־End עוברים לחודש הראשון או האחרון בטווח, ו־Escape מנקה את הבחירה. החודש והערכים מוקראים אחרי כל מעבר.': 'Keyboard navigation in the chart: the right arrow moves to a later month and the left arrow to an earlier one, Page Down and Page Up jump a year forward or back, Home and End go to the first or last month in the range, and Escape clears the selection. The month and its values are read out after each move.',
 
     // --- dashboard calculator ----------------------------------------------
     'מחשבון': 'Calculator',
@@ -350,6 +353,15 @@
     'תוכן ההודעה': 'Message',
     'השאירו שדה זה ריק': 'Leave this field empty',
     'שלח': 'Send',
+    'שולח…': 'Sending…',
+    'ההודעה נשלחה ותענה בהקדם האפשרי לתיבת המייל שציינת לחזרה.': 'Your message has been sent. A reply will be sent to the email address you provided as soon as possible.',
+    'יש להזין שם מלא.': 'Enter your full name.',
+    'יש להזין אימייל לחזרה.': 'Enter an email address for the reply.',
+    'יש להזין כתובת אימייל תקינה.': 'Enter a valid email address.',
+    'יש להזין את תוכן ההודעה.': 'Enter your message.',
+    'תוכן ההודעה מוגבל ל־300 תווים.': 'Your message is limited to 300 characters.',
+    'לא ניתן היה לשלוח את ההודעה כרגע. התוכן נשמר בטופס ואפשר לנסות שוב.': 'Your message could not be sent right now. Your text is still in the form, and you can try again.',
+    'הטופס עדיין לא חובר לשירות השליחה — ההודעה לא נשלחה.': 'The form is not yet connected to the sending service — your message was not sent.',
     'פרטי הפנייה יישלחו אלינו באמצעות Web3Forms וישמשו לצורך טיפול בפנייה ומתן תשובה. מידע נוסף ב':
       'Your details will be sent to us via Web3Forms and used to handle your inquiry and reply. More information in the ',
     'מדיניות הפרטיות': 'privacy policy',
@@ -520,6 +532,8 @@
     'מעבר ל-Power Query': 'Switch to Power Query'
   };
 
+  function currencyName(name) { return en[name] !== undefined ? en[name] : name; }
+
   // Sentences the modules assemble at run time. First match wins.
   const enPatterns = [
     [/^סכום ממומר \((.+)\)$/, 'Converted amount ($1)'],
@@ -557,8 +571,9 @@
       'Enter a monthly rent for option period $1.'],
     [/^תקופת אופציה (\d+)$/, 'Option period $1'],
     [/^לא ניתן לטעון את (.+)$/, 'Could not load $1'],
-    [/^אין שער ל(.+) לפני (.+)\.$/, 'No rate for $1 before $2.'],
-    [/^אין נתוני שער עבור (.+)\.$/, 'No rate data for $1.'],
+    // The currency name is built into the sentence at run time, so it is looked up on its own.
+    [/^אין שער ל(.+) לפני (.+)\.$/, function (all, name, date) { return 'No rate for ' + currencyName(name) + ' before ' + date + '.'; }],
+    [/^אין נתוני שער עבור (.+)\.$/, function (all, name) { return 'No rate data for ' + currencyName(name) + '.'; }],
     [/^לפי השער שפורסם ל־(.+)$/, 'Using the rate published for $1'],
     [/^מדד ידוע במועד ההסכם: (.+)$/, 'Known index at signing: $1'],
     [/^מדד בסיס מוסכם: (.+)$/, 'Agreed base index: $1'],

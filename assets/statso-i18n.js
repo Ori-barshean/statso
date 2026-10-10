@@ -69,7 +69,9 @@
   function walk(node) {
     if (node.nodeType === 3) { translateTextNode(node); return; }
     if (node.nodeType !== 1 || SKIP_TAGS[node.tagName]) { return; }
-    if (node.hasAttribute('data-i18n-skip')) { return; }
+    // The skip flag protects the content (code, the picker's own labels) from translation, but an
+    // attribute such as the aria-label of a code block is still read aloud, so it follows the language.
+    if (node.hasAttribute('data-i18n-skip')) { translateAttributes(node); return; }
     if (node.hasAttribute('data-lang')) {
       node.hidden = node.getAttribute('data-lang') !== lang;
       if (node.hidden) { return; }
@@ -174,12 +176,20 @@
         choice.addEventListener('click', function () {
           set(choice.getAttribute('data-lang-choice'));
           closeMenu();
+          button.focus();
         });
       });
       document.addEventListener('click', function (event) {
         if (!menu.hidden && !document.getElementById('lang-picker').contains(event.target)) { closeMenu(); }
       });
-      document.addEventListener('keydown', function (event) { if (event.key === 'Escape') { closeMenu(); } });
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && !menu.hidden) {
+          const picker = document.getElementById('lang-picker');
+          const inside = !!picker && picker.contains(document.activeElement);
+          closeMenu();
+          if (inside) { button.focus(); }
+        }
+      });
     }
     paint();
     startObserver();

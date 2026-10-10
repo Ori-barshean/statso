@@ -268,7 +268,16 @@
     return code ? code.textContent : '';
   }
   function copy(button) {
-    const done = function (ok) { if (!ok) { return; } const old = button.textContent; button.textContent = 'הועתק'; root.setTimeout(function () { button.textContent = old; }, 1400); if (root.Statso.exporter && root.Statso.exporter.announce) { root.Statso.exporter.announce('הועתק'); } };
+    // A second press while "הועתק" is showing would remember that label as the
+    // one to restore, and the button would stay stuck on it for good.
+    const done = function (ok) {
+      if (!ok || button.hasAttribute('data-flashing')) { return; }
+      const old = button.textContent;
+      button.setAttribute('data-flashing', 'true');
+      button.textContent = 'הועתק';
+      root.setTimeout(function () { button.textContent = old; button.removeAttribute('data-flashing'); }, 1400);
+      if (root.Statso.exporter && root.Statso.exporter.announce) { root.Statso.exporter.announce('הועתק'); }
+    };
     if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(payload(button)).then(function () { done(true); }).catch(function () { done(legacyCopy(payload(button))); }); }
     else { done(legacyCopy(payload(button))); }
   }

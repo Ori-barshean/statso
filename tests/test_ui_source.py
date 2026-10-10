@@ -184,12 +184,72 @@ class UiSourceTests(unittest.TestCase):
         for marker in ('<span dir="ltr">200010</span>', "RER_&lt;קוד מטבע&gt;_ILS", "RER_&lt;currency code&gt;_ILS"):
             self.assertIn(marker, method)
 
+    def test_narrow_screen_layout_rules_that_320px_reflow_depends_on(self):
+        # Found by measuring against clientWidth at 320px: the tools hub kept four
+        # columns, the history range row never wrapped, and a guide's grid track
+        # grew to its widest figure instead of staying inside the page.
+        css = (ROOT / "assets/statso.css").read_text(encoding="utf-8")
+        self.assertRegex(css, r"\.tool-cards \{[^}]*grid-template-columns: repeat\(auto-fit, minmax\(min\(100%, \d+px\), 1fr\)\)")
+        self.assertRegex(css, r"\.range-controls \{[^}]*flex-wrap: wrap")
+        self.assertRegex(css, r"\.prose-guide \{[^}]*grid-template-columns: minmax\(0, 1fr\)")
+        self.assertNotRegex(re.search(r"\.fxh-currency, \.tool-checkbox \{([^}]*)\}", css).group(1), "nowrap")
+        self.assertRegex(css, r"@media \(max-width: 360px\) \{[^@]*\.nav-item \{[^}]*padding-inline")
+
+    def test_readme_names_every_tool_the_site_offers(self):
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        names = re.findall(r'<a class="tool-card"[^>]*>.*?<strong>(.*?)</strong>', self.html)
+        self.assertEqual(len(names), 6)
+        for name in names:
+            self.assertIn("| " + name + " |", readme)
+        for stale in ("ארבעה מחשבונים", "שלושת קובצי ה־JSON", "159 נכון", "אינה חלק מהגרסה הזאת"):
+            self.assertNotIn(stale, readme)
+
     def test_privacy_page_no_longer_claims_no_browser_storage(self):
         privacy = re.search(r'<article class="info-page" id="privacy-page".*?</article>', self.html, re.DOTALL).group(0)
         self.assertNotIn("אינו שומר דבר בדפדפן שלך", privacy)
         self.assertNotIn("stores nothing in your browser", privacy)
         for marker in ("Web3Forms", "web3forms.com/privacy", "localStorage", "45 יום", "45 days"):
             self.assertIn(marker, privacy)
+
+
+    @staticmethod
+    def _without_auto_repeat(value):
+        match = re.search(r'repeat\(\s*auto-(?:fit|fill)\s*,', value)
+        if match is None:
+            return None
+        depth = 0
+        for i in range(match.start() + len("repeat"), len(value)):
+            if value[i] == "(":
+                depth += 1
+            elif value[i] == ")":
+                depth -= 1
+                if depth == 0:
+                    return value[:match.start()] + value[i + 1:]
+        raise AssertionError(f"unbalanced repeat() in {value!r}")
+
+    def test_auto_repeat_track_lists_are_valid(self):
+        # an auto-fit/auto-fill repeat() may sit only beside fixed-size tracks; mixing in
+        # auto / fr / *-content makes Chrome drop the whole declaration
+        css = (ROOT / "assets/statso.css").read_text(encoding="utf-8")
+        values = re.findall(r'grid-template-columns:\s*([^;}]+)', css)
+        self.assertTrue(values)
+        for value in values:
+            rest = self._without_auto_repeat(value)
+            if rest is None:
+                continue
+            self.assertNotRegex(rest, r'repeat\(\s*auto-', value)
+            self.assertNotRegex(rest, r'\bauto\b|\b(?:min|max)-content\b|fit-content\(|\d(?:\.\d+)?fr\b', value)
+
+    def test_rent_option_row_is_one_wrapping_grid_row(self):
+        css = (ROOT / "assets/statso.css").read_text(encoding="utf-8")
+        row = re.search(r'\n\.rent-option \{([^}]*)\}', css).group(1)
+        self.assertIn("display: grid", row)
+        self.assertIn("grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));", row)
+        self.assertIn("align-items: end", row)
+        button = re.search(r'\n\.rent-option \.tr-opt-remove \{([^}]*)\}', css).group(1)
+        self.assertIn("justify-self: start", button)
+        sr_only = re.search(r'\n\.sr-only \{([^}]*)\}', css).group(1)
+        self.assertIn("position: absolute", sr_only)  # the hidden period title takes no grid cell
 
 
 if __name__ == "__main__": unittest.main()

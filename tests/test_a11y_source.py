@@ -187,6 +187,49 @@ process.stdout.write(JSON.stringify(seen));
         self.assertIn("addOptionRow({}).querySelector('input').focus()", rent)
         self.assertIn("renumberOptionRows();", rent)
 
+    def test_chart_events_are_named_in_text_for_the_current_range(self):
+        # The five event markers are drawn on the canvas only; a screen reader
+        # needs them in the chart's description, limited to what is on screen.
+        script = """
+global.window = {};
+const holder = {children: [{text: 'old'}], hidden: true, appendChild(node) { this.children.push(node); }, setAttribute() {},
+ set textContent(value) { this.children = []; }};
+global.document = {getElementById: id => id === 'chart-alt-events' ? holder : null,
+ createTextNode: text => ({text}), createElement: () => ({attrs: {}, setAttribute(k, v) { this.attrs[k] = v; }, textContent: ''})};
+window.Statso = {i18n: {onChange() {}, t: text => text}};
+require(%s);
+require(%s);
+const S = window.Statso, seen = {};
+const flat = () => holder.children.map(node => node.text !== undefined ? node.text : node.textContent).join('');
+S.chart.describeEvents([{month: '2008-09'}, {month: '2010-01'}, {month: '2020-03'}]);
+seen.some = flat(); seen.someHidden = holder.hidden;
+S.chart.describeEvents([{month: '2012-01'}]);
+seen.none = flat(); seen.noneHidden = holder.hidden;
+S.chart.describeEvents(S.chart.EVENTS.map(event => ({month: event.month})));
+seen.all = flat();
+process.stdout.write(JSON.stringify(seen));
+""" % (json.dumps(str(ROOT / "assets/statso-core.js")), json.dumps(str(ROOT / "assets/statso-chart.js")))
+        seen = json.loads(subprocess.run(
+            ["node", "-e", script], check=True, capture_output=True, text=True, encoding="utf-8"
+        ).stdout)
+        self.assertEqual(seen["some"], "אירועים המסומנים בתרשים: 09/2008 \u2014 משבר הסאב־פריים; 03/2020 \u2014 קורונה.")
+        self.assertFalse(seen["someHidden"])
+        self.assertEqual(seen["none"], "")
+        self.assertTrue(seen["noneHidden"])
+        self.assertEqual(seen["all"].count("\u2014"), 5)
+        self.assertRegex(self.html, r'role="img" aria-describedby="chart-alt-text chart-alt-events chart-keys-help"')
+        canvas = re.search(r'<canvas id="cpi-chart"[^>]*>', self.html).group(0)
+        self.assertIn('tabindex="0"', canvas)
+        self.assertRegex(self.html, r'<p class="sr-only" id="chart-alt-events" hidden></p>')
+        language = (ROOT / "assets/statso-lang-en.js").read_text(encoding="utf-8")
+        self.assertIn("'אירועים המסומנים בתרשים:':", language)
+
+    def test_guide_copy_buttons_cannot_get_stuck_on_their_confirmation(self):
+        copy = self.guides[self.guides.index("function copy(button)"):]
+        copy = copy[:copy.index("\n  }\n")]
+        self.assertIn("button.hasAttribute('data-flashing')", copy)
+        self.assertIn("button.removeAttribute('data-flashing')", copy)
+
     def test_result_live_region_sits_outside_every_main_view(self):
         match = re.search(r'<div class="sr-only" id="result-live" role="status" aria-live="polite" aria-atomic="true"></div>', self.html)
         self.assertIsNotNone(match)
@@ -351,6 +394,471 @@ process.stdout.write(JSON.stringify(seen));
         chart = (ROOT / "assets/statso-chart.js").read_text(encoding="utf-8")
         self.assertIn("(prefers-reduced-motion: reduce)", chart)
         self.assertIn("config.options.animation = false", chart)
+
+    def test_focused_controls_clear_the_sticky_header(self):
+        rule = re.search(r'\nhtml \{([^}]*)\}', self.css).group(1)
+        self.assertIn('scroll-padding-top: calc(var(--header-height, 72px) + 12px)', rule)
+        script = """
+global.window = {};
+let height = 68.4, observerCallback, observed;
+const props = {}, listeners = {}, els = {};
+const header = {nodeType: 1, getBoundingClientRect: () => ({height})};
+const heading = {textContent: 'about', hasAttribute() { return false; }, setAttribute() {}, focus() {}};
+const docListeners = {};
+global.document = {title: 'site', addEventListener(type, fn, capture) { docListeners[type] = {fn, capture}; },
+ documentElement: {style: {setProperty(k, v) { props[k] = v; }}},
+ getElementById(id) { if (id === 'tools-trigger') { return null; }
+  return els[id] || (els[id] = {hidden: false, addEventListener() {}, querySelectorAll() { return []; }}); },
+ querySelector(selector) { return selector === '.site-header' ? header : {querySelector: () => heading}; },
+ querySelectorAll() { return []; }};
+window.location = {hash: '#/'};
+window.addEventListener = (type, fn) => { listeners[type] = fn; };
+window.scrollTo = () => {};
+window.requestAnimationFrame = fn => fn();
+window.setTimeout = fn => fn();
+window.Statso = {i18n: {t: s => s, onChange() {}}};
+window.ResizeObserver = class { constructor(fn) { observerCallback = fn; } observe(el) { observed = el; } };
+require(%s);
+window.Statso.nav.init();
+const seen = {initial: props['--header-height'], observedHeader: observed === header};
+height = 131.2; observerCallback(); seen.resized = props['--header-height'];
+height = 90.1; docListeners.keydown.fn({key: 'a'}); seen.otherKeyIgnored = props['--header-height'];
+docListeners.keydown.fn({key: 'Tab'}); seen.measuredBeforeTab = props['--header-height'];
+seen.tabCapture = docListeners.keydown.capture === true; seen.resizeAlways = typeof listeners.resize === 'function';
+delete window.ResizeObserver; height = 68.4;
+window.Statso.nav.init(); seen.fallbackInitial = props['--header-height'];
+seen.resizeListener = typeof listeners.resize === 'function';
+height = 131.2; listeners.resize(); seen.fallbackResized = props['--header-height'];
+process.stdout.write(JSON.stringify(seen));
+""" % json.dumps(str(ROOT / "assets/statso-nav.js"))
+        seen = json.loads(subprocess.run(
+            ["node", "-e", script], check=True, capture_output=True, text=True, encoding="utf-8"
+        ).stdout)
+        self.assertEqual(seen, {"initial": "69px", "observedHeader": True, "resized": "132px",
+                                "otherKeyIgnored": "132px", "measuredBeforeTab": "91px", "tabCapture": True,
+                                "resizeAlways": True,
+                                "fallbackInitial": "69px", "resizeListener": True, "fallbackResized": "132px"})
+
+    def test_disclosure_buttons_do_not_claim_a_popup(self):
+        self.assertNotIn('aria-haspopup', self.html)
+        for id_, controls in [('tools-trigger', 'tools-submenu'), ('lang-toggle', 'lang-menu')]:
+            tag = re.search(r'<[^>]+id="' + id_ + r'"[^>]*>', self.html).group(0)
+            self.assertIn('aria-expanded="false"', tag)
+            self.assertIn('aria-controls="' + controls + '"', tag)
+
+    def test_language_menu_hands_focus_back_to_its_toggle(self):
+        script = """
+global.window = {location: {search: '', href: 'https://x.test/'},
+ history: {replaceState() {}}, localStorage: {getItem() { return null; }, setItem() {}}};
+const listeners = {};
+function element(attrs = {}) { return {attrs, handlers: {},
+ addEventListener(type, fn) { this.handlers[type] = fn; },
+ getAttribute(k) { return this.attrs[k]; }, setAttribute(k, v) { this.attrs[k] = v; },
+ removeAttribute(k) { delete this.attrs[k]; }, focus() { document.activeElement = this; }}; }
+const button = element(), menu = element(), outside = element();
+const choices = ['he', 'en'].map(lang => element({'data-lang-choice': lang}));
+menu.hidden = true; menu.querySelectorAll = () => choices;
+const picker = {contains: el => [button, menu, ...choices].includes(el)};
+const els = {'lang-toggle': button, 'lang-menu': menu, 'lang-picker': picker};
+global.document = {activeElement: outside, getElementById: id => els[id],
+ addEventListener(type, fn) { listeners[type] = fn; },
+ querySelectorAll: () => choices, querySelector: () => null,
+ documentElement: {setAttribute() {}},
+ body: {nodeType: 1, tagName: 'BODY', hasAttribute: () => false, firstChild: null, querySelectorAll: () => []}};
+require(%s);
+const S = window.Statso; S.i18n.init();
+const open = () => button.handlers.click({stopPropagation() {}});
+const seen = {};
+open(); choices[0].focus(); listeners.keydown({key: 'Escape'});
+seen.inside = menu.hidden && document.activeElement === button && button.attrs['aria-expanded'] === 'false';
+open(); outside.focus(); listeners.keydown({key: 'Escape'});
+seen.outside = menu.hidden && document.activeElement === outside;
+open(); choices[1].focus(); choices[1].handlers.click();
+seen.choice = menu.hidden && document.activeElement === button;
+seen.language = S.i18n.current();
+process.stdout.write(JSON.stringify(seen));
+""" % json.dumps(str(ROOT / "assets/statso-i18n.js"))
+        seen = json.loads(subprocess.run(
+            ["node", "-e", script], check=True, capture_output=True, text=True, encoding="utf-8"
+        ).stdout)
+        self.assertEqual(seen, {"inside": True, "outside": True, "choice": True, "language": "en"})
+
+    def test_contact_submit_keeps_focus_while_sending_and_focuses_the_confirmation(self):
+        script = """
+(async function () {
+const path = %s;
+async function run(fail) {
+ global.window = {location: {protocol: 'https:'}};
+ let init, resolveFetch, rejectFetch, fetchCalls = 0, everDisabled = false;
+ function element() { return {attrs: {}, handlers: {}, value: 'valid', validity: {typeMismatch: false},
+  textContent: '', children: [],
+  set disabled(value) { if (value) { everDisabled = true; } }, get disabled() { return false; },
+  setAttribute(k, v) { this.attrs[k] = v; }, getAttribute(k) { return this.attrs[k]; },
+  removeAttribute(k) { delete this.attrs[k]; }, addEventListener(type, fn) { this.handlers[type] = fn; },
+  appendChild(el) { this.children.push(el); }, focus() { document.activeElement = this; }}; }
+ const els = {};
+ global.document = {activeElement: null, addEventListener(type, fn) { init = fn; },
+  getElementById: id => els[id] || (els[id] = element()), createElement(tag) {
+   if (tag !== 'p') { throw new Error('unexpected tag'); } return element(); }};
+ global.FormData = class { set() {} };
+ global.fetch = () => { fetchCalls++; return new Promise((resolve, reject) => { resolveFetch = resolve; rejectFetch = reject; }); };
+ delete require.cache[require.resolve(path)]; require(path); init();
+ const form = els['contact-form'], button = document.getElementById('contact-submit');
+ button.focus();
+ const event = {preventDefault() {}, currentTarget: form};
+ form.handlers.submit(event);
+ const result = {pending: button.attrs['aria-disabled'], label: button.textContent,
+  focusedWhileSending: document.activeElement === button};
+ form.handlers.submit(event); result.fetchCalls = fetchCalls;
+ if (fail) { rejectFetch(new Error('network')); }
+ else { resolveFetch({ok: true, json: () => ({success: true})}); }
+ await new Promise(resolve => setImmediate(resolve));
+ result.everDisabled = everDisabled;
+ if (fail) {
+  result.failure = els['contact-status'].textContent;
+  result.disabledRemoved = !('aria-disabled' in button.attrs); result.restored = button.textContent;
+ } else {
+  const success = els['contact-form-area'].children[0];
+  result.success = {className: success.className, role: success.attrs.role, tabindex: success.attrs.tabindex,
+   focused: document.activeElement === success, text: success.textContent};
+ }
+ return result;
+}
+process.stdout.write(JSON.stringify({success: await run(false), failure: await run(true)}));
+})().catch(error => { console.error(error); process.exit(1); });
+""" % json.dumps(str(ROOT / "assets/statso-contact.js"))
+        seen = json.loads(subprocess.run(
+            ["node", "-e", script], check=True, capture_output=True, text=True, encoding="utf-8"
+        ).stdout)
+        for run in seen.values():
+            self.assertEqual(run['pending'], 'true')
+            self.assertEqual(run['label'], 'שולח…')
+            self.assertTrue(run['focusedWhileSending'])
+            self.assertFalse(run['everDisabled'])
+            self.assertEqual(run['fetchCalls'], 1)
+        self.assertEqual(seen['success']['success'], {
+            'className': 'contact-success', 'role': 'status', 'tabindex': '-1', 'focused': True,
+            'text': 'ההודעה נשלחה ותענה בהקדם האפשרי לתיבת המייל שציינת לחזרה.'})
+        self.assertEqual(seen['failure']['failure'], 'לא ניתן היה לשלוח את ההודעה כרגע. התוכן נשמר בטופס ואפשר לנסות שוב.')
+        self.assertTrue(seen['failure']['disabledRemoved'])
+        self.assertEqual(seen['failure']['restored'], 'שלח')
+        self.assertIn('.contact-submit[aria-disabled="true"]', self.css)
+        self.assertNotIn('button.disabled', (ROOT / 'assets/statso-contact.js').read_text(encoding='utf-8'))
+
+    def test_current_page_is_marked_without_color_in_forced_colors(self):
+        block = re.search(r'@media \(forced-colors: active\) \{(.*?)\}\s*\}', self.css, re.DOTALL).group(1)
+        self.assertIn('.nav-item[aria-current="page"]', block)
+        self.assertIn('border-block-end: 3px solid CanvasText', block)
+
+    def test_month_inputs_show_their_format(self):
+        rent = (ROOT / 'assets/statso-rent.js').read_text(encoding='utf-8')
+        for source, count in [(self.html, 4), (rent, 2)]:
+            tags = re.findall(r'<input[^>]*type="month"[^>]*>', source)
+            self.assertEqual(len(tags), count)
+            for tag in tags:
+                self.assertIn('placeholder="YYYY-MM"', tag)
+
+    def test_chart_keyboard_helpers_are_pure(self):
+        script = """
+global.window = {Statso: {i18n: {onChange() {}, t: s => ({'קורונה': 'Covid'})[s] || s}}};
+global.document = {getElementById: () => null};
+require(%s); require(%s);
+const {nextIndex, announcementText} = window.Statso.chart;
+// Calling the helpers must never need a document or schedule a timer.
+global.document = new Proxy({}, {get() { throw new Error('DOM access'); }});
+window.setTimeout = () => { throw new Error('timer'); };
+const cases = [[null, 'ArrowRight', 10], [null, 'ArrowLeft', 10], [null, 'Home', 10],
+ [null, 'PageUp', 10], [5, 'ArrowRight', 10], [9, 'ArrowRight', 10], [0, 'ArrowLeft', 10],
+ [20, 'PageUp', 30], [5, 'PageUp', 30], [20, 'PageDown', 30], [2, 'PageDown', 30],
+ [5, 'End', 10], [5, 'Escape', 10], [null, 'ArrowRight', 0]];
+const rows = [{month: '2020-03'}];
+const cpi = {label: 'CPI', data: [101.3], visible: true};
+const build = {label: 'Build', data: [2000], visible: true};
+const text = series => announcementText(rows, series, 0);
+process.stdout.write(JSON.stringify({indices: cases.map(c => nextIndex(...c)),
+ unhandled: ['ArrowUp', 'a', 'toString'].map(key => nextIndex(5, key, 10) === undefined),
+ both: text([cpi, build]), nullValue: text([cpi, {...build, data: [null]}]),
+ hidden: text([cpi, {...build, visible: false}]),
+ noParts: text([{...cpi, visible: false}, {...build, data: [Infinity]}]),
+ undefinedValue: text([{...build, data: []}]), nanValue: text([{...build, data: [NaN]}]),
+ missing: announcementText(rows, [cpi, build], 10)}));
+""" % (json.dumps(str(ROOT / 'assets/statso-core.js')), json.dumps(str(ROOT / 'assets/statso-chart.js')))
+        seen = json.loads(subprocess.run(
+            ["node", "-e", script], check=True, capture_output=True, text=True, encoding="utf-8"
+        ).stdout)
+        self.assertEqual(seen['indices'], [9, 9, 0, 9, 6, 9, 0, 8, 0, 29, 14, 9, None, None])
+        self.assertEqual(seen['unhandled'], [True, True, True])
+        self.assertEqual(seen['both'], '03/2020: CPI 101.3; Build 2,000.0 — Covid')
+        for key in ('nullValue', 'hidden'):
+            self.assertEqual(seen[key], '03/2020: CPI 101.3 — Covid')
+        for key in ('noParts', 'undefinedValue', 'nanValue'):
+            self.assertEqual(seen[key], '03/2020 — Covid')
+        self.assertEqual(seen['missing'], '')
+
+    def test_chart_keys_tooltip_announcement_and_series_toggle(self):
+        script = """
+let languageListener;
+global.window = {Statso: {i18n: {onChange(fn) { languageListener = fn; },
+ t: s => ({'מדד המחירים לצרכן': 'CPI', 'מדד תשומות הבנייה למגורים': 'Build', 'קורונה': 'Covid'})[s] || s}}};
+const timers = [];
+window.setTimeout = (fn, ms) => { timers.push({fn, ms, live: true}); return timers.length; };
+window.clearTimeout = id => { if (timers[id - 1]) { timers[id - 1].live = false; } };
+const flush = () => timers.filter(t => t.live).forEach(t => { t.live = false; t.fn(); });
+function element() { return {textContent: '', value: '', checked: true, label: {hidden: false}, handlers: {},
+ addEventListener(type, fn) { this.handlers[type] = fn; }, closest() { return this.label; }, getContext() { return {}; }}; }
+const els = {};
+['cpi-chart', 'chart-start-year', 'chart-end-year', 'chart-range-error', 'chart-live',
+ 'chart-series-cpi', 'chart-series-construction'].forEach(id => { els[id] = element(); });
+global.document = {getElementById: id => els[id] || null};
+const charts = [];
+window.Chart = class {
+ constructor(ctx, config) {
+  this.data = config.data; this.options = config.options;
+  this.meta = this.data.datasets.map(d => ({hidden: null, data: d.data.map((v, i) => ({x: i, y: v}))}));
+  this.active = []; this.updates = [];
+  this.tooltip = {active: [], setActiveElements(active, position) { this.active = active; this.position = position; }};
+  charts.push(this);
+ }
+ isDatasetVisible(i) { return !(this.meta[i].hidden === null ? this.data.datasets[i].hidden : this.meta[i].hidden); }
+ setDatasetVisibility(i, visible) { this.meta[i].hidden = !visible; }
+ getDatasetMeta(i) { return this.meta[i]; }
+ setActiveElements(active) { this.active = active; }
+ update(mode) { this.updates.push(mode); }
+ destroy() { this.destroyed = true; }
+};
+require(%s); require(%s);
+const S = window.Statso;
+const rows = Array.from({length: 24}, (_, i) => ({year: 2019 + Math.floor(i / 12),
+ month: String(2019 + Math.floor(i / 12)) + '-' + String(i %% 12 + 1).padStart(2, '0'), chained_1951_09: 100 + i}));
+const construction = rows.slice(12).map((row, i) => ({...row, chained_1950_07: 2000 + i}));
+S.chart.init(rows, construction);
+const seen = {lazy: charts.length === 0};
+S.chart.activate();
+let chart = charts[0];
+function key(name, modifiers = {}) {
+ let prevented = false;
+ els['cpi-chart'].handlers.keydown({key: name, ...modifiers, preventDefault() { prevented = true; }});
+ return prevented;
+}
+seen.rightPrevented = key('ArrowRight'); seen.latest = chart.tooltip.active;
+seen.anchor = chart.tooltip.position;
+seen.activeMatches = JSON.stringify(chart.active) === JSON.stringify(chart.tooltip.active);
+seen.delay = timers.filter(t => t.live).map(t => t.ms);
+seen.beforePause = els['chart-live'].textContent;
+flush(); seen.latestSpoken = els['chart-live'].textContent;
+key('Home'); seen.earliest = chart.tooltip.active;
+key('ArrowRight'); key('ArrowRight'); seen.pendingTimers = timers.filter(t => t.live).length;
+flush(); seen.rapidSpoken = els['chart-live'].textContent;
+seen.upPrevented = key('ArrowUp');
+seen.modifiers = ['metaKey', 'altKey', 'ctrlKey', 'shiftKey'].map(modifier => key('ArrowLeft', {[modifier]: true}));
+seen.escapePrevented = key('Escape'); seen.cleared = chart.tooltip.active;
+seen.clearSpoken = els['chart-live'].textContent;
+seen.emptyEscapePrevented = key('Escape');
+key('End'); flush();
+const input = els['chart-series-construction'];
+input.checked = false; input.handlers.change();
+seen.hidden = !chart.isDatasetVisible(1); seen.hiddenActive = chart.tooltip.active;
+chart.options.plugins.legend.onClick({}, {datasetIndex: 1});
+seen.legendRestored = chart.isDatasetVisible(1) && input.checked;
+seen.legendActive = chart.tooltip.active;
+input.checked = false; input.handlers.change();
+const cpi = els['chart-series-cpi']; cpi.checked = false; cpi.handlers.change();
+seen.allHiddenActive = chart.tooltip.active; seen.allHiddenAnchor = chart.tooltip.position;
+cpi.checked = true; cpi.handlers.change();
+key('ArrowLeft');
+S.chart.onRangeChange(); chart = charts[charts.length - 1];
+flush(); seen.range = {newChart: charts.length === 2 && charts[0].destroyed,
+ hidden: chart.data.datasets[1].hidden, active: chart.tooltip.active, spoken: els['chart-live'].textContent};
+languageListener(); chart = charts[charts.length - 1];
+seen.languageKeepsHidden = chart.data.datasets[1].hidden && !input.checked;
+els['chart-start-year'].value = '2019'; els['chart-end-year'].value = '2019'; S.chart.onRangeChange();
+seen.onlyCpi = !cpi.label.hidden && input.label.hidden;
+els['chart-end-year'].value = '2020'; S.chart.onRangeChange();
+seen.bothControls = !cpi.label.hidden && !input.label.hidden && !input.checked;
+process.stdout.write(JSON.stringify(seen));
+""" % (json.dumps(str(ROOT / 'assets/statso-core.js')), json.dumps(str(ROOT / 'assets/statso-chart.js')))
+        seen = json.loads(subprocess.run(
+            ["node", "-e", script], check=True, capture_output=True, text=True, encoding="utf-8"
+        ).stdout)
+        both = [{'datasetIndex': 0, 'index': 23}, {'datasetIndex': 1, 'index': 23}]
+        self.assertTrue(seen['lazy'])
+        self.assertTrue(seen['rightPrevented'])
+        self.assertEqual(seen['latest'], both)
+        self.assertEqual(seen['anchor'], {'x': 23, 'y': 123})
+        self.assertTrue(seen['activeMatches'])
+        self.assertEqual(seen['delay'], [250])
+        self.assertEqual(seen['beforePause'], '')
+        self.assertEqual(seen['latestSpoken'], '12/2020: CPI 123.0; Build 2,011.0')
+        self.assertEqual(seen['earliest'], [{'datasetIndex': 0, 'index': 0}])
+        self.assertEqual(seen['pendingTimers'], 1)
+        self.assertEqual(seen['rapidSpoken'], '03/2019: CPI 102.0')
+        self.assertFalse(seen['upPrevented'])
+        self.assertEqual(seen['modifiers'], [False] * 4)
+        self.assertTrue(seen['escapePrevented'])
+        self.assertEqual(seen['cleared'], [])
+        self.assertEqual(seen['clearSpoken'], '')
+        self.assertFalse(seen['emptyEscapePrevented'])
+        self.assertTrue(seen['hidden'])
+        self.assertEqual(seen['hiddenActive'], [{'datasetIndex': 0, 'index': 23}])
+        self.assertTrue(seen['legendRestored'])
+        self.assertEqual(seen['legendActive'], both)
+        self.assertEqual(seen['allHiddenActive'], [])
+        self.assertEqual(seen['allHiddenAnchor'], {'x': 0, 'y': 0})
+        self.assertEqual(seen['range'], {'newChart': True, 'hidden': True, 'active': [], 'spoken': ''})
+        self.assertTrue(seen['languageKeepsHidden'])
+        self.assertTrue(seen['onlyCpi'])
+        self.assertTrue(seen['bothControls'])
+
+    def test_chart_announcements_stay_honest_when_the_series_or_language_change(self):
+        # Found in review: a queued announcement survived hiding a series, the series names came from
+        # the last built chart (stale after a language switch with an invalid range), and a boundary
+        # key could not bring back a tooltip that the mouse leaving the canvas had removed.
+        script = """
+let language = 'he';
+const labels = {he: {a: 'CPI-he', b: 'Build-he'}, en: {a: 'CPI-en', b: 'Build-en'}};
+global.window = {Statso: {i18n: {onChange() {},
+ t: s => ({'מדד המחירים לצרכן': labels[language].a, 'מדד תשומות הבנייה למגורים': labels[language].b})[s] || s}}};
+const timers = [];
+window.setTimeout = (fn, ms) => { timers.push({fn, ms, live: true}); return timers.length; };
+window.clearTimeout = id => { if (timers[id - 1]) { timers[id - 1].live = false; } };
+const flush = () => timers.filter(t => t.live).forEach(t => { t.live = false; t.fn(); });
+function element() { return {textContent: '', value: '', checked: true, label: {hidden: false}, handlers: {},
+ addEventListener(type, fn) { this.handlers[type] = fn; }, closest() { return this.label; }, getContext() { return {}; }}; }
+const els = {};
+['cpi-chart', 'chart-start-year', 'chart-end-year', 'chart-range-error', 'chart-live',
+ 'chart-series-cpi', 'chart-series-construction'].forEach(id => { els[id] = element(); });
+global.document = {getElementById: id => els[id] || null};
+const charts = [];
+window.Chart = class {
+ constructor(ctx, config) {
+  this.data = config.data; this.options = config.options;
+  this.meta = this.data.datasets.map(d => ({hidden: null, data: d.data.map((v, i) => ({x: i, y: v}))}));
+  this.active = []; this.tooltip = {active: [], setActiveElements(active, position) { this.active = active; this.position = position; }};
+  charts.push(this);
+ }
+ isDatasetVisible(i) { return !(this.meta[i].hidden === null ? this.data.datasets[i].hidden : this.meta[i].hidden); }
+ setDatasetVisibility(i, visible) { this.meta[i].hidden = !visible; }
+ getDatasetMeta(i) { return this.meta[i]; }
+ setActiveElements(active) { this.active = active; }
+ update() {}
+ destroy() {}
+};
+require(%s); require(%s);
+const S = window.Statso;
+const rows = Array.from({length: 24}, (_, i) => ({year: 2019 + Math.floor(i / 12),
+ month: String(2019 + Math.floor(i / 12)) + '-' + String(i %% 12 + 1).padStart(2, '0'), chained_1951_09: 100 + i}));
+const construction = rows.slice(12).map((row, i) => ({...row, chained_1950_07: 2000 + i}));
+S.chart.init(rows, construction); S.chart.activate();
+const chart = charts[0], live = els['chart-live'], seen = {};
+function key(name) { let prevented = false; els['cpi-chart'].handlers.keydown({key: name, preventDefault() { prevented = true; }}); return prevented; }
+// 1) hiding a series cancels the announcement that is still queued for it
+key('End');
+const construct = els['chart-series-construction']; construct.checked = false; construct.handlers.change();
+seen.pendingAfterHide = timers.filter(t => t.live).length; flush(); seen.spokenAfterHide = live.textContent;
+construct.checked = true; construct.handlers.change();
+// 2) the names follow the language of the key press, not the language the chart was built in
+language = 'en'; key('ArrowLeft'); flush(); seen.english = live.textContent;
+language = 'he'; key('ArrowLeft'); flush(); seen.hebrew = live.textContent;
+// 3) a boundary key restores a tooltip removed by the mouse, without speaking again
+key('End'); flush(); live.textContent = '';
+chart.tooltip.setActiveElements([], {x: 0, y: 0}); chart.setActiveElements([]);
+seen.boundaryPrevented = key('End');
+seen.restored = chart.tooltip.active.length; seen.restoredQuiet = timers.filter(t => t.live).length === 0 && live.textContent === '';
+process.stdout.write(JSON.stringify(seen));
+""" % (json.dumps(str(ROOT / 'assets/statso-core.js')), json.dumps(str(ROOT / 'assets/statso-chart.js')))
+        seen = json.loads(subprocess.run(
+            ["node", "-e", script], check=True, capture_output=True, text=True, encoding="utf-8"
+        ).stdout)
+        self.assertEqual(seen['pendingAfterHide'], 0)
+        self.assertEqual(seen['spokenAfterHide'], '')
+        self.assertEqual(seen['english'], '11/2020: CPI-en 122.0; Build-en 2,010.0')
+        self.assertEqual(seen['hebrew'], '10/2020: CPI-he 121.0; Build-he 2,009.0')
+        self.assertTrue(seen['boundaryPrevented'])
+        self.assertEqual(seen['restored'], 2)
+        self.assertTrue(seen['restoredQuiet'])
+
+    def test_skipped_content_still_gets_its_attributes_translated(self):
+        # data-i18n-skip protects the content of code blocks from translation, but the aria-label on
+        # the <pre> is read aloud, so it must follow the language (it used to stay Hebrew in English).
+        script = """
+const attrs = {'aria-label': 'קוד לדוגמה'};
+const text = {nodeType: 3, nodeValue: 'קורונה', nextSibling: null};   // translatable, so a stray traversal would show
+const pre = {nodeType: 1, tagName: 'PRE', firstChild: text, nextSibling: null,
+ hasAttribute: name => name === 'data-i18n-skip' || name in attrs, getAttribute: name => attrs[name],
+ setAttribute(name, value) { attrs[name] = value; }};
+const body = {nodeType: 1, tagName: 'BODY', firstChild: pre, nextSibling: null, hasAttribute: () => false};
+pre.parent = body;
+global.window = {location: {search: '', href: 'https://x.test/'}, history: {replaceState() {}},
+ localStorage: {getItem() { return null; }, setItem() {}}};
+global.document = {body, addEventListener() {}, getElementById: () => null, querySelector: () => null,
+ querySelectorAll: () => [], documentElement: {setAttribute() {}}};
+require(%s); require(%s);
+const S = window.Statso, seen = {};
+S.i18n.init();
+S.i18n.set('en'); seen.english = attrs['aria-label']; seen.contentUntouched = text.nodeValue;
+S.i18n.set('he'); seen.hebrewAgain = attrs['aria-label'];
+process.stdout.write(JSON.stringify(seen));
+""" % (json.dumps(str(ROOT / "assets/statso-lang-en.js")), json.dumps(str(ROOT / "assets/statso-i18n.js")))
+        seen = json.loads(subprocess.run(
+            ["node", "-e", script], check=True, capture_output=True, text=True, encoding="utf-8"
+        ).stdout)
+        self.assertEqual(seen, {"english": "Sample code", "contentUntouched": "קורונה", "hebrewAgain": "קוד לדוגמה"})
+
+    def test_missing_rate_messages_translate_the_currency_name_too(self):
+        script = """
+global.window = {};
+require(%s);
+const L = window.Statso.lang;
+const t = s => { for (const rule of L.enPatterns) { if (rule[0].test(s)) { return s.replace(rule[0], rule[1]); } } return s; };
+process.stdout.write(JSON.stringify([t('אין שער לדולר ארה״ב לפני 15/05/1948.'), t('אין נתוני שער עבור אירו.'),
+ t('אין נתוני שער עבור XYZ.')]));
+""" % json.dumps(str(ROOT / "assets/statso-lang-en.js"))
+        seen = json.loads(subprocess.run(
+            ["node", "-e", script], check=True, capture_output=True, text=True, encoding="utf-8"
+        ).stdout)
+        self.assertEqual(seen, ["No rate for US dollar before 15/05/1948.", "No rate data for Euro.", "No rate data for XYZ."])
+
+    def test_chart_markup_and_strings(self):
+        section = re.search(r'<section[^>]*id="chart-section".*?</section>', self.html, re.DOTALL).group(0)
+        self.assertIn('<div class="sr-only" id="chart-live" role="status" aria-live="polite" aria-atomic="true"></div>', section)
+        help_text = re.search(r'<p class="sr-only" id="chart-keys-help">([^<]+)</p>', section).group(1)
+        language = (ROOT / 'assets/statso-lang-en.js').read_text(encoding='utf-8')
+        self.assertIn("'" + help_text + "':", language)
+        self.assertIn("'סדרות בתרשים':", language)
+        fieldset = re.search(r'<fieldset class="chart-series">.*?</fieldset>', section).group(0)
+        for id_ in ('chart-series-cpi', 'chart-series-construction'):
+            self.assertIn('<input id="' + id_ + '" type="checkbox" checked>', fieldset)
+        chart = (ROOT / 'assets/statso-chart.js').read_text(encoding='utf-8')
+        for text in ('preventDefault', 'metaKey', 'setActiveElements', 'setDatasetVisibility',
+                     'onClick: onLegendClick', 'nextIndex: nextIndex', 'announcementText: announcementText'):
+            self.assertIn(text, chart)
+
+    def test_accessibility_statement_lists_the_new_accommodations(self):
+        page = re.search(r'<article[^>]*id="accessibility-page".*?</article>', self.html, re.DOTALL).group(0)
+        he = re.search(r'data-lang="he">(.*?)</div>', page, re.DOTALL).group(1)
+        en = re.search(r'data-lang="en" hidden>(.*?)</div>', page, re.DOTALL).group(1)
+        self.assertIn('10/10/2026', he)
+        self.assertIn('10 October 2026', en)
+        for block in (he, en):
+            self.assertIn('forced colors', block)
+            self.assertIn('Page Up/Page Down', block)
+            self.assertIn('Home/End', block)
+            self.assertIn('NVDA/JAWS', block)
+        self.assertIn('VoiceOver</span> לא בוצעה בשלב זה.', he)
+        self.assertIn('VoiceOver</span> screen reader was not performed at this stage.', en)
+        self.assertNotRegex(en, r'[֐-׿]')
+        for old in ('09/10/2026', '9 October 2026', 'לא מתוך הגרף עצמו', 'not from the chart itself'):
+            self.assertNotIn(old, page)
+
+    def test_contact_hebrew_messages_have_english_entries(self):
+        contact = (ROOT / 'assets/statso-contact.js').read_text(encoding='utf-8')
+        language = (ROOT / 'assets/statso-lang-en.js').read_text(encoding='utf-8')
+        # The email subject is service metadata, not a message shown in the UI.
+        contact = re.sub(r"payload\.set\('subject', '[^']*'\);", '', contact)
+        messages = [text for text in re.findall(r"'([^'\n]*)'", contact) if re.search(r'[֐-׿]', text)]
+        self.assertEqual(len(set(messages)), 12)
+        for message in messages:
+            self.assertIn("'" + message + "':", language)
 
     # ---------- escaping --------------------------------------------------------
 

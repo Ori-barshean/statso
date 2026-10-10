@@ -66,9 +66,147 @@
   };
 
   let observations = [];
+  const SERIES_INPUT_IDS = ['chart-series-cpi', 'chart-series-construction'];
+  const seriesVisible = [true, true];
+  let selectedIndex = null;
+  let announceTimer = null;
   let hasData = false;
   let opened = false;
   let started = false;
+
+  function nextIndex(current, key, length) {
+    let step;
+    switch (key) {
+      case 'ArrowRight': step = 1; break;
+      case 'ArrowLeft': step = -1; break;
+      case 'PageDown': step = 12; break;
+      case 'PageUp': step = -12; break;
+      case 'Home': case 'End': step = 0; break;
+      case 'Escape': return null;
+      default: return undefined;
+    }
+    if (!(length > 0)) { return null; }
+    const last = length - 1;
+    if (key === 'Home') { return 0; }
+    if (key === 'End' || current === null || current === undefined) { return last; }
+    return Math.min(last, Math.max(0, Math.min(current, last) + step));
+  }
+
+  function announcementText(rows, series, index) {
+    const row = rows[index];
+    if (!row) { return ''; }
+    const parts = [];
+    series.forEach(function (one) {
+      const value = one.data[index];
+      if (!one.visible || value === null || value === undefined || !Number.isFinite(value)) { return; }
+      parts.push(one.label + ' ' + Statso.core.formatNumber(value, 1));
+    });
+    let text = Statso.core.formatMonthHe(row.month);
+    if (parts.length) { text += ': ' + parts.join('; '); }
+    const event = EVENTS.find(function (one) { return one.month === row.month; });
+    if (event) { text += ' — ' + Statso.i18n.t(event.label); }
+    return text;
+  }
+
+  // The series names are read in the language of the moment of the key press, not the one the chart
+  // was last built in: with an invalid year range the chart is not rebuilt on a language switch.
+  const SERIES_LABELS = ['מדד המחירים לצרכן', 'מדד תשומות הבנייה למגורים'];
+  function seriesOf(chart) {
+    return chart.data.datasets.map(function (d, i) {
+      return {label: SERIES_LABELS[i] ? Statso.i18n.t(SERIES_LABELS[i]) : d.label, data: d.data, visible: chart.isDatasetVisible(i)};
+    });
+  }
+
+  function activeAt(chart, index) {
+    const active = [];
+    chart.data.datasets.forEach(function (d, i) {
+      const value = d.data[index];
+      if (chart.isDatasetVisible(i) && value !== null && value !== undefined && Number.isFinite(value)) {
+        active.push({datasetIndex: i, index: index});
+      }
+    });
+    return active;
+  }
+
+  function scheduleAnnouncement(text) {
+    root.clearTimeout(announceTimer);
+    const live = document.getElementById('chart-live');
+    if (!live) { return; }
+    announceTimer = root.setTimeout(function () { live.textContent = text; }, 250);
+  }
+
+  function applySelection(index, announce) {
+    selectedIndex = index;
+    const chart = chartInstance;
+    const active = activeAt(chart, index);
+    const anchor = active.length ? chart.getDatasetMeta(active[0].datasetIndex).data[index] : null;
+    chart.setActiveElements(active);
+    chart.tooltip.setActiveElements(active, anchor ? {x: anchor.x, y: anchor.y} : {x: 0, y: 0});
+    chart.update('none');
+    if (announce) { scheduleAnnouncement(announcementText(chart.$statsoRows || [], seriesOf(chart), index)); }
+  }
+
+  function resetSelection() {
+    selectedIndex = null;
+    root.clearTimeout(announceTimer);
+    const live = document.getElementById('chart-live');
+    if (live) { live.textContent = ''; }
+  }
+
+  function clearSelection() {
+    resetSelection();
+    if (!chartInstance) { return; }
+    chartInstance.setActiveElements([]);
+    chartInstance.tooltip.setActiveElements([], {x: 0, y: 0});
+    chartInstance.update('none');
+  }
+
+  function onChartKey(event) {
+    if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) { return; }
+    const rows = chartInstance && chartInstance.$statsoRows;
+    if (!rows) { return; }
+    const next = nextIndex(selectedIndex, event.key, rows.length);
+    if (next === undefined) { return; }
+    if (event.key === 'Escape' && selectedIndex === null) { return; }
+    event.preventDefault();
+    // At an edge nothing moves and nothing is spoken again, but a tooltip that the mouse leaving the
+    // canvas has just removed comes back.
+    if (next === selectedIndex) { applySelection(next, false); return; }
+    if (next === null) { clearSelection(); } else { applySelection(next, true); }
+  }
+
+  function setSeriesVisible(index, visible) {
+    seriesVisible[index] = visible;
+    const input = document.getElementById(SERIES_INPUT_IDS[index]);
+    if (input) { input.checked = visible; }
+    const chart = chartInstance;
+    if (!chart || index >= chart.data.datasets.length) { return; }
+    chart.setDatasetVisibility(index, visible);
+    root.clearTimeout(announceTimer);   // a queued announcement may still name the series that was just hidden
+    if (selectedIndex === null) { chart.update(); }
+    else { chart.update('none'); applySelection(selectedIndex, false); }
+  }
+
+  function onLegendClick(e, item) {
+    setSeriesVisible(item.datasetIndex, !seriesVisible[item.datasetIndex]);
+  }
+
+  function syncSeriesControls(count) {
+    SERIES_INPUT_IDS.forEach(function (id, i) {
+      const input = document.getElementById(id);
+      if (!input) { return; }
+      input.checked = seriesVisible[i];
+      input.closest('label').hidden = i >= count;
+    });
+  }
+
+  function wireChartControls() {
+    document.getElementById('cpi-chart').addEventListener('keydown', onChartKey);
+    SERIES_INPUT_IDS.forEach(function (id, i) {
+      const input = document.getElementById(id);
+      if (input) { input.addEventListener('change', function () { setSeriesVisible(i, input.checked); }); }
+    });
+  }
 
   function populateYearSelects(years) {
     const start = document.getElementById('chart-start-year');
@@ -84,20 +222,47 @@
   function buildConfig(cpiRows, constructionRows) {
     const hasConstruction = !!(constructionRows && constructionRows.length);
     const constructionByMonth = new Map((constructionRows || []).map(function (r) { return [r.month, r.chained_1950_07]; }));
-    const datasets = [{label: Statso.i18n.t('מדד המחירים לצרכן'), data: cpiRows.map(function (r) { return r.chained_1951_09; }), borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,.1)', borderWidth: 2, pointRadius: 0, tension: 0, fill: true, yAxisID: 'y'}];
+    const datasets = [{label: Statso.i18n.t('מדד המחירים לצרכן'), data: cpiRows.map(function (r) { return r.chained_1951_09; }), borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,.1)', borderWidth: 2, pointRadius: 0, tension: 0, fill: true, yAxisID: 'y', hidden: !seriesVisible[0]}];
     if (hasConstruction) {
-      datasets.push({label: Statso.i18n.t('מדד תשומות הבנייה למגורים'), data: cpiRows.map(function (r) { return constructionByMonth.has(r.month) ? constructionByMonth.get(r.month) : null; }), borderColor: '#16a34a', backgroundColor: 'rgba(22,163,74,.1)', borderWidth: 2, pointRadius: 0, tension: 0, fill: false, spanGaps: false, yAxisID: 'y1'});
+      datasets.push({label: Statso.i18n.t('מדד תשומות הבנייה למגורים'), data: cpiRows.map(function (r) { return constructionByMonth.has(r.month) ? constructionByMonth.get(r.month) : null; }), borderColor: '#16a34a', backgroundColor: 'rgba(22,163,74,.1)', borderWidth: 2, pointRadius: 0, tension: 0, fill: false, spanGaps: false, yAxisID: 'y1', hidden: !seriesVisible[1]});
     }
-    const config = {type: 'line', plugins: [eventPlugin], data: {labels: cpiRows.map(function (r) { return Statso.core.formatMonthHe(r.month); }), datasets: datasets}, options: {responsive: true, maintainAspectRatio: false, locale: 'he-IL', interaction: {intersect: false, mode: 'index'}, scales: {x: {type: 'category', ticks: {autoSkip: true, maxTicksLimit: 12}}, y: {type: 'linear', position: 'left', beginAtZero: false, ticks: {callback: function (v) { return Statso.core.formatNumber(v, 0); }}}, y1: {type: 'linear', position: 'right', beginAtZero: false, display: hasConstruction, grid: {drawOnChartArea: false}, ticks: {callback: function (v) { return Statso.core.formatNumber(v, 0); }}}}, plugins: {legend: {rtl: true, display: true}, tooltip: {rtl: true, textDirection: 'rtl'}}}};
+    const config = {type: 'line', plugins: [eventPlugin], data: {labels: cpiRows.map(function (r) { return Statso.core.formatMonthHe(r.month); }), datasets: datasets}, options: {responsive: true, maintainAspectRatio: false, locale: 'he-IL', interaction: {intersect: false, mode: 'index'}, scales: {x: {type: 'category', ticks: {autoSkip: true, maxTicksLimit: 12}}, y: {type: 'linear', display: 'auto', position: 'left', beginAtZero: false, ticks: {callback: function (v) { return Statso.core.formatNumber(v, 0); }}}, y1: {type: 'linear', position: 'right', beginAtZero: false, display: hasConstruction ? 'auto' : false, grid: {drawOnChartArea: false}, ticks: {callback: function (v) { return Statso.core.formatNumber(v, 0); }}}}, plugins: {legend: {rtl: true, display: true, onClick: onLegendClick}, tooltip: {rtl: true, textDirection: 'rtl'}}}};
     // Chart.js draws the lines in over a second by default; a visitor who asked their OS for less motion gets the finished chart at once.
     if (root.matchMedia && root.matchMedia('(prefers-reduced-motion: reduce)').matches) { config.options.animation = false; }
     return config;
   }
 
+  // The event markers exist only as canvas drawing, so a screen reader would
+  // never learn they are there. Name the ones the current range actually shows,
+  // from the same EVENTS list and the same test the drawing code uses.
+  function describeEvents(rows) {
+    const holder = document.getElementById('chart-alt-events');
+    if (!holder) { return; }
+    holder.textContent = '';
+    const shown = EVENTS.filter(function (event) { return eventIndex(rows, event.month) >= 0; });
+    holder.hidden = !shown.length;
+    if (!shown.length) { return; }
+    holder.appendChild(document.createTextNode('אירועים המסומנים בתרשים: '));
+    shown.forEach(function (event, i) {
+      if (i) { holder.appendChild(document.createTextNode('; ')); }
+      const date = document.createElement('span');
+      date.setAttribute('dir', 'ltr');
+      date.textContent = Statso.core.formatMonthHe(event.month);
+      holder.appendChild(date);
+      holder.appendChild(document.createTextNode(' \u2014 '));
+      holder.appendChild(document.createTextNode(event.label));
+    });
+    holder.appendChild(document.createTextNode('.'));
+  }
+
   function render(cpiRows, constructionRows) {
+    describeEvents(cpiRows);
+    resetSelection();
     if (chartInstance) { chartInstance.destroy(); }
-    chartInstance = new root.Chart(document.getElementById('cpi-chart').getContext('2d'), buildConfig(cpiRows, constructionRows));
+    const config = buildConfig(cpiRows, constructionRows);
+    chartInstance = new root.Chart(document.getElementById('cpi-chart').getContext('2d'), config);
     chartInstance.$statsoRows = cpiRows;
+    syncSeriesControls(config.data.datasets.length);
     chartInstance.update('none');
   }
 
@@ -116,6 +281,7 @@
     populateYearSelects(years);
     document.getElementById('chart-start-year').addEventListener('change', onRangeChange);
     document.getElementById('chart-end-year').addEventListener('change', onRangeChange);
+    wireChartControls();
     onRangeChange();
   }
 
@@ -129,5 +295,5 @@
     if (!chartInstance || !document.getElementById('chart-start-year') || !document.getElementById('chart-end-year') || !document.getElementById('chart-range-error') || !document.getElementById('cpi-chart')) { return; }
     onRangeChange();
   });
-  Statso.chart = {EVENTS: EVENTS, eventIndex: eventIndex, populateYearSelects: populateYearSelects, sliceByYears: sliceByYears, buildConfig: buildConfig, render: render, onRangeChange: onRangeChange, init: init, activate: activate, showUnavailable: showUnavailable, resize: resize};
+  Statso.chart = {EVENTS: EVENTS, eventIndex: eventIndex, populateYearSelects: populateYearSelects, sliceByYears: sliceByYears, buildConfig: buildConfig, describeEvents: describeEvents, render: render, onRangeChange: onRangeChange, init: init, activate: activate, showUnavailable: showUnavailable, resize: resize, nextIndex: nextIndex, announcementText: announcementText};
 })(window);

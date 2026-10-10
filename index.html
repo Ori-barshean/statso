@@ -21,7 +21,7 @@
         </a>
         <a class="nav-item" href="#/guides">מדריכים</a>
         <div class="nav-group">
-          <a class="nav-item" href="#/tools" aria-haspopup="true" aria-expanded="false" aria-controls="tools-submenu" id="tools-trigger">כלים</a>
+          <a class="nav-item" href="#/tools" aria-expanded="false" aria-controls="tools-submenu" id="tools-trigger">כלים</a>
           <ul class="nav-submenu" id="tools-submenu" aria-label="כלים">
             <li><a href="#/tools/index">הצמדה למדדים</a></li>
             <li><a href="#/tools/fx">הצמדה למטבע</a></li>
@@ -36,7 +36,7 @@
       <div class="brand-group">
         <a class="brand" href="index.html" aria-label="statso — דף הבית"><span class="brand-mark">s</span><span>statso</span></a>
         <div class="lang-picker" id="lang-picker" data-i18n-skip>
-          <button type="button" class="lang-button" id="lang-toggle" lang="en" aria-haspopup="true" aria-expanded="false" aria-controls="lang-menu">Switch Language</button>
+          <button type="button" class="lang-button" id="lang-toggle" lang="en" aria-expanded="false" aria-controls="lang-menu">Switch Language</button>
           <ul class="lang-menu" id="lang-menu" hidden>
             <li><button type="button" class="lang-choice" data-lang-choice="he" lang="he">עברית</button></li>
             <li><button type="button" class="lang-choice" data-lang-choice="en" lang="en">English</button></li>
@@ -113,7 +113,7 @@
         <div class="range-controls"><label>משנה <select id="chart-start-year"></select></label><label>עד <select id="chart-end-year"></select></label></div>
       </div>
       <div class="state-loading">טוען תרשים…</div><div class="state-error"></div>
-      <div class="state-ready"><p class="inline-error" id="chart-range-error" role="alert"></p><div class="chart-wrap"><canvas id="cpi-chart" aria-label="תרשים מדד המחירים לצרכן ומדד תשומות הבנייה למגורים, משורשרים" role="img" aria-describedby="chart-alt-text"></canvas></div><p class="chart-alt" id="chart-alt-text">התרשים מציג את מגמת מדד המחירים לצרכן ומדד תשומות הבנייה למגורים, משורשרים, לאורך הטווח שנבחר. <a href="#/tools/history">לצפייה בנתונים כטבלה</a></p></div>
+      <div class="state-ready"><p class="inline-error" id="chart-range-error" role="alert"></p><div class="chart-wrap"><canvas id="cpi-chart" tabindex="0" aria-label="תרשים מדד המחירים לצרכן ומדד תשומות הבנייה למגורים, משורשרים" role="img" aria-describedby="chart-alt-text chart-alt-events chart-keys-help"></canvas></div><fieldset class="chart-series"><legend>סדרות בתרשים</legend><div class="tool-checkboxes"><label class="tool-checkbox"><input id="chart-series-cpi" type="checkbox" checked> מדד המחירים לצרכן</label><label class="tool-checkbox"><input id="chart-series-construction" type="checkbox" checked> מדד תשומות הבנייה למגורים</label></div></fieldset><p class="chart-alt" id="chart-alt-text">התרשים מציג את מגמת מדד המחירים לצרכן ומדד תשומות הבנייה למגורים, משורשרים, לאורך הטווח שנבחר. <a href="#/tools/history">לצפייה בנתונים כטבלה</a></p><p class="sr-only" id="chart-alt-events" hidden></p><p class="sr-only" id="chart-keys-help">ניווט בתרשים במקלדת: חץ ימינה עובר לחודש מאוחר יותר וחץ שמאלה לחודש מוקדם יותר, Page Down ו־Page Up קופצים שנה קדימה או אחורה, Home ו־End עוברים לחודש הראשון או האחרון בטווח, ו־Escape מנקה את הבחירה. החודש והערכים מוקראים אחרי כל מעבר.</p><div class="sr-only" id="chart-live" role="status" aria-live="polite" aria-atomic="true"></div></div>
     </section>
 
     <section class="panel calculator-panel" id="calculator-section" data-state="loading" aria-labelledby="calculator-title">
@@ -322,8 +322,8 @@
         </fieldset>
         <fieldset class="rent-block"><legend>תקופת השכירות הבסיסית</legend>
           <div class="rent-grid">
-            <label>מחודש <input id="tr-base-start" type="month"></label>
-            <label>עד חודש <input id="tr-base-end" type="month"></label>
+            <label>מחודש <input id="tr-base-start" type="month" placeholder="YYYY-MM"></label>
+            <label>עד חודש <input id="tr-base-end" type="month" placeholder="YYYY-MM"></label>
             <label>דמי שכירות חודשיים (₪) <input id="tr-base-rent" type="number" min="0" step="any" value="5000" inputmode="decimal"></label>
           </div>
         </fieldset>
@@ -355,8 +355,8 @@
         <fieldset class="rent-block"><legend>טווח לייצוא</legend>
           <div class="rent-grid">
             <label>תקופה <select id="tr-export-period"><option value="all">כל התקופות</option></select></label>
-            <label>מחודש <input id="tr-export-from" type="month"></label>
-            <label>עד חודש <input id="tr-export-to" type="month"></label>
+            <label>מחודש <input id="tr-export-from" type="month" placeholder="YYYY-MM"></label>
+            <label>עד חודש <input id="tr-export-to" type="month" placeholder="YYYY-MM"></label>
           </div>
           <label class="rent-inline"><input id="tr-exclude-paid" type="checkbox" checked> להשמיט חודשים שההפרש בגינם כבר שולם</label>
         </fieldset>
@@ -532,22 +532,22 @@
         <section>
           <p>מפעיל האתר מחויב לאפשר שימוש נוח ככל האפשר באתר לאנשים עם מוגבלות, וממשיך לעבוד על שיפור הנגישות לאורך זמן.</p>
           <p>האתר נבנה תוך התייחסות לתקן הישראלי הרלוונטי (ת"י 5568) ולהנחיות <span dir="ltr">WCAG</span>.</p>
-          <p>בין ההתאמות שבוצעו בפועל: כפתור דילוג לתוכן המרכזי בתחילת כל עמוד; העברת פוקוס לכותרת העמוד החדש בכל מעבר בין עמודים, כך שקורא מסך מכריז עליה; תפריט "כלים" בניווט שפועל גם במקלדת, כולל סגירה במקש <span dir="ltr">Escape</span>; חלופה נגישה לתרשים המדד ההיסטורי — תיאור טקסטואלי וקישור לטבלת נתונים מקבילה; כותרות (<span dir="ltr">captions</span>) לטבלאות הנתונים; כותרת ייחודית בלשונית הדפדפן לכל עמוד; הקראת תוצאות המחשבונים ואישורי ההעתקה לקורא מסך באמצעות אזור סטטוס; שמות ברורים לתקופות בכלי הצמדת הסכם שכירות והעברת מיקוד תקינה בהוספה ובהסרה שלהן; אזורי הגלילה האופקית — של טבלאות רחבות, איורי המדריכים וקטעי הקוד לדוגמה — ניתנים למיקוד וגלילה גם במקלדת; ניגודיות צבע תקינה בטקסטים המשניים ובמסגרות שדות הטופס; סימון בולט של מיקוד המקלדת בכל רכיב אינטראקטיבי; יעדי לחיצה בגובה של 24 פיקסלים לפחות; וכיבוד הגדרת "הפחתת תנועה" (<span dir="ltr">prefers-reduced-motion</span>) של המשתמש, כולל ביטול אנימציית הציור של התרשים.</p>
-          <p>מגבלות ידועות: פרטי התרשים החזותי (<span dir="ltr">Canvas</span>) זמינים רק דרך התיאור הטקסטואלי והטבלה המקושרת אליו, לא מתוך הגרף עצמו; קובצי ה־<span dir="ltr">PDF</span> המיוצאים מהכלים אינם מתויגים לקורא מסך; מעבר בין השפות דורש <span dir="ltr">JavaScript</span> פעיל בדפדפן.</p>
+          <p>בין ההתאמות שבוצעו בפועל: כפתור דילוג לתוכן המרכזי בתחילת כל עמוד; העברת פוקוס לכותרת העמוד החדש בכל מעבר בין עמודים, כך שקורא מסך מכריז עליה; תפריט "כלים" בניווט שפועל גם במקלדת, כולל סגירה במקש <span dir="ltr">Escape</span>; חלופה נגישה לתרשים המדד ההיסטורי — תיאור טקסטואלי, הכולל את האירועים המסומנים בטווח שנבחר, וקישור לטבלת נתונים מקבילה, לצד חקירת התרשים עצמו במקלדת: חצים לחודש הקודם או הבא, <span dir="ltr">Page Up/Page Down</span> לקפיצה של שנה ו־<span dir="ltr">Home/End</span> לקצות הטווח, עם הקראת החודש, ערכי הסדרות והאירוע המסומן, ותיבות סימון להצגה או להסתרה של כל סדרה; כותרות (<span dir="ltr">captions</span>) לטבלאות הנתונים; כותרת ייחודית בלשונית הדפדפן לכל עמוד; הקראת תוצאות המחשבונים ואישורי ההעתקה לקורא מסך באמצעות אזור סטטוס; שמות ברורים לתקופות בכלי הצמדת הסכם שכירות והעברת מיקוד תקינה בהוספה ובהסרה שלהן; אזורי הגלילה האופקית — של טבלאות רחבות, איורי המדריכים וקטעי הקוד לדוגמה — ניתנים למיקוד וגלילה גם במקלדת; ניגודיות צבע תקינה בטקסטים המשניים ובמסגרות שדות הטופס; סימון בולט של מיקוד המקלדת בכל רכיב אינטראקטיבי, שאינו מוסתר מתחת לכותרת הדביקה גם כשהיא גובהת במסכים צרים; סימון העמוד הנוכחי בניווט באמצעות קו תחתון שאינו תלוי בצבע, גם במצב צבעים כפויים (<span dir="ltr">forced colors</span>), למשל במצב ניגודיות גבוהה של <span dir="ltr">Windows</span>; יעדי לחיצה בגובה של 24 פיקסלים לפחות; וכיבוד הגדרת "הפחתת תנועה" (<span dir="ltr">prefers-reduced-motion</span>) של המשתמש, כולל ביטול אנימציית הציור של התרשים.</p>
+          <p>מגבלות ידועות: בתוך התרשים אפשר לעבור חודש אחר חודש ולשמוע את הערכים; הצירים, המקרא וקווי האירועים מצוירים כתמונה ונגישים לקוראי מסך רק דרך התיאור, תיבות הסימון של הסדרות והטבלה המקושרת; בקוראי מסך במצב גלישה (<span dir="ltr">NVDA/JAWS</span>) ייתכן שיידרש מעבר למצב מיקוד כדי שמקשי החצים יגיעו לתרשים; קובצי ה־<span dir="ltr">PDF</span> המיוצאים מהכלים אינם מתויגים לקורא מסך; מעבר בין השפות דורש <span dir="ltr">JavaScript</span> פעיל בדפדפן.</p>
           <p>נגישות האתר נבדקה באופן אוטומטי וידני: סריקת <span dir="ltr">axe-core</span> על כל עמודי האתר, ובדיקה ידנית בדפדפן מבוסס <span dir="ltr">Chromium</span>: ניווט מקלדת בכל הנתיבים והכלים באתר, תצוגה ברוחב 320 פיקסלים ללא גלילה אופקית של העמוד, הגדלת ריווח הטקסט, גודל יעדי לחיצה וניגודיות של רכיבי ממשק. בדיקה עם קורא מסך <span dir="ltr">VoiceOver</span> לא בוצעה בשלב זה.</p>
           <p>נתקלתם בבעיית נגישות? אפשר לדווח למפעיל האתר בכתובת <a href="mailto:ori.cpa.il@gmail.com" dir="ltr">ori.cpa.il@gmail.com</a>.</p>
-          <p>תאריך בדיקת הנגישות האחרונה: 09/10/2026.</p>
+          <p>תאריך בדיקת הנגישות האחרונה: 10/10/2026.</p>
         </section>
       </div>
       <div class="prose-guide" data-lang="en" hidden>
         <section>
           <p>The site operator is committed to making the site as usable as reasonably possible for people with disabilities, and continues working to improve its accessibility over time.</p>
           <p>The site was built with attention to the relevant Israeli standard (IS 5568) and to the <span dir="ltr">WCAG</span> guidelines.</p>
-          <p>Accommodations actually implemented include: a "skip to main content" button at the start of every page; moving focus to the new page's heading on every page transition, so screen readers announce it; a "Tools" navigation menu that is fully keyboard-operable, including closing with the <span dir="ltr">Escape</span> key; an accessible alternative for the historical index chart — a text description plus a link to an equivalent data table; captions on the data tables; a distinct browser-tab title for every page; calculator results and copy confirmations announced to screen readers through a status region; clear names for the periods in the rental-agreement tool, with focus handled when they are added or removed; keyboard-focusable, keyboard-scrollable containers for wide tables, guide illustrations, and sample-code blocks; adequate color contrast on secondary text and on form-field borders; a prominent keyboard-focus indicator on every interactive element; click targets at least 24 pixels tall; and respecting the user's "reduce motion" (<span dir="ltr">prefers-reduced-motion</span>) preference, including turning off the chart's draw-in animation.</p>
-          <p>Known limitations: the visual detail of the canvas-based chart is available only through its text description and the linked table, not from the chart itself; <span dir="ltr">PDF</span> files exported from the tools are not tagged for screen readers; switching languages requires <span dir="ltr">JavaScript</span> to be enabled in the browser.</p>
+          <p>Accommodations actually implemented include: a "skip to main content" button at the start of every page; moving focus to the new page's heading on every page transition, so screen readers announce it; a "Tools" navigation menu that is fully keyboard-operable, including closing with the <span dir="ltr">Escape</span> key; an accessible alternative for the historical index chart — a text description, including the events marked in the selected range, plus a link to an equivalent data table, together with keyboard exploration of the chart itself: arrows move to the previous or next month, Page Up/Page Down jump a year, and Home/End move to the ends of the range, with the month, series values and marked event announced, plus checkboxes to show or hide each series; captions on the data tables; a distinct browser-tab title for every page; calculator results and copy confirmations announced to screen readers through a status region; clear names for the periods in the rental-agreement tool, with focus handled when they are added or removed; keyboard-focusable, keyboard-scrollable containers for wide tables, guide illustrations, and sample-code blocks; adequate color contrast on secondary text and on form-field borders; a prominent keyboard-focus indicator on every interactive element that is never hidden under the sticky header, including when it grows taller on narrow screens; a non-color indicator (a bottom bar) for the current page in navigation, also in forced colors mode such as Windows High Contrast; click targets at least 24 pixels tall; and respecting the user's "reduce motion" (<span dir="ltr">prefers-reduced-motion</span>) preference, including turning off the chart's draw-in animation.</p>
+          <p>Known limitations: inside the chart you can move month by month and hear the values; axes, legend and event lines are drawn as an image and reach screen readers only through the description, the series checkboxes and the linked table; screen readers in browse mode (NVDA/JAWS) may need focus mode before arrow keys reach the chart; <span dir="ltr">PDF</span> files exported from the tools are not tagged for screen readers; switching languages requires <span dir="ltr">JavaScript</span> to be enabled in the browser.</p>
           <p>The site's accessibility was tested automatically and manually: an <span dir="ltr">axe-core</span> scan across every page, plus manual testing in a <span dir="ltr">Chromium</span>-based browser: keyboard-only navigation across every route and tool on the site, a 320-pixel-wide view with no horizontal page scroll, increased text spacing, click-target size, and the contrast of interface components. Testing with the <span dir="ltr">VoiceOver</span> screen reader was not performed at this stage.</p>
           <p>Found an accessibility issue? You can report it to the site operator at <a href="mailto:ori.cpa.il@gmail.com" dir="ltr">ori.cpa.il@gmail.com</a>.</p>
-          <p>Last accessibility review date: 9 October 2026.</p>
+          <p>Last accessibility review date: 10 October 2026.</p>
         </section>
       </div>
       <a class="info-back" href="#/">← חזרה לעמוד הבית</a>
