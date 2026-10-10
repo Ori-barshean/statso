@@ -1183,6 +1183,8 @@ process.stdout.write(JSON.stringify({before, after, fallback: target.textContent
         # the click that follows an edit survive) and names each table with a caption
         self.assertIn('כיתוב לכל טבלת תקופה בכלי הזה, ועדכון הטבלה במקומה בעריכת סכום ששולם או בסימון "שולם", כך שהמיקוד ומקום הגלילה נשמרים', he)
         self.assertIn('a caption on each period table in that tool, and the table updating in place when a paid amount is edited or "paid" is ticked, so keyboard focus and scroll position are kept', en)
+        self.assertIn('של טבלאות הנתונים ההיסטוריות וטבלת שערי המטבע, איורי המדריכים', he)
+        self.assertIn('for the historical data tables, the exchange-rate table, guide illustrations', en)
         # what is still open in that tool: the scroll area has no tab stop of its own (the fields inside are focusable)
         self.assertIn('לאזור הגלילה האופקי של הטבלאות אין עצירת מקלדת משלו', he)
         self.assertIn("horizontal scroll area has no keyboard stop of its own", en)
