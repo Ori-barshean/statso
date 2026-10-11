@@ -180,14 +180,34 @@
     if (scope) {
       return Array.from(scope.querySelectorAll('.calc-result')).filter(function (block) { return !block.hidden; });
     }
-    if (target.closest('.rent-form')) {
+    // Three other tools share the rent form's class for their layout, so the class says nothing about which tool
+    // the visitor is in: the page does. A change in the rent tool says its totals; a change in a historical-data tool
+    // says how many rows the table now holds (the first sentence of the note under it).
+    if (target.closest('#tool-rent-page .rent-form')) {
       const summary = document.getElementById('tr-summary');
       return summary ? [summary] : [];
+    }
+    const page = target.closest('#tool-history-page, #tool-rate-history-page, #tool-fx-history-page');
+    if (page) {
+      const note = document.getElementById(HISTORY_NOTES[page.id]);
+      return note && note.textContent.trim() ? [note] : [];
     }
     return [];
   }
 
+  const HISTORY_NOTES = {'tool-history-page': 'th-note', 'tool-rate-history-page': 'trh-note', 'tool-fx-history-page': 'fxh-note'};
+
+  function isHistoryNote(block) {
+    return Object.keys(HISTORY_NOTES).some(function (id) { return HISTORY_NOTES[id] === block.id; });
+  }
+
   function spokenText(block) {
+    if (isHistoryNote(block)) {
+      const lead = root.Statso && root.Statso.i18n && root.Statso.i18n.t ? root.Statso.i18n.t('הטבלה עודכנה') : 'הטבלה עודכנה';
+      const note = block.textContent.trim();
+      const stop = note.indexOf('. ');
+      return lead + ': ' + (stop < 0 ? note : note.slice(0, stop + 1));
+    }
     return Array.from(block.querySelectorAll('span, strong, small')).map(function (part) {
       return part.textContent.trim();
     }).filter(Boolean).join(' ');
@@ -199,8 +219,15 @@
     let pending = null;
     let clearing = null;
     function speak(target) {
-      const text = resultBlocks(target).map(spokenText).filter(Boolean).join('. ');
-      if (!text || live.textContent === text) { return; }
+      const blocks = resultBlocks(target);
+      const text = blocks.map(spokenText).filter(Boolean).join('. ');
+      if (!text) { return; }
+      if (live.textContent === text) {
+        // A calculator whose answer did not change says nothing again. A table that was rewritten says so even when
+        // it still has as many rows (another currency or series column was added or removed).
+        if (!blocks.some(isHistoryNote)) { return; }
+        live.textContent = '';
+      }
       live.textContent = text;
       root.clearTimeout(clearing);
       clearing = root.setTimeout(function () { live.textContent = ''; }, 5000);

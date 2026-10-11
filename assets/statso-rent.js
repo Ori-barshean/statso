@@ -236,6 +236,16 @@
     return rows.length > 0 && rows.every(function (row) { return row.paid; });
   }
 
+  function somePaid(period) {
+    return period.rows.some(function (row) { return row.available && row.paid; });
+  }
+
+  // Ticked when every published month is settled, "mixed" when only some are, so the box says what the rows say.
+  function syncMarkAll(box, period) {
+    box.checked = allPaid(period);
+    box.indeterminate = !box.checked && somePaid(period);
+  }
+
   function rowHtml(periodIndex, row) {
     const id = key(periodIndex, row.month);
     if (!row.available) {
@@ -319,7 +329,7 @@
       const totals = totalsText(totalsOf(period.rows));
       setText(foot[1], totals.nominal); setText(foot[4], totals.indexed); setText(foot[5], totals.actual);
       setText(foot[6], totals.difference); setText(foot[7], totals.payable);
-      section.querySelector('.tr-period-paid').checked = allPaid(period);
+      syncMarkAll(section.querySelector('.tr-period-paid'), period);
     });
   }
 
@@ -339,6 +349,10 @@
     } else {
       host.innerHTML = periods.map(periodHtml).join('');
       renderedShape = shape;
+      Array.prototype.forEach.call(host.querySelectorAll('.tr-period-paid'), function (box) {
+        const period = periods[Number(box.dataset.period)];
+        if (period) { syncMarkAll(box, period); }
+      });
     }
     const select = el('tr-export-period');
     const current = select.value;

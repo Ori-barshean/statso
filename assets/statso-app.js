@@ -109,6 +109,8 @@
       else { failBoi(boi.reason.message); }
       if (next.status === 'fulfilled') { try { showNext(next.value); } catch (error) { showNextUnavailable(); } } else { showNextUnavailable(); }
       if (fx.status === 'fulfilled') { try { showFx(fx.value); } catch (error) { failFx(error.message); } } else { failFx(fx.reason.message); }
+      // without it the construction series is left out of the chart and its options in the tools are disabled
+      if (!constructionDoc) { noteFailure('מדד תשומות הבנייה למגורים'); }
       showDataProblems();
       alignKpiFootnotes();
       root.dispatchEvent(new CustomEvent('statso:app-ready'));

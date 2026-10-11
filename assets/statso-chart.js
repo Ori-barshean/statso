@@ -387,13 +387,25 @@
     error.textContent = ''; Statso.core.flagFields('chart-range-error', []); render(sliceByYears(observations, start, end), sliceByYears(constructionObservations, start, end));
   }
 
+  // Picking a year redraws the chart and rewrites its text summary somewhere the screen reader's cursor is not, so
+  // the new range is said through the shared status region (not on the first draw, which nobody asked for).
+  function onRangePicked() {
+    onRangeChange();
+    const error = document.getElementById('chart-range-error');
+    if (error && error.textContent) { return; }
+    if (Statso.exporter && Statso.exporter.announce) {
+      Statso.exporter.announce(Statso.i18n.t('טווח התרשים עודכן') + ': ' + document.getElementById('chart-start-year').value
+        + '\u2013' + document.getElementById('chart-end-year').value);
+    }
+  }
+
   function start() {
     if (started || !hasData || !opened) { return; }
     started = true;
     const years = Array.from(new Set(observations.map(function (row) { return row.year; })));
     populateYearSelects(years);
-    document.getElementById('chart-start-year').addEventListener('change', onRangeChange);
-    document.getElementById('chart-end-year').addEventListener('change', onRangeChange);
+    document.getElementById('chart-start-year').addEventListener('change', onRangePicked);
+    document.getElementById('chart-end-year').addEventListener('change', onRangePicked);
     wireChartControls();
     onRangeChange();
   }

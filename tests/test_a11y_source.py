@@ -208,7 +208,7 @@ process.stdout.write(JSON.stringify(seen));
             self.assertIn(cell, patch)
         self.assertIn("input.value = String(row.actual)", patch)
         self.assertIn("cells[8].firstElementChild.checked = row.paid", patch)
-        self.assertIn("section.querySelector('.tr-period-paid').checked = allPaid(period)", patch)
+        self.assertIn("syncMarkAll(section.querySelector('.tr-period-paid'), period)", patch)
         # the listeners live on the container that is never replaced, so nothing is re-bound per render
         self.assertIn("on('tr-periods', 'change', onPeriodsChange);", rent)
         self.assertNotIn("bindRows", rent)
@@ -1203,7 +1203,7 @@ process.stdout.write(JSON.stringify({before, after, fallback: target.textContent
         for text in ('לכל מדריך כתובת משלו', 'כותרות משנה בדפי המידע',
                      'ורשימות של ממש במקומות שבהם הטקסט מונה פריטים (מדיניות הפרטיות והצהרה זו)',
                      'במדריך שנפתח מרשימת המדריכים', 'למדריך שנפתח מקישור ישיר',
-                     'שם לכל צמד של שנה וחודש', 'סמל הלוגו הדקורטיבי מוסתר מקוראי מסך',
+                     'שם לכל צמד של שנה וחודש', 'סמל הלוגו הדקורטיבי, וכרטיס הלוגו בין כרטיסי הנתונים בדף הבית, מוסתרים מקוראי מסך',
                      'שני הקישורים לממשק הלמ״ס', 'קטעי הקוד לדוגמה ואיורי המדריכים מסומנים כאזור בעל שם',
                      'הקוד עצמו מסומן כטקסט באנגלית', 'הערה גלויה שכל השדות חובה, המקושרת לכל שדה',
                      'השם הנגיש של כל שדה "שולם בפועל"', 'כולל את חודש השורה', 'כולל את שם התקופה',
@@ -1216,7 +1216,7 @@ process.stdout.write(JSON.stringify({before, after, fallback: target.textContent
                      'Section headings on the information pages (about, terms, privacy and this statement)', 'three data cards',
                      'real lists where the text enumerates items (the privacy policy and this statement)',
                      'for a guide opened from the guide list', 'a guide opened from a direct link',
-                     'A name for every year-and-month pair', 'The decorative logo mark is hidden from screen readers',
+                     'A name for every year-and-month pair', 'The decorative logo mark, and the logo card among the data cards on the home page, are hidden from screen readers',
                      'two links to the CBS interface', 'Sample-code blocks and guide illustrations are marked as named regions',
                      'code itself is marked as English text', 'all fields are required, linked to each field',
                      'accessible name of every "Actually paid" field and every "Settled" box',
@@ -1231,14 +1231,20 @@ process.stdout.write(JSON.stringify({before, after, fallback: target.textContent
         for text in ('ואינו נחתך בקצה אזורי הגלילה', 'במצב צבעים כפויים, כפתורי הפעולה', 'מוצגים עם מסגרת',
                      'סמלי הכרטיסים בעמוד הכלים', 'מוצגת ומוכרזת הודעה מעל כל עמוד שמציינת איזה מהם חסר', 'מסומן במסגרת מקווקוות ובטקסט ולא בעמעום',
                      'מוצגים כהסבר קופץ', 'סריקת שמות הרכיבים בכל הנתיבים והמצבים', 'הדמיית מצב צבעים כפויים',
-                     'חסימת טעינת קובצי הנתונים', 'בלי הודעה שמסבירה זאת', 'רשימת הבדיקות חלקית', 'אין לראות בה אישור שכל הליקויים אותרו'):
+                     'חסימת טעינת קובצי הנתונים', 'כשמדד תשומות הבנייה חסר, הסדרה שלו חסרה בתרשים', 'רשימת הבדיקות חלקית', 'אין לראות בה אישור שכל הליקויים אותרו'):
             self.assertIn(text, he)
         for text in ('is not cut off at the edge of the scroll areas', 'in forced colors mode, the action buttons',
                      'drawn with a border', 'The symbols on the cards on the tools page',
                      'a notice above every page says which of them is missing', 'dashed border and with text rather than by dimming',
                      'appear only as a hover tooltip', 'scan of component names on every route and state',
-                     'A simulation of forced colors mode', 'Blocking the data files from loading', 'with no message that explains it',
+                     'A simulation of forced colors mode', 'Blocking the data files from loading', 'when the construction-inputs index is missing, its series is left out of the chart',
                      'This list of tests is partial', 'should not be read as confirmation that every defect has been found'):
+            self.assertIn(text, en)
+        for text in ('הבחירות הבאות מוכרזות לקורא מסך, משום שהן משנות תוכן במקום אחר בעמוד', 'נאמר שהטבלה עודכנה ומספר השורות שבה',
+                     'מציגה מצב ביניים', 'וכרטיס הלוגו בין כרטיסי הנתונים בדף הבית, מוסתרים'):
+            self.assertIn(text, he)
+        for text in ('These choices are announced to screen readers, because they rewrite content elsewhere on the page', 'the table update and its row count',
+                     'shows a mixed state when only some of the months are marked', 'and the logo card among the data cards'):
             self.assertIn(text, en)
         # the old claim that loading failures are announced was true only on the home page; it is no longer worded that way
         self.assertNotIn('(כולל כשטעינת נתונים נכשלת)', he)

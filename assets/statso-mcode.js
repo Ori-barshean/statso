@@ -102,6 +102,7 @@
   }
 
   function el(id) { return document.getElementById(id); }
+  function say(text) { return Statso.i18n ? Statso.i18n.t(text) : text; }
   function read() {
     return {series: document.querySelector('input[name="mc-series"]:checked').value,
       currencies: Array.from(document.querySelectorAll('#mc-currencies input:checked')).map(function (box) { return box.value; }),
@@ -140,6 +141,10 @@
     el('mc-to').value = today.getFullYear() + '-' + month + '-' + String(today.getDate()).padStart(2, '0');
     document.querySelectorAll('#mcode-view input').forEach(function (input) {
       input.addEventListener('change', render); input.addEventListener('input', render);
+      // the code below the form is rewritten by a choice, away from the screen reader's cursor: say so once the choice is made
+      input.addEventListener('change', function () {
+        if (!el('mc-error').textContent && Statso.exporter && Statso.exporter.announce) { Statso.exporter.announce(say('הקוד עודכן')); }
+      });
     });
     el('mc-copy').addEventListener('click', function () {
       const button = el('mc-copy'); const text = el('mc-code').textContent;

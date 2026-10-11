@@ -232,7 +232,8 @@ class DataProblemNoticeTests(unittest.TestCase):
     def test_strings_have_english_versions(self):
         keys = dictionary_keys()
         for text in ("חלק מהנתונים לא נטענו, ולכן ייתכן שחלק מהכלים לא יפעלו. אפשר לרענן את הדף ולנסות שוב.",
-                     "נתונים שלא נטענו:", "תקלה בטעינת נתונים", "מדד המחירים לצרכן", "ריבית בנק ישראל", "שערי חליפין"):
+                     "נתונים שלא נטענו:", "תקלה בטעינת נתונים", "מדד המחירים לצרכן", "ריבית בנק ישראל", "שערי חליפין",
+                     "מדד תשומות הבנייה למגורים"):
             self.assertIn(text, keys)
 
     @staticmethod
@@ -277,7 +278,7 @@ setTimeout(() => {
         self.assertEqual(seen["parts"], [
             "חלק מהנתונים לא נטענו, ולכן ייתכן שחלק מהכלים לא יפעלו. אפשר לרענן את הדף ולנסות שוב.",
             "נתונים שלא נטענו:",
-            "|".join(["מדד המחירים לצרכן", "ריבית בנק ישראל", "שערי חליפין"])])
+            "|".join(["מדד המחירים לצרכן", "ריבית בנק ישראל", "שערי חליפין", "מדד תשומות הבנייה למגורים"])])
 
     def test_the_alert_is_shown_empty_first_and_filled_afterwards(self):
         seen = self.notice_after("[gone, gone, gone, gone, gone]", deferred=True)
@@ -285,7 +286,7 @@ setTimeout(() => {
         self.assertEqual(len(seen["parts"]), 3)
 
     def test_only_the_dataset_that_failed_is_named(self):
-        seen = self.notice_after("[%s, gone, gone, here(fx), gone]" % self.CPI)
+        seen = self.notice_after("[%s, gone, gone, here(fx), here({observations: []})]" % self.CPI)
         self.assertFalse(seen["hidden"])
         self.assertEqual(seen["parts"][2], "ריבית בנק ישראל")
 
@@ -295,11 +296,140 @@ setTimeout(() => {
         self.assertTrue(seen["hidden"])
         self.assertEqual(seen["parts"], [])
 
-    def test_the_optional_datasets_do_not_raise_the_notice(self):
-        # the next-decision date and the construction inputs have their own, local messages
-        seen = self.notice_after("[%s, %s, gone, here(fx), gone]" % (self.CPI, self.BOI))
+    def test_the_construction_index_missing_is_named_too(self):
+        # its series silently vanishes from the chart and its options are disabled, so the notice has to say why
+        seen = self.notice_after("[%s, %s, here({next_decision_date: '2026-11-24'}), here(fx), gone]" % (self.CPI, self.BOI))
+        self.assertFalse(seen["hidden"])
+        self.assertEqual(seen["parts"][2], "מדד תשומות הבנייה למגורים")
+
+    def test_the_next_decision_date_has_its_own_local_message_and_does_not_raise_the_notice(self):
+        seen = self.notice_after("[%s, %s, gone, here(fx), here({observations: []})]" % (self.CPI, self.BOI))
         self.assertTrue(seen["hidden"])
         self.assertEqual(seen["parts"], [])
+
+
+class SilentUpdateTests(unittest.TestCase):
+    """A choice that rewrites content somewhere else on the page has to be said, and said about the right tool."""
+
+    NAV = r"""
+global.window = {};
+const timers = [];
+window.setTimeout = (fn, ms) => { timers.push({fn, ms, live: true}); return timers.length; };
+window.clearTimeout = id => { if (timers[id - 1]) { timers[id - 1].live = false; } };
+window.addEventListener = () => {}; window.scrollTo = () => {}; window.requestAnimationFrame = fn => fn();
+window.location = {hash: '#/'};
+const listeners = {}; const live = {textContent: ''};
+const note = (id, text) => ({id, textContent: text, hidden: false, querySelectorAll: () => []});
+const parts = list => ({id: 'tr-summary', hidden: false, textContent: list.join(' '), querySelectorAll: () => list.map(textContent => ({textContent}))});
+const els = {'result-live': live, 'th-note': note('th-note', '25 חודשים בטווח שנבחר. מדד המחירים לצרכן: הערה ארוכה.'),
+  'trh-note': note('trh-note', '8 שינויים בטווח שנבחר. ריבית הפריים מחושבת בתוספת 1.5 נקודות אחוז.'), 'fxh-note': note('fxh-note', ''),
+  'tr-summary': parts(['סה״כ נומינלי', '60,000.00 ₪'])};
+global.document = {title: 't', addEventListener(type, fn) { listeners[type] = fn; },
+ getElementById(id) { if (id in els) { return els[id]; } if (id === 'tools-trigger') { return null; } return {hidden: false, addEventListener() {}, querySelectorAll() { return []; }}; },
+ querySelector() { return null; }, querySelectorAll() { return []; }};
+const inside = (page, inForm = true) => ({closest: selector => selector === '.rent-form' ? {} : selector === '#tool-rent-page .rent-form' ? (page === 'tool-rent-page' && inForm ? {id: page} : null)
+  : selector.includes('#tool-rent-page') ? (page === 'tool-rent-page' ? {id: page} : null)
+  : selector.includes('#tool-history-page') ? (page && page !== 'tool-rent-page' ? {id: page} : null) : null});
+""" 
+
+    def announced(self, page, in_form=True):
+        return node(self.NAV + module("statso-nav.js") + r"""
+window.Statso.nav.init();
+listeners.change({target: inside(%s, %s)});
+timers.filter(t => t.live).forEach(t => { t.live = false; t.fn(); });
+process.stdout.write(JSON.stringify(live.textContent));
+""" % (json.dumps(page), json.dumps(in_form)))
+
+    def test_a_change_in_the_rent_tool_says_the_rent_totals(self):
+        self.assertEqual(self.announced("tool-rent-page"), "סה״כ נומינלי 60,000.00 ₪")
+
+    def test_the_rent_tools_period_tables_and_export_controls_stay_silent_as_before(self):
+        # they sit inside the rent page but outside its form; the summary there would be unrelated noise or stale
+        self.assertEqual(self.announced("tool-rent-page", in_form=False), "")
+
+    def test_a_change_in_a_historical_tool_says_its_own_row_count_never_the_rent_totals(self):
+        self.assertEqual(self.announced("tool-history-page"), "הטבלה עודכנה: 25 חודשים בטווח שנבחר.")
+        self.assertEqual(self.announced("tool-rate-history-page"), "הטבלה עודכנה: 8 שינויים בטווח שנבחר.")
+
+    def test_a_table_rewritten_with_the_same_row_count_still_says_so(self):
+        seen = node(self.NAV + module("statso-nav.js") + r"""
+window.Statso.nav.init();
+const run = () => timers.filter(t => t.live && t.ms < 1000).forEach(t => { t.live = false; t.fn(); });   // the pause, not the 5 s clearing timer
+const log = [];
+Object.defineProperty(live, 'textContent', {get() { return this._t || ''; }, set(v) { this._t = v; log.push(v); }});
+listeners.change({target: inside('tool-fx-history-page')}); run();
+els['fxh-note'].textContent = '25 שורות בטווח שנבחר. הערה.'; listeners.change({target: inside('tool-fx-history-page')}); run();
+listeners.change({target: inside('tool-fx-history-page')}); run();
+process.stdout.write(JSON.stringify(log));
+""")
+        # the first change with a note says it; the next one, with identical text, empties the region and says it afresh so a
+        # screen reader notices; without the forced branch the region would be left untouched
+        text = "הטבלה עודכנה: 25 שורות בטווח שנבחר."
+        self.assertEqual(seen, [text, "", text])   # first change: said; the identical second: emptied, then said again
+
+    def test_the_code_tool_announcement_really_runs(self):
+        # the listener once referred to a helper that only existed inside another function, and failed silently in a browser
+        seen = node(r"""
+global.window = {};
+const made = {};
+const element = id => made[id] || (made[id] = {id, value: '', textContent: '', innerHTML: '', checked: false, hidden: false, disabled: false,
+  listeners: {}, setAttribute() {}, getAttribute() { return null; }, removeAttribute() {},
+  addEventListener(type, fn) { (this.listeners[type] = this.listeners[type] || []).push(fn); }});
+const radio = element('series'); radio.value = 'cpi'; radio.checked = true;
+const inputs = [radio];
+global.document = {addEventListener(type, fn) { if (type === 'DOMContentLoaded') { global.boot = fn; } }, getElementById: element,
+  querySelector() { return radio; }, querySelectorAll(selector) { return selector === '#mcode-view input' ? inputs : []; },
+  createElement: () => element('x'), querySelectorAllFlag: null};
+""" + module("statso-core.js") + module("statso-guide-art.js") + module("statso-guides.js") + module("statso-mcode.js") + r"""
+const spoken = [];
+window.Statso.exporter = {announce: text => spoken.push(text)};
+window.Statso.i18n = {t: text => 'EN:' + text};
+element('mc-from').value = '2024-01-01'; element('mc-to').value = '2025-01-01';
+boot();
+radio.listeners.change.forEach(fn => fn());
+element('mc-from').value = '';   // now the choice is an error, which speaks through its own alert
+radio.listeners.change.forEach(fn => fn());
+process.stdout.write(JSON.stringify(spoken));
+""")
+        self.assertEqual(seen, ["EN:הקוד עודכן"])   # said once for the good choice, not again while an error shows
+
+    def test_an_empty_note_says_nothing(self):
+        self.assertEqual(self.announced("tool-fx-history-page"), "")
+
+    def test_the_historical_tools_are_still_forms_the_announcer_can_tell_apart_by_page(self):
+        for page, note in (("tool-history-page", "th-note"), ("tool-rate-history-page", "trh-note"),
+                           ("tool-fx-history-page", "fxh-note")):
+            section = re.search(r'<section[^>]*id="%s".*?</section>' % page, HTML, re.S).group(0)
+            self.assertIn('id="%s"' % note, section)
+            self.assertNotIn("tr-summary", section)
+        self.assertEqual(len(re.findall(r'<form class="rent-form"', HTML)), 4)   # why the class cannot identify the rent tool
+
+    def test_the_scripts_use_no_regex_lookbehind(self):
+        # a lookbehind in a regex literal is a parse error on Safari before 16.4, which would take the whole script down
+        offenders = [path.name for path in ASSETS if re.search(r"\(\?<[=!]", path.read_text(encoding="utf-8"))]
+        self.assertEqual(offenders, [])
+
+    def test_the_other_silent_choices_now_announce_themselves(self):
+        chart = (ROOT / "assets/statso-chart.js").read_text(encoding="utf-8")
+        self.assertIn("addEventListener('change', onRangePicked)", chart)
+        self.assertRegex(chart, r"function onRangePicked\(\) \{\s*onRangeChange\(\);")
+        self.assertIn("Statso.i18n.t('טווח התרשים עודכן')", chart)
+        mcode = (ROOT / "assets/statso-mcode.js").read_text(encoding="utf-8")
+        self.assertRegex(mcode, r"addEventListener\('change', function \(\) \{\s*if \(!el\('mc-error'\)\.textContent[^\n]*announce\(say\('הקוד עודכן'\)\)")
+        guides = (ROOT / "assets/statso-guides.js").read_text(encoding="utf-8")
+        self.assertIn("renderSteps(); announceSteps(); }", guides)
+        keys = dictionary_keys()
+        for text in ("טווח התרשים עודכן", "הקוד עודכן", "הטבלה עודכנה", "השלבים עודכנו לפי הבחירה"):
+            self.assertIn(text, keys)
+
+    def test_the_whole_period_box_shows_a_mixed_state_when_only_some_months_are_settled(self):
+        rent = (ROOT / "assets/statso-rent.js").read_text(encoding="utf-8")
+        self.assertIn("box.indeterminate = !box.checked && somePaid(period);", rent)
+        # both ways the tables get written (first build and in-place patch) set it
+        self.assertEqual(rent.count("syncMarkAll("), 3)   # the definition and its two uses
+
+    def test_the_logo_card_is_decoration_not_an_unnamed_article(self):
+        self.assertRegex(HTML, r'<div class="kpi-card accent-orange" id="brand-kpi" aria-hidden="true">')
 
 
 if __name__ == "__main__":

@@ -88,6 +88,10 @@
     // --- exchange-rate table ----------------------------------------------
     'שערי חליפין': 'Exchange rates',
     'תקלה בטעינת נתונים': 'Data loading problem',
+    'טווח התרשים עודכן': 'Chart range updated',
+    'הקוד עודכן': 'Code updated',
+    'הטבלה עודכנה': 'Table updated',
+    'השלבים עודכנו לפי הבחירה': 'The steps were updated to match your choice',
     'חלק מהנתונים לא נטענו, ולכן ייתכן שחלק מהכלים לא יפעלו. אפשר לרענן את הדף ולנסות שוב.': 'Some of the data did not load, so some of the tools may not work. You can refresh the page and try again.',
     'נתונים שלא נטענו:': 'Data that did not load:',
     'מטבעות נבחרים מול השקל': 'Selected currencies against the shekel',

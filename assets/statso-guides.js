@@ -216,12 +216,18 @@
     }).join('') + '</ol>';
     attachCopyButtons();
   }
+  // The steps change below the choice the visitor just made, away from the screen reader's cursor.
+  function announceSteps() {
+    if (!(root.Statso.exporter && root.Statso.exporter.announce)) { return; }
+    const say = root.Statso.i18n && root.Statso.i18n.t ? root.Statso.i18n.t : function (text) { return text; };
+    root.Statso.exporter.announce(say('השלבים עודכנו לפי הבחירה'));
+  }
   function renderExcelGuide() {
     document.getElementById('guide-detail').setAttribute('aria-labelledby', 'excel-guide-title');
     document.getElementById('guide-content').innerHTML = '<header class="guide-header"><p class="eyebrow">מדריך אינטראקטיבי</p><h1 id="excel-guide-title">שאיבת נתונים מ-statso לתוך Excel</h1><p>בחרו את סביבת העבודה ושיטת הייבוא, והשלבים יתעדכנו מיד.</p></header><form class="guide-selectors">' +
       selector('platform', 'מערכת הפעלה', [['mac','מק (macOS)'],['win','ווינדוס (Windows)']]) +
       selector('method', 'שיטה', [['power','Power Query (מומלץ)'],['manual','הורדה ידנית של CSV'],['webservice','נוסחת WEBSERVICE']]) + '</form><div class="guide-steps-host"></div>';
-    document.querySelectorAll('.guide-selectors input').forEach(function (radio) { radio.addEventListener('change', function () { state[radio.name.replace('guide-', '')] = radio.value; renderSteps(); }); });
+    document.querySelectorAll('.guide-selectors input').forEach(function (radio) { radio.addEventListener('change', function () { state[radio.name.replace('guide-', '')] = radio.value; renderSteps(); announceSteps(); }); });
     renderSteps();
   }
   function formatCpiExample(doc) {

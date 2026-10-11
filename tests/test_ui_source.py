@@ -61,8 +61,10 @@ class UiSourceTests(unittest.TestCase):
         self.assertNotIn("dataReady", text)
 
     def test_kpi_cards_right_to_left(self):
-        cards = re.findall(r'<article class="kpi-card[^"]*" id="([^"]+)"', self.html)
+        cards = re.findall(r'<(?:article|div) class="kpi-card[^"]*" id="([^"]+)"', self.html)
         self.assertEqual(cards, ["cpi-kpi", "boi-kpi", "fx-kpi", "brand-kpi"])
+        # the fourth card is only the logo: decoration, not an unnamed article that a screen reader lists
+        self.assertRegex(self.html, r'<div class="kpi-card accent-orange" id="brand-kpi" aria-hidden="true">')
         for value_id in ("kpi-cpi-yoy", "kpi-cpi-yoy-range", "kpi-cpi-mom", "kpi-cpi-mom-month",
                          "kpi-boi-rate", "kpi-boi-prime", "kpi-next-decision",
                          "kpi-fx-usd", "kpi-fx-eur", "kpi-fx-date"):
