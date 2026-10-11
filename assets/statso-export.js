@@ -132,7 +132,15 @@
     if (button.hasAttribute('data-flashing')) { return; }
     const previous = button.textContent;
     button.setAttribute('data-flashing', 'true');
-    button.textContent = message;
+    // the tick is decoration: the words carry the outcome, so the tick stays out of the button's accessible name
+    const tick = /\s*\u2713$/.test(String(message));
+    button.textContent = String(message).replace(/\s*\u2713$/, '');
+    if (tick) {
+      const mark = document.createElement('span');
+      mark.setAttribute('aria-hidden', 'true');
+      mark.textContent = ' \u2713';
+      button.appendChild(mark);
+    }
     announce(message);
     root.setTimeout(function () { button.textContent = previous; button.removeAttribute('data-flashing'); }, 1600);
   }

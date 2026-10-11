@@ -274,7 +274,7 @@
   }
   function renderIndex() {
     document.getElementById('guide-cards').innerHTML = guides.map(function (guide) {
-      if (guide.soon) { return '<div class="guide-card guide-card-soon" aria-disabled="true"><span>' + Statso.core.escapeHtml(guide.title) + '</span><small>' + Statso.core.escapeHtml(guide.description) + '</small></div>'; }
+      if (guide.soon) { return '<div class="guide-card guide-card-soon"><span>' + Statso.core.escapeHtml(guide.title) + '</span><small>' + Statso.core.escapeHtml(guide.description) + '</small></div>'; }
       return '<a class="guide-card" href="#/guides/' + guide.id + '"><span>' + guide.title + '</span><small>' + guide.description + '</small><b aria-hidden="true">←</b></a>'; }).join('');
   }
   function legacyCopy(text) {

@@ -147,18 +147,21 @@ const timers = [];
 window.setTimeout = fn => { timers.push(fn); return timers.length; };
 window.clearTimeout = () => {};
 const live = {textContent: ''};
-global.document = {getElementById: id => id === 'result-live' ? live : null};
+global.document = {getElementById: id => id === 'result-live' ? live : null,
+ createElement: () => { const attrs = {}; return {attrs, textContent: '', setAttribute: (name, value) => { attrs[name] = value; }}; }};
 require(%s);
 const attributes = {};
-const button = {textContent: 'copy to excel', disabled: false,
+const kids = [];
+const button = {textContent: 'copy to excel', disabled: false, appendChild: kid => { kids.push(kid); },
  hasAttribute: name => name in attributes, setAttribute: (name, value) => { attributes[name] = value; },
  removeAttribute: name => { delete attributes[name]; }};
+const shown = () => button.textContent + kids.map(kid => kid.textContent).join('');
 const seen = {};
 const flash = window.Statso.exporter.flash;
 flash(button, 'copied \u2713');
-seen.label = button.textContent; seen.disabled = button.disabled; seen.spoken = live.textContent;
+seen.label = shown(); seen.name = button.textContent; seen.tickHidden = kids.length === 1 && kids[0].attrs['aria-hidden'] === 'true'; seen.disabled = button.disabled; seen.spoken = live.textContent;
 flash(button, 'again');                      // ignored while the first is showing
-seen.secondPressIgnored = button.textContent === 'copied \u2713' && timers.length === 2;
+seen.secondPressIgnored = shown() === 'copied \u2713' && timers.length === 2;
 timers.forEach(fn => fn());
 seen.restored = button.textContent; seen.flashingCleared = !('data-flashing' in attributes); seen.cleared = live.textContent;
 process.stdout.write(JSON.stringify(seen));
@@ -167,6 +170,8 @@ process.stdout.write(JSON.stringify(seen));
             ["node", "-e", script], check=True, capture_output=True, text=True, encoding="utf-8"
         ).stdout)
         self.assertEqual(seen["label"], "copied \u2713")
+        self.assertEqual(seen["name"], "copied")      # the tick is decoration, kept out of the button's name
+        self.assertTrue(seen["tickHidden"])
         self.assertFalse(seen["disabled"])
         self.assertEqual(seen["spoken"], "copied")
         self.assertTrue(seen["secondPressIgnored"])
@@ -1222,6 +1227,22 @@ process.stdout.write(JSON.stringify({before, after, fallback: target.textContent
                      'controls sharing a name in the same context'):
             self.assertIn(text, en)
         self.assertNotRegex(en, r'[֐-׿]')
+        # round 5: each new claim is backed by a class-level test (tests/test_a11y_round5_source.py) or a browser check
+        for text in ('ואינו נחתך בקצה אזורי הגלילה', 'במצב צבעים כפויים, כפתורי הפעולה', 'מוצגים עם מסגרת',
+                     'סמלי הכרטיסים בעמוד הכלים', 'מוצגת ומוכרזת הודעה מעל כל עמוד שמציינת איזה מהם חסר', 'מסומן במסגרת מקווקוות ובטקסט ולא בעמעום',
+                     'מוצגים כהסבר קופץ', 'סריקת שמות הרכיבים בכל הנתיבים והמצבים', 'הדמיית מצב צבעים כפויים',
+                     'חסימת טעינת קובצי הנתונים', 'בלי הודעה שמסבירה זאת', 'רשימת הבדיקות חלקית', 'אין לראות בה אישור שכל הליקויים אותרו'):
+            self.assertIn(text, he)
+        for text in ('is not cut off at the edge of the scroll areas', 'in forced colors mode, the action buttons',
+                     'drawn with a border', 'The symbols on the cards on the tools page',
+                     'a notice above every page says which of them is missing', 'dashed border and with text rather than by dimming',
+                     'appear only as a hover tooltip', 'scan of component names on every route and state',
+                     'A simulation of forced colors mode', 'Blocking the data files from loading', 'with no message that explains it',
+                     'This list of tests is partial', 'should not be read as confirmation that every defect has been found'):
+            self.assertIn(text, en)
+        # the old claim that loading failures are announced was true only on the home page; it is no longer worded that way
+        self.assertNotIn('(כולל כשטעינת נתונים נכשלת)', he)
+        self.assertNotIn('(including when data fails to load)', en)
         # the narrow-screen claims were checked in a browser (overlap scan at 320/375/600/768, scrollWidth at 320 and 305)
         self.assertIn('במסכים צרים (עד 900 פיקסלים) כלי החישוב מוצגים בעמודה אחת', he)
         self.assertIn('on narrow screens (up to 900 pixels) the calculation tools lay out in a single column', en)

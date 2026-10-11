@@ -219,7 +219,9 @@ global.document = {addEventListener(event, fn) { callbacks.push(fn); },
  getElementById(id) { return els[id] || (els[id] = {innerHTML: '', addEventListener() {}}); }, querySelectorAll() { return []; }};
 ''', modules=MODULES[:3])
         card = re.search(r'<div class="guide-card guide-card-soon".*?</div>', html).group()
-        self.assertIn('aria-disabled="true"', card)
+        # plain content that says "soon" in words, not a control dressed as disabled (axe skips aria-disabled)
+        self.assertNotIn('aria-disabled', card)
+        self.assertNotIn('<a', card)
         self.assertNotIn('data-guide', card)
         self.assertNotIn('<button', card)
 

@@ -1,12 +1,32 @@
 (function (root) {
   'use strict';
   const Statso = root.Statso = root.Statso || {};
+  // The cards and tables on the home page say what failed, but a visitor who arrives on a tool or a guide never sees
+  // them, so every failed dataset is also named once in a notice above the page (see index.html #data-problem).
+  const failedData = [];
+  function noteFailure(name) { if (failedData.indexOf(name) < 0) { failedData.push(name); } }
+  function showDataProblems() {
+    const wrap = document.getElementById('data-problem-wrap'); const box = document.getElementById('data-problem');
+    if (!wrap || !box || !failedData.length) { return; }
+    const lead = document.createElement('p');
+    lead.textContent = 'חלק מהנתונים לא נטענו, ולכן ייתכן שחלק מהכלים לא יפעלו. אפשר לרענן את הדף ולנסות שוב.';
+    const label = document.createElement('p');
+    label.textContent = 'נתונים שלא נטענו:';
+    const list = document.createElement('ul');
+    failedData.forEach(function (name) { const item = document.createElement('li'); item.textContent = name; list.appendChild(item); });
+    // The alert is shown empty first and filled on the next tick: a screen reader announces a change inside a
+    // region it already knows, which is less reliable when the region appears together with its text.
+    box.textContent = '';
+    wrap.hidden = false;
+    root.setTimeout(function () { box.appendChild(lead); box.appendChild(label); box.appendChild(list); }, 50);
+  }
   function failCard(sectionId, errorId, message, valueIds) {
     valueIds.forEach(function (id) { document.getElementById(id).textContent = '—'; });
     document.getElementById(errorId).textContent = message;
     Statso.data.setState(document.getElementById(sectionId), 'error', message);
   }
   function failCpi(message) {
+    noteFailure('מדד המחירים לצרכן');
     failCard('cpi-kpi', 'kpi-cpi-error', message, ['kpi-cpi-yoy', 'kpi-cpi-mom']);
     Statso.data.setState(document.getElementById('chart-section'), 'error', message);
     Statso.data.setState(document.getElementById('calculator-section'), 'error', message);
@@ -44,6 +64,10 @@
     Statso.data.setState(document.getElementById('boi-kpi'), 'ready');
     if (Statso.tools) { Statso.tools.initBoi(doc); }
   }
+  function failBoi(message) {
+    noteFailure('ריבית בנק ישראל');
+    failCard('boi-kpi', 'kpi-boi-error', message, ['kpi-boi-rate', 'kpi-boi-prime']);
+  }
   function showNext(doc) {
     if (!doc.next_decision_date) { throw new Error('מועד ההחלטה הבאה אינו זמין'); }
     document.getElementById('kpi-next-decision').textContent = Statso.core.formatIsoDateHe(doc.next_decision_date);
@@ -62,6 +86,7 @@
     if (Statso.tools) { Statso.tools.initFx(doc); }
   }
   function failFx(message) {
+    noteFailure('שערי חליפין');
     failCard('fx-kpi', 'kpi-fx-error', message, ['kpi-fx-usd', 'kpi-fx-eur']);
     Statso.data.setState(document.getElementById('fx-table-section'), 'error', message);
   }
@@ -80,10 +105,11 @@
       const cpi = results[0], boi = results[1], next = results[2], fx = results[3], construction = results[4];
       const constructionDoc = construction && construction.status === 'fulfilled' ? construction.value : null;
       if (cpi.status === 'fulfilled') { try { showCpi(cpi.value, constructionDoc); } catch (error) { failCpi(error.message); } } else { failCpi(cpi.reason.message); }
-      if (boi.status === 'fulfilled') { try { showBoi(boi.value); } catch (error) { failCard('boi-kpi', 'kpi-boi-error', error.message, ['kpi-boi-rate', 'kpi-boi-prime']); } }
-      else { failCard('boi-kpi', 'kpi-boi-error', boi.reason.message, ['kpi-boi-rate', 'kpi-boi-prime']); }
+      if (boi.status === 'fulfilled') { try { showBoi(boi.value); } catch (error) { failBoi(error.message); } }
+      else { failBoi(boi.reason.message); }
       if (next.status === 'fulfilled') { try { showNext(next.value); } catch (error) { showNextUnavailable(); } } else { showNextUnavailable(); }
       if (fx.status === 'fulfilled') { try { showFx(fx.value); } catch (error) { failFx(error.message); } } else { failFx(fx.reason.message); }
+      showDataProblems();
       alignKpiFootnotes();
       root.dispatchEvent(new CustomEvent('statso:app-ready'));
     });

@@ -68,6 +68,11 @@ input, select, textarea { border: 1px solid var(--field-border); border-radius: 
 input:focus, select:focus, textarea:focus { border-color: var(--blue); }
 .range-controls select { margin-inline-start: 5px; }
 .chart-wrap { position: relative; height: 370px; direction: ltr; }
+/* shown on every page when part of the data could not be loaded, so a deep link to a tool is not left silent */
+.data-problem-wrap { margin-block: 14px 0; }
+.data-problem { padding: 12px 16px; border: 1px solid #b42318; border-inline-start-width: 5px; border-radius: 10px; color: #7a1b12; background: #fff5f3; font-size: .95rem; }
+.data-problem p { margin: 0 0 6px; }
+.data-problem ul { margin: 0; padding-inline-start: 1.25rem; }
 .inline-error { min-height: 1.5em; margin: 0 0 10px; color: #b42318; font-size: .9rem; }
 .calc-layout { display: grid; grid-template-columns: 1.6fr 1fr; gap: 36px; }
 .calc-form { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
@@ -84,12 +89,12 @@ input:focus, select:focus, textarea:focus { border-color: var(--blue); }
 .section-toggle { display: inline-flex; align-items: center; gap: 9px; padding: 0; border: 0; background: none; font: inherit; color: inherit; cursor: pointer; text-align: start; }
 .section-toggle:hover .toggle-caret { border-color: var(--blue); color: var(--blue); }
 .toggle-caret { display: grid; place-items: center; width: 22px; height: 22px; flex: 0 0 22px; border: 1px solid var(--line); border-radius: 7px; color: var(--muted); font-size: .7rem; transition: transform .15s ease; }
-.toggle-caret::before { content: "\25BC"; }
+.toggle-caret::before { content: "\25BC"; content: "\25BC" / ""; }
 [data-collapsed="true"] .toggle-caret { transform: rotate(90deg); }
 [data-collapsed="true"] .range-controls { display: none; }
-.table-wrap { overflow-x: auto; }
+.table-wrap { overflow-x: auto; scroll-padding-inline: 12px; }
 /* Only the read-only data tables are height-bounded: the rent tool rebuilds its tables on every edit, which would send a scrolled table back to the top. */
-.table-wrap[role="region"] { max-height: min(70vh, 640px); overflow: auto; scroll-padding-top: 3rem; }
+.table-wrap[role="region"] { max-height: min(70vh, 640px); overflow: auto; scroll-padding-top: 3rem; scroll-padding-bottom: 12px; }
 .table-wrap[role="region"] thead th { position: sticky; top: 0; z-index: 1; background: #eef3f9; box-shadow: inset 0 -1px 0 var(--line); }
 .data-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
 .data-table th, .data-table td { padding: 10px 12px; text-align: start; border-bottom: 1px solid var(--line); white-space: nowrap; }
@@ -124,7 +129,7 @@ html[dir="ltr"] .data-table .col-group-start { border-left: 2px solid var(--line
 .lang-choice { display: block; width: 100%; padding: 8px 11px; border: 0; border-radius: 8px; background: none; color: var(--navy); font: inherit; font-size: .89rem; font-weight: 650; text-align: start; cursor: pointer; }
 .lang-choice:hover { background: #eef4ff; color: var(--blue); }
 .lang-choice[aria-current="true"] { background: #e8f0ff; color: var(--blue); }
-.lang-choice[aria-current="true"]::after { content: " ✓"; }
+.lang-choice:not([aria-current="true"]) .lang-tick { display: none; }
 .tools-hero { padding-bottom: 22px; }
 .tool-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 14px; margin-bottom: 20px; }
 .tool-card { display: grid; align-content: start; gap: 7px; padding: 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 8px 28px rgba(30,50,80,.06); color: var(--navy); text-decoration: none; }
@@ -192,7 +197,7 @@ body.is-printing #print-root { display: block; }
 @media print { @page { margin: 14mm; } body { background: white; } #print-root { display: block; } .print-head { break-after: avoid; } #print-root tr { break-inside: avoid; } .table-wrap[role="region"] { max-height: none; overflow: visible; } .table-wrap[role="region"] thead th { position: static; box-shadow: none; } }
 .search-label { display: grid; gap: 5px; min-width: min(290px, 100%); }
 .table-summary { color: var(--muted); font-size: .84rem; }
-.table-scroll { overflow: auto; max-height: 540px; border: 1px solid var(--line); border-radius: 12px; }
+.table-scroll { overflow: auto; max-height: 540px; border: 1px solid var(--line); border-radius: 12px; scroll-padding: 12px; }
 table { width: 100%; border-collapse: collapse; font-size: .9rem; }
 th { background: #eef3f9; text-align: right; color: #475569; }
 th, td { padding: 11px 15px; border-bottom: 1px solid var(--line); }
@@ -257,7 +262,7 @@ footer { margin-top: 42px; background: white; border-top: 1px solid var(--line);
 .step-art { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; direction: rtl; }
 .step-art-single { grid-template-columns: minmax(0, 560px); }
 .step-art figure { min-width: 0; margin: 0; padding: 9px; border: 1px solid var(--line); border-radius: 12px; background: #f8fafc; }
-.art-scroll { max-width: 100%; overflow-x: auto; }
+.art-scroll { max-width: 100%; overflow-x: auto; scroll-padding-inline: 12px; }
 .art-scroll-rtl { direction: rtl; }
 .art-scroll-ltr { direction: ltr; }
 .guide-svg, .step-art img, .guide-real-shot { display: block; width: 100%; min-width: 470px; height: auto; }
@@ -350,8 +355,6 @@ footer .footer-legal { display: block; min-height: 0; padding-block: 14px; borde
   .toggle-caret, .nav-submenu, .skip-link { transition: none; }
 }
 
-@media (forced-colors: active) { .nav-item[aria-current="page"] { border-block-end: 3px solid CanvasText; } }
-
 /* A 320px window with a classic 15px scrollbar leaves ~305px: tighten the nav so its four items still fit. */
 @media (max-width: 360px) { .site-nav { gap: 3px; } .nav-item { min-width: 38px; padding-inline: 7px; } }
 /* A 305px window leaves 290px beside a classic scrollbar; the longer English labels need these last pixels. */
@@ -359,10 +362,10 @@ footer .footer-legal { display: block; min-height: 0; padding-block: 14px; borde
 
 /* Power Query code exports */
 .nav-item-stacked { width: 8rem; white-space: normal; text-align: center; font-size: .82rem; line-height: 1.2; }
-.guide-card-soon { opacity: .65; cursor: default; box-shadow: none; }
+.guide-card-soon { border-style: dashed; background: var(--wash); cursor: default; box-shadow: none; }
 .guide-card-soon:hover { border-color: var(--line); transform: none; }
 .code-block { min-width: 0; max-width: 100%; margin: 12px 0 18px; }
-.code-block pre { direction: ltr; text-align: left; overflow-x: auto; margin: 0 0 10px; padding: 16px; border: 1px solid #cbd5e1; border-radius: 8px; color: #334155; background: #f8fafc; }
+.code-block pre { direction: ltr; text-align: left; overflow-x: auto; scroll-padding-inline: 12px; margin: 0 0 10px; padding: 16px; border: 1px solid #cbd5e1; border-radius: 8px; color: #334155; background: #f8fafc; }
 .code-block code { font: .78rem/1.6 ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre; }
 .mcode-view { min-height: 70vh; }
 .mcode-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
@@ -373,3 +376,10 @@ footer .footer-legal { display: block; min-height: 0; padding-block: 14px; borde
 #mc-error { color: #b42318; }
 #mc-copy { border: 0; border-radius: 8px; color: white; background: var(--blue); padding: 8px 13px; cursor: pointer; font-weight: 750; }
 #mc-copy:disabled { opacity: .6; cursor: default; }
+
+/* last in the file on purpose: these overrides must win over the rules above that set border: 0 */
+@media (forced-colors: active) {
+  .nav-item[aria-current="page"] { border-block-end: 3px solid CanvasText; }
+  /* these buttons are a coloured fill with no border; without the fill they would read as plain text */
+  .contact-submit, #mc-copy, .guide-notice button, .copy-url, .skip-link { border: 1px solid ButtonText; }
+}
