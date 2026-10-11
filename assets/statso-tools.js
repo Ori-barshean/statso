@@ -57,9 +57,15 @@
       series: currentIndexSeries()};
   }
 
-  function indexFail(message) {
+  // The fields an error is about are marked invalid and point at the message, so they say so when focused.
+  function showError(errorId, message, fields) {
+    el(errorId).textContent = message;
+    Statso.core.flagFields(errorId, fields || []);
+  }
+
+  function indexFail(message, fields) {
     indexResult = null;
-    el('ti-error').textContent = message;
+    showError('ti-error', message, fields);
     el('ti-result').hidden = true;
   }
 
@@ -69,7 +75,7 @@
     const series = input.series;
     const doc = series.doc(); const map = series.map();
     if (!doc || !map) { return; }
-    if (!Number.isFinite(input.amount) || input.amount < 0) { indexFail('יש להזין סכום תקין שאינו שלילי.'); return; }
+    if (!Number.isFinite(input.amount) || input.amount < 0) { indexFail('יש להזין סכום תקין שאינו שלילי.', ['ti-amount']); return; }
     const baseMonth = Statso.core.resolveIndexMonth(input.baseMonth, input.mode);
     const targetMonth = Statso.core.resolveIndexMonth(input.targetMonth, input.mode);
     const base = Statso.core.lookupChained(map, baseMonth, doc.first_month, doc.last_month, series.field);
@@ -77,7 +83,8 @@
     const missing = !base.ok ? baseMonth : (!target.ok ? targetMonth : null);
     if (missing) {
       indexFail('המדד לחודש ' + Statso.core.formatMonthHe(missing) + ' אינו זמין. הטווח הוא '
-        + Statso.core.formatMonthHe(doc.first_month) + '–' + Statso.core.formatMonthHe(doc.last_month) + '.');
+        + Statso.core.formatMonthHe(doc.first_month) + '–' + Statso.core.formatMonthHe(doc.last_month) + '.',
+        !base.ok ? ['ti-base-year', 'ti-base-month'] : ['ti-target-year', 'ti-target-month']);
       return;
     }
     const outcome = Statso.core.indexAmount(input.amount, base.value, target.value);
@@ -85,7 +92,7 @@
       baseValue: base.value, targetValue: target.value,
       indexed: outcome.indexed, difference: outcome.difference,
       ratio: target.value / base.value};
-    el('ti-error').textContent = '';
+    showError('ti-error', '');
     el('ti-result').hidden = false;
     el('ti-indexed').textContent = Statso.core.formatNumber(outcome.indexed, 2);
     el('ti-difference').textContent = Statso.core.formatNumber(outcome.difference, 2);
@@ -155,9 +162,9 @@
 
   function fxKind() { return document.querySelector('input[name="tf-kind"]:checked').value; }
 
-  function fxFail(message) {
+  function fxFail(message, fields) {
     fxResult = null;
-    el('tf-error').textContent = message;
+    showError('tf-error', message, fields);
     el('tf-result').hidden = true;
   }
 
@@ -170,26 +177,26 @@
     return {ok: true, rate: found.rate, unit: entry.unit, date: found.date};
   }
 
-  function quoteFail(quoted) {
+  function quoteFail(quoted, fields) {
     const name = Statso.core.CURRENCY_NAMES[quoted.code] || quoted.code;
     fxFail(quoted.first ? 'אין שער ל' + name + ' לפני ' + Statso.core.formatIsoDateHe(quoted.first) + '.'
-      : 'אין נתוני שער עבור ' + name + '.');
+      : 'אין נתוני שער עבור ' + name + '.', fields);
   }
 
   function computeFx() {
     if (!fxSummary) { return; }
     const amount = Number(el('tf-amount').value);
-    if (!Number.isFinite(amount) || amount < 0) { fxFail('יש להזין סכום תקין שאינו שלילי.'); return; }
+    if (!Number.isFinite(amount) || amount < 0) { fxFail('יש להזין סכום תקין שאינו שלילי.', ['tf-amount']); return; }
     if (!fxDaily) { fxFail(fxPending ? 'טוען שערי חליפין…' : 'שערי החליפין אינם זמינים.'); return; }
     const link = fxKind() === 'link';
     const date = el('tf-date').value;
-    if (!date) { fxFail('יש לבחור תאריך.'); return; }
+    if (!date) { fxFail('יש לבחור תאריך.', ['tf-date']); return; }
     if (link) {
       const code = el('tf-currency').value;
       const targetDate = el('tf-date-target').value;
-      if (!targetDate) { fxFail('יש לבחור תאריך יעד.'); return; }
-      const base = quote(code, date); if (!base.ok) { quoteFail(base); return; }
-      const target = quote(code, targetDate); if (!target.ok) { quoteFail(target); return; }
+      if (!targetDate) { fxFail('יש לבחור תאריך יעד.', ['tf-date-target']); return; }
+      const base = quote(code, date); if (!base.ok) { quoteFail(base, ['tf-currency', 'tf-date']); return; }
+      const target = quote(code, targetDate); if (!target.ok) { quoteFail(target, ['tf-currency', 'tf-date-target']); return; }
       const linked = amount * (target.rate / base.rate);
       fxResult = {kind: 'link', amount: amount, code: code, baseDate: base.date, targetDate: target.date,
         baseRate: base.rate, targetRate: target.rate, value: linked, difference: linked - amount,
@@ -201,8 +208,8 @@
         + Statso.core.formatRate(base.rate) + ' · ב־' + Statso.core.formatIsoDateHe(target.date) + ' = '
         + Statso.core.formatRate(target.rate) + ' · הפרש ' + Statso.core.formatNumber(linked - amount, 2) + ' ₪';
     } else {
-      const from = quote(el('tf-from').value, date); if (!from.ok) { quoteFail(from); return; }
-      const to = quote(el('tf-to').value, date); if (!to.ok) { quoteFail(to); return; }
+      const from = quote(el('tf-from').value, date); if (!from.ok) { quoteFail(from, ['tf-from', 'tf-date']); return; }
+      const to = quote(el('tf-to').value, date); if (!to.ok) { quoteFail(to, ['tf-to', 'tf-date']); return; }
       const outcome = Statso.core.convertAmount(amount, from, to);
       const used = [from.date, to.date].filter(Boolean).sort();
       fxResult = {kind: 'convert', amount: amount, from: el('tf-from').value, to: el('tf-to').value,
@@ -214,7 +221,7 @@
       el('tf-detail').textContent = 'שער ' + Statso.core.formatRate(outcome.rate)
         + (used.length ? ' · לפי השער שפורסם ל־' + Statso.core.formatIsoDateHe(used[used.length - 1]) : '');
     }
-    el('tf-error').textContent = '';
+    showError('tf-error', '');
     el('tf-result').hidden = false;
   }
 
@@ -311,15 +318,16 @@
     if (!cpi) { return; }
     const range = historyRange();
     if (Statso.core.monthToOrdinal(range.from) > Statso.core.monthToOrdinal(range.to)) {
-      el('th-error').textContent = 'חודש ההתחלה חייב להיות מוקדם מחודש הסיום.';
+      showError('th-error', 'חודש ההתחלה חייב להיות מוקדם מחודש הסיום.',
+        ['th-start-year', 'th-start-month', 'th-end-year', 'th-end-month']);
       el('th-head').innerHTML = ''; el('th-body').innerHTML = ''; el('th-note').textContent = ''; historyRows = []; return;
     }
     const series = selectedHistorySeries();
     if (!series.length) {
-      el('th-error').textContent = 'יש לבחור סדרה אחת לפחות.';
+      showError('th-error', 'יש לבחור סדרה אחת לפחות.', HISTORY_SERIES.map(function (s) { return 'th-' + s.key; }));
       el('th-head').innerHTML = ''; el('th-body').innerHTML = ''; el('th-note').textContent = ''; historyRows = []; return;
     }
-    el('th-error').textContent = '';
+    showError('th-error', '');
     historyRows = monthSpine(range.from, range.to).map(function (month) {
       const cells = {};
       series.forEach(function (s) {

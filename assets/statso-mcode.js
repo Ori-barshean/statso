@@ -111,10 +111,17 @@
     const selection = read();
     el('mc-currencies-block').hidden = selection.series !== 'fx';
     let error = '';
-    if (!selection.from || !selection.to) { error = 'יש לבחור תאריך התחלה ותאריך סיום.'; }
-    else if (selection.from > selection.to) { error = 'תאריך ההתחלה חייב להיות לפני תאריך הסיום.'; }
-    else if (selection.series === 'fx' && !selection.currencies.length) { error = 'יש לבחור מטבע אחד לפחות.'; }
+    let fields = [];
+    if (!selection.from || !selection.to) {
+      error = 'יש לבחור תאריך התחלה ותאריך סיום.';
+      fields = ['mc-from', 'mc-to'].filter(function (id) { return !el(id).value; });
+    } else if (selection.from > selection.to) { error = 'תאריך ההתחלה חייב להיות לפני תאריך הסיום.'; fields = ['mc-from', 'mc-to']; }
+    else if (selection.series === 'fx' && !selection.currencies.length) {
+      error = 'יש לבחור מטבע אחד לפחות.';
+      fields = Array.prototype.slice.call(document.querySelectorAll('#mc-currencies input'));
+    }
     el('mc-error').textContent = error;
+    Statso.core.flagFields('mc-error', fields);
     el('mc-code').textContent = error ? '' : generate(selection);
     el('mc-copy').disabled = Boolean(error);
   }

@@ -21,6 +21,50 @@
   }
   function key(periodIndex, month) { return periodIndex + ':' + month; }
 
+  function isTextMonth(input) { return input.type !== 'month'; }
+  const MONTH_GROUPS = [
+    {hint: 'tr-base-month-hint', fields: function () { return [el('tr-base-start'), el('tr-base-end')]; }},
+    {hint: 'tr-options-month-hint', fields: function () {
+      return document.querySelectorAll('#tr-option-rows .tr-opt-start, #tr-option-rows .tr-opt-end');
+    }},
+    {hint: 'tr-export-month-hint', fields: function () { return [el('tr-export-from'), el('tr-export-to')]; }}
+  ];
+
+  function describe(input) {
+    input.setAttribute('aria-describedby', input.dataset.monthHint + (input.getAttribute('aria-invalid') === 'true' ? ' tr-error' : ''));
+  }
+
+  function syncMonthFields() {
+    MONTH_GROUPS.forEach(function (group) {
+      const fields = Array.from(group.fields());
+      el(group.hint).hidden = !fields.some(isTextMonth);
+      fields.forEach(function (input) {
+        if (isTextMonth(input)) { input.dataset.monthHint = group.hint; describe(input); }
+      });
+    });
+  }
+
+  function monthOf(input) {
+    if (!isTextMonth(input)) { return input.value; }
+    const month = Statso.core.parseMonthInput(input.value);
+    // Once the parse itself fails, this mechanism owns the flag, so flagFields never withdraws it.
+    if (month === null) { input.setAttribute('aria-invalid', 'true'); input.removeAttribute('data-error-flag'); }
+    else {
+      input.removeAttribute('aria-invalid');
+      if (month !== input.value) { input.value = month; }
+    }
+    if (input.dataset.monthHint) { describe(input); }
+    return month;
+  }
+
+  // Every place that rewrites the error line checks the export range, so an invalid export month keeps its message
+  // while the field stays aria-invalid and points at it. Both fields are read, so both get flagged.
+  function exportRangeProblem() {
+    const from = monthOf(el('tr-export-from'));
+    const to = monthOf(el('tr-export-to'));
+    return from === null || to === null ? 'חודש לא תקין בטווח הייצוא — יש להזין YYYY-MM או MM/YYYY.' : '';
+  }
+
   // ---------- reading the form ---------------------------------------------
   // Every extra period names itself ("תקופה 1", "תקופה 2"…): without that, a
   // screen reader hears the same "מחודש / עד חודש / הסרה" once per row with no
@@ -50,8 +94,8 @@
 
   function readOptions() {
     return Array.prototype.map.call(document.querySelectorAll('#tr-option-rows .rent-option'), function (row) {
-      return {start: row.querySelector('.tr-opt-start').value,
-        end: row.querySelector('.tr-opt-end').value,
+      return {start: monthOf(row.querySelector('.tr-opt-start')),
+        end: monthOf(row.querySelector('.tr-opt-end')),
         rent: Number(row.querySelector('.tr-opt-rent').value)};
     });
   }
@@ -59,7 +103,7 @@
   function readForm() {
     return {contractDate: el('tr-contract-date').value,
       landlord: el('tr-landlord').value.trim(), tenant: el('tr-tenant').value.trim(),
-      baseStart: el('tr-base-start').value, baseEnd: el('tr-base-end').value,
+      baseStart: monthOf(el('tr-base-start')), baseEnd: monthOf(el('tr-base-end')),
       baseRent: Number(el('tr-base-rent').value),
       hasOptions: el('tr-has-options').checked,
       options: el('tr-has-options').checked ? readOptions() : [],
@@ -68,9 +112,16 @@
       floor: document.querySelector('input[name="tr-floor"]:checked').value};
   }
 
-  function fail(message) {
+  // The fields an error is about are marked invalid and point at the message, so they say so when focused. Fields the
+  // month text fallback already marked invalid stay with that mechanism.
+  function showError(message, fields) {
+    setText(el('tr-error'), message);
+    Statso.core.flagFields('tr-error', fields || []);
+  }
+
+  function fail(message, fields) {
     model = null;
-    el('tr-error').textContent = message;
+    showError(message, fields);
     el('tr-output').hidden = true;
   }
 
@@ -86,30 +137,37 @@
 
   function compute() {
     if (!indexMap) { return; }
+    syncMonthFields();
     const form = readForm();
-    if (!form.contractDate) { fail('יש לבחור את מועד הסכם השכירות.'); return; }
-    if (!form.baseStart || !form.baseEnd) { fail('יש לבחור את חודשי תחילת וסיום השכירות.'); return; }
+    const baseMonths = ['tr-base-start', 'tr-base-end'];
+    if (!form.contractDate) { fail('יש לבחור את מועד הסכם השכירות.', ['tr-contract-date']); return; }
+    if (form.baseStart === null || form.baseEnd === null) { fail('חודש לא תקין בתקופת השכירות הבסיסית — יש להזין YYYY-MM או MM/YYYY.', baseMonths); return; }
+    if (!form.baseStart || !form.baseEnd) { fail('יש לבחור את חודשי תחילת וסיום השכירות.', baseMonths.filter(function (id) { return !el(id).value; })); return; }
     if (Statso.core.monthToOrdinal(form.baseStart) > Statso.core.monthToOrdinal(form.baseEnd)) {
-      fail('חודש סיום השכירות מוקדם מחודש ההתחלה.'); return;
+      fail('חודש סיום השכירות מוקדם מחודש ההתחלה.', baseMonths); return;
     }
-    if (!Number.isFinite(form.baseRent) || form.baseRent <= 0) { fail('יש להזין דמי שכירות חודשיים תקינים.'); return; }
+    if (!Number.isFinite(form.baseRent) || form.baseRent <= 0) { fail('יש להזין דמי שכירות חודשיים תקינים.', ['tr-base-rent']); return; }
 
     const baseIndexMonth = form.customBase ? form.baseIndexMonth
       : Statso.core.resolveIndexMonth(form.contractDate.slice(0, 7), 'known');
     const baseIndex = Statso.core.lookupChained(indexMap, baseIndexMonth, firstMonth, lastMonth);
     if (!baseIndex.ok) {
-      fail('מדד הבסיס לחודש ' + Statso.core.formatMonthHe(baseIndexMonth) + ' אינו זמין בסדרה.'); return;
+      fail('מדד הבסיס לחודש ' + Statso.core.formatMonthHe(baseIndexMonth) + ' אינו זמין בסדרה.',
+        form.customBase ? ['tr-base-index-year', 'tr-base-index-month'] : ['tr-contract-date']); return;
     }
 
     const list = [{label: 'תקופת השכירות הבסיסית', start: form.baseStart, end: form.baseEnd, rent: form.baseRent}];
     for (let i = 0; i < form.options.length; i += 1) {
       const option = form.options[i];
-      if (!option.start || !option.end) { fail('יש להשלים את חודשי תקופת האופציה ' + (i + 1) + '.'); return; }
+      const row = document.querySelectorAll('#tr-option-rows .rent-option')[i];
+      const optionMonths = [row.querySelector('.tr-opt-start'), row.querySelector('.tr-opt-end')];
+      if (option.start === null || option.end === null) { fail('חודש לא תקין בתקופת אופציה ' + (i + 1) + ' — יש להזין YYYY-MM או MM/YYYY.', optionMonths); return; }
+      if (!option.start || !option.end) { fail('יש להשלים את חודשי תקופת האופציה ' + (i + 1) + '.', optionMonths.filter(function (input) { return !input.value; })); return; }
       if (Statso.core.monthToOrdinal(option.start) > Statso.core.monthToOrdinal(option.end)) {
-        fail('בתקופת אופציה ' + (i + 1) + ' חודש הסיום מוקדם מחודש ההתחלה.'); return;
+        fail('בתקופת אופציה ' + (i + 1) + ' חודש הסיום מוקדם מחודש ההתחלה.', optionMonths); return;
       }
       if (!Number.isFinite(option.rent) || option.rent <= 0) {
-        fail('יש להזין דמי שכירות חודשיים בתקופת אופציה ' + (i + 1) + '.'); return;
+        fail('יש להזין דמי שכירות חודשיים בתקופת אופציה ' + (i + 1) + '.', [row.querySelector('.tr-opt-rent')]); return;
       }
       list.push({label: 'תקופת אופציה ' + (i + 1), start: option.start, end: option.end, rent: option.rent});
     }
@@ -138,13 +196,15 @@
     });
 
     model = {form: form, baseIndexMonth: baseIndexMonth, baseIndexValue: baseIndex.value, periods: periods};
-    el('tr-error').textContent = '';
     el('tr-output').hidden = false;
     const baseRow = indexMap.get(baseIndexMonth);
     el('tr-base-index-note').textContent = (form.customBase ? 'מדד בסיס מוסכם: ' : 'מדד ידוע במועד ההסכם: ')
       + Statso.core.formatMonthHe(baseIndexMonth) + ' = '
       + Statso.core.formatNumber(baseRow ? baseRow.value : baseIndex.value, 1);
     render();
+    // setText leaves an unchanged message alone, so a pending export error is not re-announced on every recompute
+    // (the rent field recomputes on each keystroke).
+    showError(exportRangeProblem());
   }
 
   // ---------- rendering -----------------------------------------------------
@@ -179,36 +239,37 @@
   function rowHtml(periodIndex, row) {
     const id = key(periodIndex, row.month);
     if (!row.available) {
-      return '<tr class="rent-row-pending"><th scope="row" dir="ltr">' + Statso.core.formatMonthHe(row.month) + '</th>'
+      return '<tr class="rent-row-pending"><th scope="row" dir="ltr" id="tr-p' + periodIndex + '-m' + row.month + '">' + Statso.core.formatMonthHe(row.month) + '</th>'
         + '<td dir="ltr">' + Statso.core.formatNumber(row.nominal, 2) + '</td>'
         + '<td colspan="6">המדד לחודש ' + Statso.core.formatMonthHe(row.indexMonth) + ' טרם פורסם</td></tr>';
     }
     const text = rowText(row);
-    return '<tr><th scope="row" dir="ltr">' + Statso.core.formatMonthHe(row.month) + '</th>'
+    return '<tr><th scope="row" dir="ltr" id="tr-p' + periodIndex + '-m' + row.month + '">' + Statso.core.formatMonthHe(row.month) + '</th>'
       + '<td dir="ltr">' + text.nominal + '</td>'
       + '<td dir="ltr">' + text.index + '</td>'
       + '<td dir="ltr">' + text.ratio + '</td>'
       + '<td dir="ltr">' + text.indexed + '</td>'
       + '<td><input type="number" step="any" min="0" class="tr-actual" data-key="' + id
-      + '" value="' + row.actual + '" aria-label="סכום ששולם בפועל"></td>'
+      + '" value="' + row.actual + '" aria-labelledby="tr-p' + periodIndex + '-c5 tr-p' + periodIndex + '-m' + row.month + '"></td>'
       + '<td dir="ltr" class="' + (row.difference < 0 ? 'rent-negative' : '') + '">' + text.difference + '</td>'
       + '<td dir="ltr">' + text.payable + '</td>'
       + '<td><input type="checkbox" class="tr-paid" data-key="' + id + '"' + (row.paid ? ' checked' : '')
-      + ' aria-label="ההפרש שולם"></td></tr>';
+      + ' aria-labelledby="tr-p' + periodIndex + '-c8 tr-p' + periodIndex + '-m' + row.month + '"></td></tr>';
   }
 
   function periodHtml(period) {
     const totals = totalsText(totalsOf(period.rows));
     return '<section class="rent-period"><header class="rent-period-head">'
-      + '<h3>' + period.label + '</h3>'
+      + '<h3 id="tr-p' + period.index + '-title">' + period.label + '</h3>'
       + '<span>' + Statso.core.formatMonthHe(period.start) + '–' + Statso.core.formatMonthHe(period.end)
       + ' · ' + Statso.core.formatNumber(period.rent, 2) + ' ₪ לחודש</span>'
       + '<label class="rent-mark-all"><input type="checkbox" class="tr-period-paid" data-period="' + period.index
-      + '"' + (allPaid(period) ? ' checked' : '') + '> סימון כל התקופה כשולמה</label></header>'
+      + '" aria-labelledby="tr-p' + period.index + '-markall tr-p' + period.index + '-title"'
+      + (allPaid(period) ? ' checked' : '') + '> <span id="tr-p' + period.index + '-markall">סימון כל התקופה כשולמה</span></label></header>'
       + '<div class="table-wrap"><table class="data-table rent-table"><caption class="sr-only">' + period.label
       + '</caption><thead><tr>'
       + ['חודש', 'נומינלי', 'מדד בבסיס ההסכם', 'מקדם', 'ממודד', 'שולם בפועל', 'הפרש', 'הפרש לתשלום', 'שולם']
-        .map(function (text) { return '<th scope="col">' + text + '</th>'; }).join('')
+        .map(function (text, column) { return '<th scope="col" id="tr-p' + period.index + '-c' + column + '">' + text + '</th>'; }).join('')
       + '</tr></thead><tbody>' + period.rows.map(function (row) { return rowHtml(period.index, row); }).join('')
       + '</tbody><tfoot><tr><th scope="row">סה״כ</th>'
       + '<td dir="ltr">' + totals.nominal + '</td><td></td><td></td>'
@@ -233,7 +294,9 @@
     }).join('\n');
   }
 
-  function setText(node, text) { if (node.textContent !== text) { node.textContent = text; } }
+  // An unchanged text is left alone. The page may already show the translation of a Hebrew message (the engine rewrites
+  // the node after it is set), so the translated form counts as unchanged too, or the English UI would re-announce it.
+  function setText(node, text) { if (node.textContent !== text && node.textContent !== say(text)) { node.textContent = text; } }
 
   function patchPeriods(host) {
     const sections = host.querySelectorAll('.rent-period');
@@ -312,8 +375,8 @@
   // ---------- export --------------------------------------------------------
   function exportSelection() {
     const scope = el('tr-export-period').value;
-    const from = el('tr-export-from').value;
-    const to = el('tr-export-to').value;
+    const from = monthOf(el('tr-export-from'));
+    const to = monthOf(el('tr-export-to'));
     const excludePaid = el('tr-exclude-paid').checked;
     const chosen = scope === 'all' ? periods : periods.filter(function (period) { return String(period.index) === scope; });
     return chosen.map(function (period) {
@@ -352,9 +415,12 @@
 
   function exportRent(kind) {
     if (!model) { return; }
+    syncMonthFields();
+    const problem = exportRangeProblem();
+    if (problem) { showError(problem); return; }
     const selection = exportSelection();
-    if (!selection.length) { el('tr-error').textContent = 'אין חודשים בטווח שנבחר לייצוא.'; return; }
-    el('tr-error').textContent = '';
+    if (!selection.length) { showError('אין חודשים בטווח שנבחר לייצוא.', ['tr-export-from', 'tr-export-to']); return; }
+    showError('');
     const grand = totalsOf(selection.reduce(function (acc, period) { return acc.concat(period.rows); }, []));
     const subtitle = (model.form.landlord || say('משכיר')) + ' ← ' + (model.form.tenant || say('שוכר'))
       + ' · מדד בסיס ' + Statso.core.formatMonthHe(model.baseIndexMonth);
@@ -447,7 +513,7 @@
     on('tr-has-options', 'change', function () {
       el('tr-options').hidden = !el('tr-has-options').checked;
       if (el('tr-has-options').checked && !el('tr-option-rows').children.length) {
-        const end = el('tr-base-end').value;
+        const end = monthOf(el('tr-base-end')) || '';
         const next = end ? Statso.core.ordinalToMonth(Statso.core.monthToOrdinal(end) + 1) : '';
         addOptionRow({start: next, end: next ? Statso.core.ordinalToMonth(Statso.core.monthToOrdinal(next) + 11) : '',
           rent: el('tr-base-rent').value});
@@ -459,11 +525,15 @@
     });
     on('tr-periods', 'change', onPeriodsChange);
     on('tr-add-option', 'click', function () { addOptionRow({}).querySelector('input').focus(); });
-    ['tr-export-period', 'tr-export-from', 'tr-export-to', 'tr-exclude-paid'].forEach(function (id) {
-      on(id, 'change', function () { el('tr-error').textContent = ''; });
+    ['tr-export-period', 'tr-exclude-paid'].forEach(function (id) {
+      on(id, 'change', function () { showError(exportRangeProblem()); });
     });
     ['tr-export-from', 'tr-export-to'].forEach(function (id) {
-      on(id, 'change', function () { rangeTouched = true; });
+      on(id, 'change', function () {
+        rangeTouched = true;
+        syncMonthFields();
+        showError(exportRangeProblem());
+      });
     });
     on('tr-xlsx', 'click', function () { exportRent('xlsx'); });
     on('tr-pdf', 'click', function () { exportRent('pdf'); });

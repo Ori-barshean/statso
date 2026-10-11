@@ -44,10 +44,12 @@ class A11ySourceTests(unittest.TestCase):
 
     def test_guides_call_into_nav_focus(self):
         self.assertEqual(self.guides.count("Statso.nav.focusView"), 4)  # guard + call, in both showGuide and showIndex
-        self.assertIn("function showGuide(", self.guides)
+        self.assertIn("function showGuide(guideId, fromRoute)", self.guides)
         self.assertIn("function showIndex(fromRoute)", self.guides)
         self.assertNotIn("addEventListener('click', showIndex)", self.guides)
-        self.assertIn("addEventListener('click', function () { showIndex(); })", self.guides)
+        self.assertNotIn("addEventListener('click', showGuide)", self.guides)
+        self.assertIn(r"/^#\/guides\/([a-z0-9-]+)$/", self.nav)
+        self.assertIn('<a class="guide-back" id="guide-back" href="#/guides">', self.html)
 
     # ---------- page titles --------------------------------------------------
     # A hash route never reloads the page, so without this every view of the
@@ -346,19 +348,18 @@ process.stdout.write(JSON.stringify(seen));
     def test_guide_illustrations_and_code_blocks_are_focusable_regions(self):
         for name in ("codeBlock", "oneArtSlot"):
             self.assertIn(f"function {name}", self.guides)
-        # No role="region" here on purpose: these repeat once per guide step
-        # with the same generic label ("Excel in Hebrew", "Sample code"), and a
-        # landmark role demands a *unique* accessible name per instance — axe's
-        # landmark-unique caught exactly this when role="region" was first
-        # tried. Plain tabindex + aria-label is enough to satisfy
-        # scrollable-region-focusable without claiming landmark status.
+        # A focusable scroll container needs a role that permits a name AND that axe's scrollable-semantics
+        # check accepts (a group is flagged by focus-order-semantics, a region is not). Mark only the code as English.
         self.assertEqual(self.guides.count('tabindex="0" aria-label="'), 3)
+        self.assertEqual(self.guides.count('role="region" tabindex="0" aria-label="'), 3)
         self.assertNotIn('tabindex="0" role="region"', self.guides)
         # the standalone Power Query export-code tab has its own static <pre>
         static_pre = re.search(r'<div class="code-block mcode-output"><pre dir="ltr"[^>]*>', self.html)
         self.assertIsNotNone(static_pre)
-        self.assertIn('tabindex="0" aria-label="', static_pre.group(0))
-        self.assertNotIn('role="region"', static_pre.group(0))
+        self.assertIn('role="region" tabindex="0" aria-label="', static_pre.group(0))
+        self.assertIn('<code id="mc-code" lang="en">', self.html)
+        for source in (self.html, self.guides):
+            self.assertNotRegex(source, r'<pre\b[^>]*\blang=')
 
     # ---------- form fields, focus ring, target size ---------------------------
     # 1.4.11: the border is the only thing that marks a text field out from the
@@ -636,7 +637,7 @@ function element() { return {textContent: '', value: '', min: '', max: '', disab
 const els = {};
 ['cpi-chart', 'chart-start-year', 'chart-end-year', 'chart-range-error', 'chart-live',
  'chart-series-cpi', 'chart-series-construction', 'chart-month', 'chart-alt-summary'].forEach(id => { els[id] = element(); });
-global.document = {getElementById: id => els[id] || null};
+global.document = {getElementById: id => els[id] || null, querySelectorAll: () => []};
 const charts = [];
 window.Chart = class {
  constructor(ctx, config) {
@@ -873,7 +874,7 @@ function element() { return {textContent: '', value: '', checked: true, label: {
 const els = {};
 ['cpi-chart', 'chart-start-year', 'chart-end-year', 'chart-range-error', 'chart-live',
  'chart-series-cpi', 'chart-series-construction'].forEach(id => { els[id] = element(); });
-global.document = {getElementById: id => els[id] || null};
+global.document = {getElementById: id => els[id] || null, querySelectorAll: () => []};
 const charts = [];
 window.Chart = class {
  constructor(ctx, config) {
@@ -991,7 +992,7 @@ function element() { return {textContent: '', value: '', checked: true, label: {
 const els = {};
 ['cpi-chart', 'chart-start-year', 'chart-end-year', 'chart-range-error', 'chart-live',
  'chart-series-cpi', 'chart-series-construction'].forEach(id => { els[id] = element(); });
-global.document = {getElementById: id => els[id] || null};
+global.document = {getElementById: id => els[id] || null, querySelectorAll: () => []};
 const charts = [];
 window.Chart = class {
  constructor(ctx, config) {
@@ -1144,10 +1145,10 @@ process.stdout.write(JSON.stringify({before, after, fallback: target.textContent
 
     def test_accessibility_statement_lists_the_new_accommodations(self):
         page = re.search(r'<article[^>]*id="accessibility-page".*?</article>', self.html, re.DOTALL).group(0)
-        he = re.search(r'data-lang="he">(.*?)</div>', page, re.DOTALL).group(1)
+        he = re.search(r'data-lang="he">(.*?)</div>\s*<div class="prose-guide" data-lang="en"', page, re.DOTALL).group(1)
         en = re.search(r'data-lang="en" hidden>(.*?)</div>', page, re.DOTALL).group(1)
-        self.assertIn('10/10/2026', he)
-        self.assertIn('10 October 2026', en)
+        self.assertIn('11/10/2026', he)
+        self.assertIn('11 October 2026', en)
         for block in (he, en):
             self.assertIn('forced colors', block)
             self.assertIn('Page Up/Page Down', block)
@@ -1181,31 +1182,66 @@ process.stdout.write(JSON.stringify({before, after, fallback: target.textContent
         self.assertIn('the table caption is not kept in the tags', en)
         # the rent tool patches its tables in place (verified in a browser with real key presses: focus, scroll and
         # the click that follows an edit survive) and names each table with a caption
-        self.assertIn('כיתוב לכל טבלת תקופה בכלי הזה, ועדכון הטבלה במקומה בעריכת סכום ששולם או בסימון "שולם", כך שהמיקוד ומקום הגלילה נשמרים', he)
-        self.assertIn('a caption on each period table in that tool, and the table updating in place when a paid amount is edited or "paid" is ticked, so keyboard focus and scroll position are kept', en)
+        self.assertIn('כיתוב לכל טבלת תקופה בכלי הצמדת הסכם שכירות, ועדכון הטבלה במקומה בעריכת סכום ששולם או בסימון "שולם", כך שהמיקוד ומקום הגלילה נשמרים', he)
+        self.assertIn('A caption on each period table in the rental-agreement tool, and the table updating in place when a paid amount is edited or "paid" is ticked, so keyboard focus and scroll position are kept', en)
         self.assertIn('של טבלאות הנתונים ההיסטוריות וטבלת שערי המטבע, איורי המדריכים', he)
         self.assertIn('for the historical data tables, the exchange-rate table, guide illustrations', en)
         # what is still open in that tool: the scroll area has no tab stop of its own (the fields inside are focusable)
         self.assertIn('לאזור הגלילה האופקי של הטבלאות אין עצירת מקלדת משלו', he)
         self.assertIn("horizontal scroll area has no keyboard stop of its own", en)
-        for stale in ('בונה אותן מחדש', 'מעבירה את המיקוד לראש הדף', 'אינן כוללות כיתוב'):
+        for stale in ('בונה אותן מחדש', 'מעבירה את המיקוד לראש הדף', 'אינן כוללות כיתוב',
+                      'כותרות משנה ורשימות של ממש בדפי המידע', 'סוגר את המדריך הפתוח'):
             self.assertNotIn(stale, he)
-        for stale in ('rebuilds them', 'moves keyboard focus to the top of the page', 'have no caption'):
+        for stale in ('rebuilds them', 'moves keyboard focus to the top of the page', 'have no caption',
+                      'Section headings and real lists on the information pages', 'Back button closes an open guide'):
             self.assertNotIn(stale, en)
+        for text in ('לכל מדריך כתובת משלו', 'כותרות משנה בדפי המידע',
+                     'ורשימות של ממש במקומות שבהם הטקסט מונה פריטים (מדיניות הפרטיות והצהרה זו)',
+                     'במדריך שנפתח מרשימת המדריכים', 'למדריך שנפתח מקישור ישיר',
+                     'שם לכל צמד של שנה וחודש', 'סמל הלוגו הדקורטיבי מוסתר מקוראי מסך',
+                     'שני הקישורים לממשק הלמ״ס', 'קטעי הקוד לדוגמה ואיורי המדריכים מסומנים כאזור בעל שם',
+                     'הקוד עצמו מסומן כטקסט באנגלית', 'הערה גלויה שכל השדות חובה, המקושרת לכל שדה',
+                     'השם הנגיש של כל שדה "שולם בפועל"', 'כולל את חודש השורה', 'כולל את שם התקופה',
+                     'שדות החודש בכלי הצמדת הסכם שכירות', 'YYYY-MM', 'MM/YYYY', 'גם עם חודש בספרה אחת',
+                     'הנחיית פורמט גלויה המקושרת לשדה', 'הודעת שגיאה מוכרזת במקום טבלה ריקה',
+                     'נבדקה רק בהדמיה', 'ולא בדפדפן כזה עצמו', 'מדריך פתוח', 'בדיקת עץ הנגישות',
+                     'לאיתור רכיבים ללא שם ורכיבים בעלי שם זהה באותו הקשר'):
+            self.assertIn(text, he)
+        for text in ("Each guide has its own address", "browser's Back button", 'moves focus to the page heading',
+                     'Section headings on the information pages (about, terms, privacy and this statement)', 'three data cards',
+                     'real lists where the text enumerates items (the privacy policy and this statement)',
+                     'for a guide opened from the guide list', 'a guide opened from a direct link',
+                     'A name for every year-and-month pair', 'The decorative logo mark is hidden from screen readers',
+                     'two links to the CBS interface', 'Sample-code blocks and guide illustrations are marked as named regions',
+                     'code itself is marked as English text', 'all fields are required, linked to each field',
+                     'accessible name of every "Actually paid" field and every "Settled" box',
+                     "includes the row's month", "includes the period's name", 'Month fields in the rental-agreement tool',
+                     'YYYY-MM', 'MM/YYYY', 'single-digit month', 'visible format hint is linked to the field',
+                     'announced error instead of an empty table', 'tested only by simulation',
+                     'not in such a browser itself', 'an open guide', 'accessibility tree for unnamed controls',
+                     'controls sharing a name in the same context'):
+            self.assertIn(text, en)
         self.assertNotRegex(en, r'[֐-׿]')
+        # the narrow-screen claims were checked in a browser (overlap scan at 320/375/600/768, scrollWidth at 320 and 305)
+        self.assertIn('במסכים צרים (עד 900 פיקסלים) כלי החישוב מוצגים בעמודה אחת', he)
+        self.assertIn('on narrow screens (up to 900 pixels) the calculation tools lay out in a single column', en)
+        self.assertIn('וגם ב־305 פיקסלים', he)
+        self.assertIn('and 305 pixels', en)
+        self.assertIn('וללא רכיבים החופפים זה לזה', he)
+        self.assertIn('no overlapping components', en)
         for text in ('מחוון לבחירת חודש', 'סיכום נתונים', 'שורת כותרות שנשארת גלויה', 'מסנן אוטומטי', 'ללא תאים ממוזגים',
                      'כיתוב (<span dir="ltr">caption</span>)', 'כל האתר דורש <span dir="ltr">JavaScript</span>',
                      'ולא אומת', 'בודק הנגישות של <span dir="ltr">Excel</span> לא הורץ'):
             self.assertIn(text, he)
         for text in ('month slider', 'data summary', 'header row that stays visible', 'AutoFilter', 'no merged cells',
-                     'tables with a caption', 'the whole site requires <span dir="ltr">JavaScript</span>',
+                     'tables with a caption', 'whole site requires <span dir="ltr">JavaScript</span>',
                      'has not been verified', "Excel's accessibility checker has not been run"):
             self.assertIn(text, en)
         for text in ('החלק העליון של הטבלה עשוי להיות מחוץ לתצוגה', 'the top of the table may sit out of view',
                      'מעבר בין השפות דורש', 'switching languages requires', 'לא נבדקה נגישותם של קובצי',
                      'has not been checked'):
             self.assertNotIn(text, page)
-        for old in ('09/10/2026', '9 October 2026', 'לא מתוך הגרף עצמו', 'not from the chart itself'):
+        for old in ('10/10/2026', '10 October 2026', '09/10/2026', '9 October 2026', 'לא מתוך הגרף עצמו', 'not from the chart itself'):
             self.assertNotIn(old, page)
 
     def test_contact_hebrew_messages_have_english_entries(self):

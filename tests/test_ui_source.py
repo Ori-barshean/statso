@@ -195,6 +195,21 @@ class UiSourceTests(unittest.TestCase):
         self.assertNotRegex(re.search(r"\.fxh-currency, \.tool-checkbox \{([^}]*)\}", css).group(1), "nowrap")
         self.assertRegex(css, r"@media \(max-width: 360px\) \{[^@]*\.nav-item \{[^}]*padding-inline")
 
+    def test_nav_fits_a_305px_window_in_english(self):
+        css = (ROOT / "assets/statso.css").read_text(encoding="utf-8")
+        rule = '@media (max-width: 319px) { .site-nav { gap: 2px; } .nav-item { padding-inline: 5px; } .site-nav .nav-item-stacked { width: 6.5rem; } }'
+        self.assertIn(rule, css)
+        self.assertLess(css.index("@media (max-width: 600px)"), css.index(rule))
+        self.assertLess(css.index("@media (max-width: 360px)"), css.index(rule))
+
+    def test_two_column_tool_layout_collapses_on_narrow_screens(self):
+        # found at 320px: the form was squeezed to ~100px and the result card covered it, because only
+        # .calc-layout collapsed; every two-column layout must fall back to one column in the same query
+        css = (ROOT / "assets/statso.css").read_text(encoding="utf-8")
+        self.assertIn(".tool-layout { display: grid; grid-template-columns: 1.6fr 1fr;", css)
+        narrow = re.search(r"@media \(max-width: 900px\) \{[^@]*\}", css).group(0)
+        self.assertIn(".calc-layout, .tool-layout { grid-template-columns: 1fr; }", narrow)
+
     def test_readme_names_every_tool_the_site_offers(self):
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         names = re.findall(r'<a class="tool-card"[^>]*>.*?<strong>(.*?)</strong>', self.html)

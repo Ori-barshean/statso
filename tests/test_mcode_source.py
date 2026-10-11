@@ -142,7 +142,11 @@ for (const choice of [
 }
 process.stdout.write(JSON.stringify(results));
 ''', setup='''
-const els = Object.fromEntries(['mc-from', 'mc-to', 'mc-average', 'mc-currencies-block', 'mc-error', 'mc-code', 'mc-copy'].map(id => [id, {textContent: 'stale', checked: false}]));
+const els = Object.fromEntries(['mc-from', 'mc-to', 'mc-average', 'mc-currencies-block', 'mc-error', 'mc-code', 'mc-copy'].map(id => {
+  const attrs = {};
+  return [id, {textContent: 'stale', checked: false, setAttribute(k, v) { attrs[k] = String(v); },
+    getAttribute(k) { return k in attrs ? attrs[k] : null; }, removeAttribute(k) { delete attrs[k]; }}];
+}));
 const series = {value: 'boi'};
 global.document = {addEventListener() {}, getElementById(id) { return els[id]; }, querySelector() { return series; }, querySelectorAll() { return []; }};
 ''')

@@ -120,11 +120,20 @@
       return '<label><input type="radio" name="guide-' + name + '" value="' + choice[0] + '"' + (state[name] === choice[0] ? ' checked' : '') + '> <span>' + choice[1] + '</span></label>';
     }).join('') + '</div></fieldset>';
   }
+  // Two copy buttons on one page both say "העתק", so each one's name also says which file it copies. The name starts
+  // with the visible word, so speech-control users can still say what they see.
+  const URL_NAMES = {};
+  URL_NAMES[URLS.boi.csv] = 'העתק — קובץ ה-CSV של ריבית בנק ישראל';
+  URL_NAMES[URLS.boi.json] = 'העתק — קובץ ה-JSON של ריבית בנק ישראל';
+  URL_NAMES[URLS.cpi.csv] = 'העתק — קובץ ה-CSV של מדד המחירים לצרכן';
+  URL_NAMES[URLS.cpi.json] = 'העתק — קובץ ה-JSON של מדד המחירים לצרכן';
+  URL_NAMES[URLS.next] = 'העתק — קובץ ה-JSON של מועד החלטת הריבית הבאה';
   function urlBlock(url) {
-    return '<div class="url-block"><code dir="ltr">' + url + '</code><button class="copy-url" type="button" data-url="' + url + '">העתק</button></div>';
+    const name = URL_NAMES[url];
+    return '<div class="url-block"><code dir="ltr">' + url + '</code><button class="copy-url" type="button" data-url="' + url + '"' + (name ? ' aria-label="' + name + '"' : '') + '>העתק</button></div>';
   }
   function codeBlock(code) {
-    return '<div class="code-block"><button class="copy-url guide-copy-pill" type="button">העתקת הקוד</button><pre dir="ltr" tabindex="0" aria-label="קוד לדוגמה" data-i18n-skip><code>' + Statso.core.escapeHtml(code) + '</code></pre></div>';
+    return '<div class="code-block"><button class="copy-url guide-copy-pill" type="button">העתקת הקוד</button><pre dir="ltr" role="region" tabindex="0" aria-label="קוד לדוגמה" data-i18n-skip><code lang="en">' + Statso.core.escapeHtml(code) + '</code></pre></div>';
   }
   function escAttr(value) { return String(value == null ? '' : value).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   function round1(value) { return Math.round(value * 10) / 10; }
@@ -144,17 +153,19 @@
     const overlay = arrows.length ? '<svg class="guide-shot-arrow" viewBox="0 0 ' + shot.width + ' ' + shot.height + '" aria-hidden="true" focusable="false">' + arrows.map(arrowMarkup).join('') + '</svg>' : '';
     return '<div class="guide-real-shot"><img src="' + escAttr(shot.src) + '" alt="' + escAttr(shot.alt) + '" width="' + shot.width + '" height="' + shot.height + '">' + overlay + '</div>';
   }
-  function oneArtSlot(visual, lang) {
+  function oneArtSlot(visual, lang, place) {
     const caption = lang === 'he' ? 'אקסל בעברית' : 'אקסל באנגלית';
-    return '<figure><div class="art-scroll art-scroll-' + (lang === 'he' ? 'rtl' : 'ltr') + '" tabindex="0" aria-label="' + caption + '">' + visual + '</div><figcaption>' + caption + '</figcaption></figure>';
+    // The figcaption stays as it is; the region name adds the step (and picture) so no two regions in a guide share one.
+    return '<figure><div class="art-scroll art-scroll-' + (lang === 'he' ? 'rtl' : 'ltr') + '" role="region" tabindex="0" aria-label="' + caption + ' — ' + place + '">' + visual + '</div><figcaption>' + caption + '</figcaption></figure>';
   }
   function artSlot(source, lang, stepNumber) {
     const shot = source.shots && source.shots[lang];
-    if (Array.isArray(shot)) { return shot.map(function (s) { return oneArtSlot(shotMarkup(s), lang); }).join(''); }
+    const place = 'שלב ' + stepNumber;
+    if (Array.isArray(shot)) { return shot.map(function (s, i) { return oneArtSlot(shotMarkup(s), lang, place + ', תמונה ' + (i + 1)); }).join(''); }
     let visual;
     if (shot) { visual = shotMarkup(shot); }
     else { visual = Statso.guideArt.render(source.art, {lang: lang, platform: state.platform, url: source.url || URLS.boi.csv, dataset: 'boi', step: stepNumber}); }
-    return oneArtSlot(visual, lang);
+    return oneArtSlot(visual, lang, place);
   }
   // A Hebrew reader may be running Excel in either language, so both screenshots
   // earn their place, except in the real-screenshot Power Query guides (Mac and
@@ -188,8 +199,13 @@
   function renderSteps() {
     const target = document.querySelector('.guide-steps-host');
     if (state.platform === 'mac' && state.method === 'webservice') {
-      target.innerHTML = '<aside class="guide-notice" role="status"><h2>WEBSERVICE אינה זמינה ב-Excel for Mac</h2><p>אין צעדים להצגה עבור שילוב זה. אפשר לייבא את הנתונים באמצעות Power Query.</p><button type="button" class="choose-power">מעבר ל-Power Query</button></aside>';
-      document.querySelector('.choose-power').addEventListener('click', function () { state.method = 'power'; renderGuide(); });
+      target.innerHTML = '<div class="guide-notice" role="status"><h2>WEBSERVICE אינה זמינה ב-Excel for Mac</h2><p>אין צעדים להצגה עבור שילוב זה. אפשר לייבא את הנתונים באמצעות Power Query.</p><button type="button" class="choose-power">מעבר ל-Power Query</button></div>';
+      document.querySelector('.choose-power').addEventListener('click', function () {
+        state.method = 'power'; renderGuide(currentGuide);
+        // the button that held focus is gone after the rebuild: hand focus to the first step
+        const first = document.querySelector('.guide-steps-host h2');
+        if (first) { first.setAttribute('tabindex', '-1'); first.focus({preventScroll: true}); }
+      });
       return;
     }
     const steps = getSteps(state.platform, state.method);
@@ -232,7 +248,7 @@
     document.getElementById('guide-content').innerHTML = '<header class="guide-header"><p class="eyebrow">מושגים במדד המחירים לצרכן</p><h1 id="cpi-guide-title">מדד בגין מול מדד ידוע — ומה המדד בכלל מודד</h1><p>ההבדל בין שני המדדים, מועד הפרסום והרכב סל הצריכה.</p></header>' +
       '<div class="prose-guide">' +
       '<section><h2>1. שני שמות, אותו מדד</h2><p><strong>מדד בגין חודש X</strong> הוא המדד שמודד את המחירים בחודש X עצמו. הוא מתפרסם ב-15 בחודש X+1.</p><p><strong>מדד ידוע במועד מסוים</strong> הוא המדד האחרון שפורסם עד אותו מועד — כלומר המדד של החודש הקודם.</p><p>לכן, לתשלום שחל בחודש X: מדד ידוע = המדד של חודש X-1; מדד בגין = המדד של חודש X.</p><p>אלה אותם מספרים בדיוק; ההבדל הוא רק לאיזה חודש מצמידים אותם. הפער ביניהם הוא חודש אחד. <a href="#/">המחשבון בדף הבית</a> מיישם בדיוק את ההבחנה הזו.</p><aside class="guide-note live-example"><h3>דוגמה מהנתונים העדכניים</h3><p data-cpi-live-example>לא ניתן להציג דוגמה מהנתונים כרגע</p></aside></section>' +
-      '<section><h2>2. מתי מתפרסם המדד</h2><p>לפי הלמ״ס, הודעות מדדי המחירים מתפרסמות ב-15 בכל חודש בשעה 18:30, עבור החודש שקדם לו.</p><p>אם ה-15 בחודש נופל ביום שישי, בשבת, בערב חג או בחג — הפרסום מוקדם ליום שישי או לערב החג, בשעה 14:00.</p><figure class="timeline-figure"><div class="art-scroll art-scroll-rtl" tabindex="0" aria-label="ציר הזמן של מדד בגין ומדד ידוע: פער קבוע של חודש אחד.">' + diagram + '</div><figcaption>ציר הזמן של מדד בגין ומדד ידוע: פער קבוע של חודש אחד.</figcaption></figure></section>' +
+      '<section><h2>2. מתי מתפרסם המדד</h2><p>לפי הלמ״ס, הודעות מדדי המחירים מתפרסמות ב-15 בכל חודש בשעה 18:30, עבור החודש שקדם לו.</p><p>אם ה-15 בחודש נופל ביום שישי, בשבת, בערב חג או בחג — הפרסום מוקדם ליום שישי או לערב החג, בשעה 14:00.</p><figure class="timeline-figure"><div class="art-scroll art-scroll-rtl" role="region" tabindex="0" aria-label="ציר הזמן של מדד בגין ומדד ידוע: פער קבוע של חודש אחד.">' + diagram + '</div><figcaption>ציר הזמן של מדד בגין ומדד ידוע: פער קבוע של חודש אחד.</figcaption></figure></section>' +
       '<section><h2>3. מה המדד כולל</h2><p>לפי הלמ״ס, המדד מודד את שינוי העלות של סל הצריכה של משק בית ממוצע; הלמ״ס מתמחרת מדי חודש כ-1,300 מוצרים ושירותים מייצגים.</p><p>עשר קבוצות הצריכה הראשיות הן: מזון (ללא ירקות ופירות); ירקות ופירות; דיור; תחזוקת הדירה; ריהוט וציוד לבית; הלבשה והנעלה; בריאות; חינוך, תרבות ובידור; תחבורה ותקשורת; שונות.</p><p><strong>מה המדד לא כולל:</strong> רכישת דירה. קבוצת ״דיור״ במדד מודדת את שירותי הדיור — בעיקר שכר דירה — ולא את מחיר קניית הדירה. מחירי רכישת דירות נמדדים במדד נפרד של הלמ״ס, ״מדד ומחירים ממוצעים משוק הדירות״.</p></section>' +
       '<section><h2>4. מדדים נגזרים</h2><p>הלמ״ס מפרסמת גם חתכים שמנטרלים רכיבים תנודתיים: המדד ללא ירקות ופירות; המדד ללא דיור; המדד ללא ירקות ופירות וללא דיור; המדד ללא אנרגיה.</p><p>החתכים האלה משמשים כדי לראות מגמה בסיסית בלי רעש עונתי או תנודות אנרגיה.</p></section></div>';
     fillCpiExample();
@@ -242,10 +258,15 @@
     currentGuide = guideId;
     if (guideId === 'cpi-terms') { renderCpiGuide(); } else { renderExcelGuide(); }
   }
-  function showGuide(eventOrId) {
-    const guideId = typeof eventOrId === 'string' ? eventOrId : eventOrId && eventOrId.currentTarget ? eventOrId.currentTarget.dataset.guide : 'excel';
+  function showGuide(guideId, fromRoute) {
+    const guide = guides.find(function (item) { return item.id === guideId; });
+    if (!guide || guide.soon) { return false; }
     document.getElementById('guides-index').hidden = true; document.getElementById('guide-detail').hidden = false; renderGuide(guideId); root.scrollTo(0, 0);
-    if (Statso.nav && Statso.nav.focusView) { Statso.nav.focusView(); }
+    // The engine's observer translates only after this task ends, but the tab title and the focused heading are read
+    // right below and by the router right after this returns, so translate the new markup now.
+    if (Statso.i18n && Statso.i18n.apply) { Statso.i18n.apply(document.getElementById('guide-detail')); }
+    if (!fromRoute && Statso.nav && Statso.nav.focusView) { Statso.nav.focusView(); }
+    return true;
   }
   function showIndex(fromRoute) {
     document.getElementById('guide-detail').hidden = true; document.getElementById('guides-index').hidden = false; root.scrollTo(0, 0);
@@ -254,8 +275,7 @@
   function renderIndex() {
     document.getElementById('guide-cards').innerHTML = guides.map(function (guide) {
       if (guide.soon) { return '<div class="guide-card guide-card-soon" aria-disabled="true"><span>' + Statso.core.escapeHtml(guide.title) + '</span><small>' + Statso.core.escapeHtml(guide.description) + '</small></div>'; }
-      return '<button class="guide-card" type="button" data-guide="' + guide.id + '"><span>' + guide.title + '</span><small>' + guide.description + '</small><b aria-hidden="true">←</b></button>'; }).join('');
-    document.querySelectorAll('[data-guide]').forEach(function (button) { button.addEventListener('click', showGuide); });
+      return '<a class="guide-card" href="#/guides/' + guide.id + '"><span>' + guide.title + '</span><small>' + guide.description + '</small><b aria-hidden="true">←</b></a>'; }).join('');
   }
   function legacyCopy(text) {
     const input = document.createElement('textarea'); input.value = text; input.setAttribute('readonly', ''); input.style.position = 'fixed'; input.style.opacity = '0'; document.body.appendChild(input); input.select();
@@ -282,7 +302,7 @@
     else { done(legacyCopy(payload(button))); }
   }
   function attachCopyButtons() { document.querySelectorAll('.copy-url').forEach(function (button) { button.addEventListener('click', function () { copy(button); }); }); }
-  function init() { renderIndex(); document.getElementById('guide-back').addEventListener('click', function () { showIndex(); }); }
+  function init() { renderIndex(); }
   document.addEventListener('DOMContentLoaded', init);
   if (root.Statso.i18n) {
     root.Statso.i18n.onChange(function () {

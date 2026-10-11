@@ -41,9 +41,15 @@
       function (box) { return box.value; });
   }
 
-  function fail(message) {
-    rows = []; averages = [];
+  // The fields an error is about are marked invalid and point at the message, so they say so when focused.
+  function showError(message, fields) {
     el('fxh-error').textContent = message;
+    Statso.core.flagFields('fxh-error', fields || []);
+  }
+
+  function fail(message, fields) {
+    rows = []; averages = [];
+    showError(message, fields);
     el('fxh-head').innerHTML = ''; el('fxh-body').innerHTML = '';
     el('fxh-averages').innerHTML = ''; el('fxh-note').textContent = '';
   }
@@ -54,9 +60,10 @@
     const from = el('fxh-from').value;
     const to = el('fxh-to').value;
     const resolution = el('fxh-resolution').value;
-    if (!selected.length) { fail('יש לבחור מטבע אחד לפחות.'); return; }
-    if (!from || !to) { fail('יש לבחור טווח תאריכים.'); return; }
-    if (from > to) { fail('תאריך ההתחלה חייב להיות מוקדם מתאריך הסיום.'); return; }
+    const range = ['fxh-from', 'fxh-to'];
+    if (!selected.length) { fail('יש לבחור מטבע אחד לפחות.', Array.prototype.slice.call(document.querySelectorAll('#fxh-currencies input'))); return; }
+    if (!from || !to) { fail('יש לבחור טווח תאריכים.', range.filter(function (id) { return !el(id).value; })); return; }
+    if (from > to) { fail('תאריך ההתחלה חייב להיות מוקדם מתאריך הסיום.', range); return; }
 
     // period key -> code -> {sum, count}
     const buckets = new Map();
@@ -88,8 +95,8 @@
         })};
     });
 
-    if (!rows.length) { fail('אין שערים שפורסמו בטווח שנבחר.'); return; }
-    el('fxh-error').textContent = '';
+    if (!rows.length) { fail('אין שערים שפורסמו בטווח שנבחר.', range); return; }
+    showError('');
     render(resolution);
   }
 

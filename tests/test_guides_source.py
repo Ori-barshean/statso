@@ -125,7 +125,7 @@ process.stdout.write(JSON.stringify(out));
                          ', ולוחצים אישור/הבא.</p>')
             example = '<p>הקוד שלהלן הוא דוגמה מוכנה לריבית בנק ישראל לטווח 2022-12-01 עד 2025-12-31.</p>'
             self.assertIn(paragraph + example + '<div class="code-block"><button class="copy-url guide-copy-pill" '
-                          'type="button">העתקת הקוד</button><pre dir="ltr" tabindex="0" aria-label="קוד לדוגמה" data-i18n-skip><code>', third)
+                          'type="button">העתקת הקוד</button><pre dir="ltr" role="region" tabindex="0" aria-label="קוד לדוגמה" data-i18n-skip><code lang="en">', third)
             self.assertIn('</code></pre></div><div class="guide-mcode-cta">', third)
             cta = re.search(r'<div class="guide-mcode-cta">(.*?)</div>', third, re.S).group(1)
             self.assertEqual(cta.count('<p>'), 1)
@@ -134,8 +134,8 @@ process.stdout.write(JSON.stringify(out));
             self.assertNotIn('guide-mcode-button', third)
 
         self.assertIn('class="code-block"', mac[2])
-        self.assertIn('<pre dir="ltr" tabindex="0" aria-label="קוד לדוגמה" data-i18n-skip>', mac[2])
-        rendered_code = re.search(r'<pre[^>]*><code>(.*?)</code></pre>', mac[2], re.S).group(1)
+        self.assertIn('<pre dir="ltr" role="region" tabindex="0" aria-label="קוד לדוגמה" data-i18n-skip>', mac[2])
+        rendered_code = re.search(r'<pre[^>]*><code lang="en">(.*?)</code></pre>', mac[2], re.S).group(1)
         self.assertEqual(html.unescape(rendered_code), out['code'])
         self.assertEqual(out['he/mac'].count('href="#/mcode"'), 1)
         self.assertNotIn('<aside', out['he/mac'])
@@ -247,6 +247,68 @@ process.stdout.write(JSON.stringify(out));
                 width, height = struct.unpack(">II", handle.read(length)[:8])
             self.assertEqual((width, height), (shot["width"], shot["height"]))
 
+    def test_illustration_regions_have_unique_names_in_every_excel_guide(self):
+        script = """
+global.window = {};
+const host = {innerHTML: ''};
+const stub = {setAttribute() {}, addEventListener() {}, innerHTML: ''};
+global.document = {addEventListener() {}, getElementById() { return stub; },
+  querySelector(s) { return s === '.guide-steps-host' ? host : stub; }, querySelectorAll() { return []; }};
+require(%s);
+require(%s);
+require(%s);
+require(%s);
+require(%s);
+const S = window.Statso, out = {pages: {}};
+for (const site of ['he', 'en']) {
+  S.i18n = {current: () => site, onChange() {}};
+  for (const platform of ['mac', 'win']) {
+    for (const method of ['power', 'manual', 'webservice']) {
+      Object.assign(S.guides.state, {platform, method});
+      S.guides.renderExcelGuide();
+      out.pages[[site, platform, method].join('/')] = host.innerHTML;
+    }
+  }
+}
+const L = S.lang;
+const t = s => { if (L.en[s]) { return L.en[s]; }
+  for (const [pattern, replacement] of L.enPatterns) { if (pattern.test(s)) { return s.replace(pattern, replacement); } }
+  return s; };
+out.translations = ['אקסל בעברית — שלב 3', 'אקסל באנגלית — שלב 12',
+  'אקסל בעברית — שלב 5, תמונה 2', 'אקסל באנגלית — שלב 5, תמונה 1'].map(t);
+process.stdout.write(JSON.stringify(out));
+""" % tuple(json.dumps(str(ROOT / "assets" / name)) for name in
+            ("statso-core.js", "statso-guide-art.js", "statso-guides.js", "statso-mcode.js", "statso-lang-en.js"))
+        out = json.loads(subprocess.run(
+            ["node", "-e", script], check=True, capture_output=True, text=True, encoding="utf-8"
+        ).stdout)
+        for page, markup in out['pages'].items():
+            with self.subTest(page=page):
+                labels = re.findall(r'role="region" tabindex="0" aria-label="([^"]*)"', markup)
+                self.assertEqual(len(labels), len(set(labels)))
+                if page.endswith('/mac/webservice'):
+                    self.assertEqual(labels, [])
+                    self.assertIn('<div class="guide-notice" role="status"><h2>', markup)
+                    self.assertNotIn('<aside', markup)
+                    continue
+                figures = re.findall(r'<figure>(.*?)</figure>', markup, re.S)
+                self.assertGreater(len(figures), 1)
+                for figure in figures:
+                    caption = re.search(r'<figcaption>(.*?)</figcaption>', figure, re.S).group(1)
+                    self.assertIn(caption, ('אקסל בעברית', 'אקסל באנגלית'))
+                    if page.startswith('en/'):
+                        self.assertEqual(caption, 'אקסל באנגלית')
+                    label = re.search(r'aria-label="([^"]*)"', figure).group(1)
+                    self.assertRegex(label, '^' + re.escape(caption) + r' — שלב \d+(?:, תמונה \d+)?$')
+        for label in ('אקסל בעברית — שלב 5, תמונה 1', 'אקסל בעברית — שלב 5, תמונה 2',
+                      'אקסל בעברית — שלב 7'):
+            self.assertIn('aria-label="' + label + '"', out['pages']['he/win/power'])
+        for caption in ('אקסל בעברית', 'אקסל באנגלית'):
+            self.assertIn('aria-label="' + caption + ' — שלב 1"', out['pages']['he/mac/manual'])
+        self.assertIn('aria-label="אקסל באנגלית — שלב 1"', out['pages']['en/win/power'])
+        self.assertEqual(out['translations'], ['Excel in Hebrew — step 3', 'Excel in English — step 12',
+            'Excel in Hebrew — step 5, picture 2', 'Excel in English — step 5, picture 1'])
+
     def test_single_hebrew_column_is_only_for_mac_or_win_power(self):
         predicate = self.guides.split('function realShotGuide() {')[1].split('\n  }')[0]
         self.assertIn("Statso.i18n ? Statso.i18n.current() : 'he'", predicate)
@@ -258,7 +320,7 @@ process.stdout.write(JSON.stringify(out));
     def test_second_guide_and_id_dispatch(self):
         self.assertIn("id: 'cpi-terms'", self.guides)
         self.assertIn("guideId === 'cpi-terms'", self.guides)
-        self.assertIn("eventOrId.currentTarget.dataset.guide", self.guides)
+        self.assertIn("href=\"#/guides/' + guide.id + '\"", self.guides)
         self.assertIn("data-cpi-live-example", self.guides)
         self.assertIn("Statso.data.loadDataset(source)", self.guides)
         self.assertIn("לא ניתן להציג דוגמה מהנתונים כרגע", self.guides)

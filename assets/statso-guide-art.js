@@ -5,6 +5,27 @@
     he: {excel: 'Excel', data: 'נתונים', getData: 'קבל נתונים', other: 'ממקורות אחרים', web: 'מהאינטרנט', refresh: 'רענן הכל', url: 'כתובת URL', ok: 'אישור', navigator: 'נווט', load: 'טען', file: 'קובץ', open: 'פתיחה', save: 'שמירה', formula: 'שורת הנוסחאות', preview: 'תצוגה מקדימה', chooseSource: 'בחר מקור נתונים', blankQuery: 'שאילתה ריקה', textCsv: 'טקסט/CSV', advancedEditor: 'עורך מתקדם', configureConnection: 'קבע תצורה של חיבור', credentialsWarning: 'אישורים לא חוקיים או חסרים', closeLoad: 'סגור וטען', specifyConnect: 'ציין כיצד להתחבר.', editCredentials: 'ערוך אישורים'},
     en: {excel: 'Excel', data: 'Data', getData: 'Get Data', other: 'From Other Sources', web: 'From Web', refresh: 'Refresh All', url: 'URL', ok: 'OK', navigator: 'Navigator', load: 'Load', file: 'File', open: 'Open', save: 'Save', formula: 'Formula bar', preview: 'Preview', chooseSource: 'Choose data source', blankQuery: 'Blank Query', textCsv: 'Text/CSV', advancedEditor: 'Advanced Editor', configureConnection: 'Configure connection', credentialsWarning: 'Invalid or missing credentials', closeLoad: 'Close & Load', specifyConnect: 'Specify how to connect.', editCredentials: 'Edit Credentials'}
   };
+  // What a screen reader says for each picture. It describes the picture in the site's own language and never repeats
+  // the Excel labels, because the step beside it already names the button to press; the figure caption says which
+  // language of Excel is drawn. The ids the code uses to pick a picture are never spoken.
+  const descriptions = {
+    'timeline-publication': 'ציר זמן: במהלך חודש X המדד הידוע הוא מדד X-1, ומדד בגין חודש X מתפרסם ב-15 בחודש X+1.',
+    'ribbon-data': 'איור של Excel: לשונית ״נתונים״ ברצועת הכלים, עם כפתור קבלת הנתונים מסומן.',
+    'ribbon-refresh': 'איור של Excel: לשונית ״נתונים״ ברצועת הכלים, עם כפתור ״רענן הכל״ מסומן.',
+    'ribbon-advanced-editor': 'איור של Excel: לשונית ״נתונים״ ברצועת הכלים, עם כפתור העורך המתקדם מסומן.',
+    'menu-getdata': 'איור של Excel: תפריט קבלת הנתונים, עם האפשרות ״מהאינטרנט״ מסומנת.',
+    'dialog-choose-source': 'איור של Excel: חלון בחירת מקור הנתונים, עם הכרטיס ״שאילתה ריקה״ מסומן.',
+    'editor-advanced': 'איור של Excel: חלון העורך המתקדם, עם קוד השאילתה מסומן.',
+    'dialog-credentials': 'איור של Excel: חלון העורך המתקדם עם אזהרה על אישורים חסרים או לא חוקיים, וכפתור הגדרת החיבור מסומן.',
+    'dialog-credentials-connect': 'איור של Excel: חלון העורך המתקדם עם הודעה על אופן ההתחברות, וכפתור עריכת האישורים מסומן.',
+    'dialog-fromweb': 'איור של Excel: חלון ״מהאינטרנט״ עם שדה כתובת ה-URL, וכפתור האישור מסומן.',
+    'dialog-navigator': 'איור של Excel: חלון הניווט עם תצוגה מקדימה של הנתונים, וכפתור הטעינה מסומן.',
+    'sheet-loaded': 'איור של Excel: גיליון עם הנתונים שנטענו, כשכותרות העמודות והשורה הראשונה מסומנות.',
+    'browser-save': 'איור של דפדפן: כתובת הקובץ בשורת הכתובת, תוכן הקובץ כטקסט, וכפתור השמירה מסומן.',
+    'dialog-open-file': 'איור של Excel: חלון פתיחת קובץ, עם קובץ הנתונים הנבחר וכפתור הפתיחה מסומן.',
+    'cell-formula': 'איור של Excel: שורת הנוסחאות עם נוסחת WEBSERVICE, והתא שמקבל את התוצאה מסומן.'
+  };
+  function describe(archetype) { return descriptions[archetype] || 'איור'; }
   function esc(value) { return String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
   function text(x, y, value, cls) { return '<text x="' + x + '" y="' + y + '" class="' + (cls || '') + '">' + esc(value) + '</text>'; }
   function marker(x, y, n) { return '<circle cx="' + x + '" cy="' + y + '" r="13" class="marker"/>' + text(x, y + 5, n, 'marker-text'); }
@@ -70,7 +91,7 @@
     }
     const bare = archetype === 'timeline-publication';
     const directionClass = rtl ? ' rtl-art' : '';
-    return '<svg class="guide-svg' + directionClass + '" viewBox="0 0 600 330" role="img" aria-label="' + esc(archetype) + '"' + (rtl ? ' direction="rtl"' : '') + '><style>.window{fill:#fff;stroke:#b8c5d4}.title{fill:#176b45}.grid{stroke:#dbe3ec}.highlight{fill:#dbeafe;fill-opacity:.5;stroke:#f97316;stroke-width:3}.marker{fill:#f97316}.marker-text{fill:#fff;font:bold 14px Arial;text-anchor:middle}.primary{fill:#217346}.white{fill:#fff}.center{text-anchor:middle}.tab{font:bold 15px Arial}.active{fill:#176b45}.button-label,.menu,.dialog-title{font:bold 14px Arial}.small,.tiny{font:11px Arial}.url,.formula,.mono{font:10px monospace;direction:ltr;unicode-bidi:embed}.formula{font-size:9px}.timeline{stroke:#2563eb;stroke-width:4;stroke-linecap:round}.known-callout{fill:#dbeafe;stroke:#2563eb}.timeline-title{font:bold 20px Arial}.timeline-label{font:bold 14px Arial}text{fill:#25364a}</sty' + 'le><g><rect x="5" y="5" width="590" height="320" rx="10" class="window"/>' + (bare ? '' : '<rect x="5" y="5" width="590" height="28" rx="10" class="title"/>' + chrome(600, options.platform)) + body + '</g></svg>';
+    return '<svg class="guide-svg' + directionClass + '" viewBox="0 0 600 330" role="img" aria-label="' + esc(describe(archetype)) + '"' + (rtl ? ' direction="rtl"' : '') + '><style>.window{fill:#fff;stroke:#b8c5d4}.title{fill:#176b45}.grid{stroke:#dbe3ec}.highlight{fill:#dbeafe;fill-opacity:.5;stroke:#f97316;stroke-width:3}.marker{fill:#f97316}.marker-text{fill:#fff;font:bold 14px Arial;text-anchor:middle}.primary{fill:#217346}.white{fill:#fff}.center{text-anchor:middle}.tab{font:bold 15px Arial}.active{fill:#176b45}.button-label,.menu,.dialog-title{font:bold 14px Arial}.small,.tiny{font:11px Arial}.url,.formula,.mono{font:10px monospace;direction:ltr;unicode-bidi:embed}.formula{font-size:9px}.timeline{stroke:#2563eb;stroke-width:4;stroke-linecap:round}.known-callout{fill:#dbeafe;stroke:#2563eb}.timeline-title{font:bold 20px Arial}.timeline-label{font:bold 14px Arial}text{fill:#25364a}</sty' + 'le><g><rect x="5" y="5" width="590" height="320" rx="10" class="window"/>' + (bare ? '' : '<rect x="5" y="5" width="590" height="28" rx="10" class="title"/>' + chrome(600, options.platform)) + body + '</g></svg>';
   }
-  Statso.guideArt = {render: render, words: words};
+  Statso.guideArt = {render: render, words: words, descriptions: descriptions};
 })(window);

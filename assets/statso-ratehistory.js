@@ -52,9 +52,15 @@
     return SERIES.filter(function (s) { return el('trh-' + s.key).checked; }).map(function (s) { return s.key; });
   }
 
-  function fail(message) {
-    rows = [];
+  // The fields an error is about are marked invalid and point at the message, so they say so when focused.
+  function showError(message, fields) {
     el('trh-error').textContent = message;
+    Statso.core.flagFields('trh-error', fields || []);
+  }
+
+  function fail(message, fields) {
+    rows = [];
+    showError(message, fields);
     el('trh-head').innerHTML = ''; el('trh-body').innerHTML = ''; el('trh-note').textContent = '';
   }
 
@@ -64,9 +70,10 @@
     const from = el('trh-from').value;
     const to = el('trh-to').value;
     const mode = el('trh-mode').value;
-    if (!selected.length) { fail('יש לבחור סדרה אחת לפחות.'); return; }
-    if (!from || !to) { fail('יש לבחור טווח תאריכים.'); return; }
-    if (from > to) { fail('תאריך ההתחלה חייב להיות מוקדם מתאריך הסיום.'); return; }
+    const range = ['trh-from', 'trh-to'];
+    if (!selected.length) { fail('יש לבחור סדרה אחת לפחות.', SERIES.map(function (s) { return 'trh-' + s.key; })); return; }
+    if (!from || !to) { fail('יש לבחור טווח תאריכים.', range.filter(function (id) { return !el(id).value; })); return; }
+    if (from > to) { fail('תאריך ההתחלה חייב להיות מוקדם מתאריך הסיום.', range); return; }
 
     if (mode === 'points') {
       rows = doc.changes.filter(function (change) { return change.date >= from && change.date <= to; })
@@ -74,7 +81,7 @@
           return {label: Statso.core.formatIsoDateHe(change.date), changed: false,
             values: selected.map(function (key) { return seriesByKey(key).value(change.rate); })};
         });
-      if (!rows.length) { fail('אין שינויי ריבית בטווח שנבחר.'); return; }
+      if (!rows.length) { fail('אין שינויי ריבית בטווח שנבחר.', range); return; }
     } else {
       const fromMonth = from.slice(0, 7); const toMonth = to.slice(0, 7);
       const months = [];
@@ -88,9 +95,9 @@
         return {label: Statso.core.formatMonthHe(month), changed: perSeries.some(function (r) { return r.changed; }),
           values: perSeries.map(function (r) { return r.rate; })};
       }).filter(function (row) { return row.values.some(function (v) { return v !== null; }); });
-      if (!rows.length) { fail('אין נתוני ריבית בטווח שנבחר.'); return; }
+      if (!rows.length) { fail('אין נתוני ריבית בטווח שנבחר.', range); return; }
     }
-    el('trh-error').textContent = '';
+    showError('');
     render(mode);
   }
 

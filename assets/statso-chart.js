@@ -378,8 +378,13 @@
     const start = Number(document.getElementById('chart-start-year').value);
     const end = Number(document.getElementById('chart-end-year').value);
     const error = document.getElementById('chart-range-error');
-    if (start > end) { error.textContent = 'שנת ההתחלה חייבת להיות מוקדמת משנת הסיום.'; return; }
-    error.textContent = ''; render(sliceByYears(observations, start, end), sliceByYears(constructionObservations, start, end));
+    // The years the message is about say so when focused: invalid, and pointing at the message.
+    if (start > end) {
+      error.textContent = 'שנת ההתחלה חייבת להיות מוקדמת משנת הסיום.';
+      Statso.core.flagFields('chart-range-error', ['chart-start-year', 'chart-end-year']);
+      return;
+    }
+    error.textContent = ''; Statso.core.flagFields('chart-range-error', []); render(sliceByYears(observations, start, end), sliceByYears(constructionObservations, start, end));
   }
 
   function start() {

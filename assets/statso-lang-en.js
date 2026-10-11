@@ -141,6 +141,8 @@
     'מדד ידוע': 'Known index',
     'מדד בגין': 'Index for the month',
     'חודש בסיס': 'Base month',
+    'חודש התחלה': 'Start month',
+    'חודש סיום': 'End month',
     'שנה': 'Year',
     'חודש': 'Month',
     'חודש יעד': 'Target month',
@@ -174,7 +176,7 @@
     'חישוב הפרשי הצמדה לכל תקופות השכירות והאופציה, לשליחה לשוכר.':
       'Linkage differences across every rental and option period, ready to send to the tenant.',
     'כלי 1': 'Tool 1', 'כלי 2': 'Tool 2', 'כלי 3': 'Tool 3', 'כלי 4': 'Tool 4',
-    '← לכל הכלים': '← All tools',
+    'לכל הכלים': 'All tools',
     'סוג המדד לחישוב': 'Index basis',
     'סדרת המדד': 'Index series',
     'מדד תשומות הבנייה למגורים': 'Residential construction inputs price index',
@@ -283,6 +285,9 @@
     'אין חודשים בטווח שנבחר לייצוא.': 'No months fall in the selected export range.',
     'יש לבחור את מועד הסכם השכירות.': 'Choose the date of the rent agreement.',
     'יש לבחור את חודשי תחילת וסיום השכירות.': 'Choose the first and last month of the tenancy.',
+    'פורמט החודש: YYYY-MM או MM/YYYY (למשל 2024-09 או 09/2024)': 'Month format: YYYY-MM or MM/YYYY (for example 2024-09 or 09/2024)',
+    'חודש לא תקין בתקופת השכירות הבסיסית — יש להזין YYYY-MM או MM/YYYY.': 'Invalid month in the base rental period — enter YYYY-MM or MM/YYYY.',
+    'חודש לא תקין בטווח הייצוא — יש להזין YYYY-MM או MM/YYYY.': 'Invalid month in the export range — enter YYYY-MM or MM/YYYY.',
     'חודש סיום השכירות מוקדם מחודש ההתחלה.': 'The last month comes before the first month.',
     'יש להזין דמי שכירות חודשיים תקינים.': 'Enter a valid monthly rent.',
 
@@ -357,8 +362,8 @@
     'מדיניות פרטיות': 'Privacy policy',
     'הצהרת נגישות': 'Accessibility Statement',
     'צור קשר': 'Contact',
-    '← חזרה לעמוד הבית': '← Back to the home page',
-    '← חזרה לכל המדריכים': '← Back to all guides',
+    'חזרה לעמוד הבית': 'Back to the home page',
+    'חזרה לכל המדריכים': 'Back to all guides',
     'מקורות הנתונים': 'Data sources',
     'מחשבון ההצמדה': 'The linkage calculator',
     'פורמטים': 'Formats',
@@ -369,6 +374,7 @@
     'שולח…': 'Sending…',
     'ההודעה נשלחה ותענה בהקדם האפשרי לתיבת המייל שציינת לחזרה.': 'Your message has been sent. A reply will be sent to the email address you provided as soon as possible.',
     'יש להזין שם מלא.': 'Enter your full name.',
+    'כל השדות חובה.': 'All fields are required.',
     'יש להזין אימייל לחזרה.': 'Enter an email address for the reply.',
     'יש להזין כתובת אימייל תקינה.': 'Enter a valid email address.',
     'יש להזין את תוכן ההודעה.': 'Enter your message.',
@@ -542,7 +548,45 @@
     'מדדים נגזרים': 'Derived indices',
     'דוגמה מהנתונים העדכניים': 'An example from the current data',
     'לא ניתן להציג דוגמה מהנתונים כרגע': 'No example can be shown from the data right now',
-    'מעבר ל-Power Query': 'Switch to Power Query'
+    'מעבר ל-Power Query': 'Switch to Power Query',
+    // spoken descriptions of the drawn Excel pictures in the guides
+    'ציר זמן: במהלך חודש X המדד הידוע הוא מדד X-1, ומדד בגין חודש X מתפרסם ב-15 בחודש X+1.':
+      'Timeline: during month X the known index is the index of month X-1, and the index for month X is published on the 15th of month X+1.',
+    'איור של Excel: לשונית ״נתונים״ ברצועת הכלים, עם כפתור קבלת הנתונים מסומן.':
+      'Excel illustration: the Data tab of the ribbon, with the Get Data button highlighted.',
+    'איור של Excel: לשונית ״נתונים״ ברצועת הכלים, עם כפתור ״רענן הכל״ מסומן.':
+      'Excel illustration: the Data tab of the ribbon, with the Refresh All button highlighted.',
+    'איור של Excel: לשונית ״נתונים״ ברצועת הכלים, עם כפתור העורך המתקדם מסומן.':
+      'Excel illustration: the Data tab of the ribbon, with the Advanced Editor button highlighted.',
+    'איור של Excel: תפריט קבלת הנתונים, עם האפשרות ״מהאינטרנט״ מסומנת.':
+      'Excel illustration: the Get Data menu, with the From Web option highlighted.',
+    'איור של Excel: חלון בחירת מקור הנתונים, עם הכרטיס ״שאילתה ריקה״ מסומן.':
+      'Excel illustration: the choose data source window, with the Blank Query card highlighted.',
+    'איור של Excel: חלון העורך המתקדם, עם קוד השאילתה מסומן.':
+      'Excel illustration: the Advanced Editor window, with the query code highlighted.',
+    'איור של Excel: חלון העורך המתקדם עם אזהרה על אישורים חסרים או לא חוקיים, וכפתור הגדרת החיבור מסומן.':
+      'Excel illustration: the Advanced Editor window with a warning about missing or invalid credentials, and the button that configures the connection highlighted.',
+    'איור של Excel: חלון העורך המתקדם עם הודעה על אופן ההתחברות, וכפתור עריכת האישורים מסומן.':
+      'Excel illustration: the Advanced Editor window with a message about how to connect, and the Edit Credentials button highlighted.',
+    'איור של Excel: חלון ״מהאינטרנט״ עם שדה כתובת ה-URL, וכפתור האישור מסומן.':
+      'Excel illustration: the From Web window with the URL field, and the OK button highlighted.',
+    'איור של Excel: חלון הניווט עם תצוגה מקדימה של הנתונים, וכפתור הטעינה מסומן.':
+      'Excel illustration: the Navigator window with a preview of the data, and the Load button highlighted.',
+    'איור של Excel: גיליון עם הנתונים שנטענו, כשכותרות העמודות והשורה הראשונה מסומנות.':
+      'Excel illustration: a worksheet with the loaded data, with the column headings and the first row highlighted.',
+    'איור של דפדפן: כתובת הקובץ בשורת הכתובת, תוכן הקובץ כטקסט, וכפתור השמירה מסומן.':
+      'Browser illustration: the file address in the address bar, the file content as text, and the Save button highlighted.',
+    'איור של Excel: חלון פתיחת קובץ, עם קובץ הנתונים הנבחר וכפתור הפתיחה מסומן.':
+      'Excel illustration: the Open File window, with the data file selected and the Open button highlighted.',
+    'איור של Excel: שורת הנוסחאות עם נוסחת WEBSERVICE, והתא שמקבל את התוצאה מסומן.':
+      'Excel illustration: the formula bar with a WEBSERVICE formula, and the cell that receives the result highlighted.',
+    'איור': 'Illustration',
+    // copy buttons: the visible word stays "העתק"; the name adds which file it copies
+    'העתק — קובץ ה-CSV של ריבית בנק ישראל': 'Copy — the Bank of Israel interest rate CSV file',
+    'העתק — קובץ ה-JSON של ריבית בנק ישראל': 'Copy — the Bank of Israel interest rate JSON file',
+    'העתק — קובץ ה-CSV של מדד המחירים לצרכן': 'Copy — the Consumer Price Index CSV file',
+    'העתק — קובץ ה-JSON של מדד המחירים לצרכן': 'Copy — the Consumer Price Index JSON file',
+    'העתק — קובץ ה-JSON של מועד החלטת הריבית הבאה': 'Copy — the JSON file with the date of the next interest rate decision'
   };
 
   function currencyName(name) { return en[name] !== undefined ? en[name] : name; }
@@ -597,7 +641,12 @@
     [/^הופק ב־(.+?) · נתוני מקור: הלשכה המרכזית לסטטיסטיקה ובנק ישראל · statso$/,
       'Produced $1 · Sources: Israel Central Bureau of Statistics and Bank of Israel · statso'],
     [/^סך ההפרשים לתשלום:$/, 'Total amount due:'],
-    [/^שלב (\d+)$/, 'Step $1']
+    [/^שלב (\d+)$/, 'Step $1'],
+    [/^אקסל בעברית — שלב (\d+)$/, 'Excel in Hebrew — step $1'],
+    [/^אקסל באנגלית — שלב (\d+)$/, 'Excel in English — step $1'],
+    [/^אקסל בעברית — שלב (\d+), תמונה (\d+)$/, 'Excel in Hebrew — step $1, picture $2'],
+    [/^אקסל באנגלית — שלב (\d+), תמונה (\d+)$/, 'Excel in English — step $1, picture $2'],
+    [/^חודש לא תקין בתקופת אופציה (\d+) — יש להזין YYYY-MM או MM\/YYYY\.$/, 'Invalid month in option period $1 — enter YYYY-MM or MM/YYYY.']
   ];
 
   Statso.lang = {en: en, enPatterns: enPatterns};

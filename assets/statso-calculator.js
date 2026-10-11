@@ -38,25 +38,32 @@
   function readFxInputs() {
     return {amount: Number(document.getElementById('calc-amount').value), from: document.getElementById('calc-fx-from').value, to: document.getElementById('calc-fx-to').value, date: document.getElementById('calc-fx-date').value};
   }
-  function fail(resultId, message) {
+  // The fields an error is about are marked invalid and point at the message, so they say so when focused.
+  const BASE_FIELDS = ['calc-base-year', 'calc-base-month'];
+  const TARGET_FIELDS = ['calc-target-year', 'calc-target-month'];
+  function showError(message, fields) {
     document.getElementById('calc-error').textContent = message;
+    Statso.core.flagFields('calc-error', fields || []);
+  }
+  function fail(resultId, message, fields) {
+    showError(message, fields);
     document.getElementById(resultId).hidden = true;
   }
-  function reject(month, reason) {
+  function reject(month, reason, fields) {
     const detail = reason === 'missing' ? 'אינו קיים בסדרה' : 'מחוץ לטווח הנתונים';
-    fail('calc-result', 'המדד לחודש ' + Statso.core.formatMonthHe(month) + ' ' + detail + '. הטווח הזמין הוא ' + Statso.core.formatMonthHe(firstMonth) + '–' + Statso.core.formatMonthHe(lastMonth) + '.');
+    fail('calc-result', 'המדד לחודש ' + Statso.core.formatMonthHe(month) + ' ' + detail + '. הטווח הזמין הוא ' + Statso.core.formatMonthHe(firstMonth) + '–' + Statso.core.formatMonthHe(lastMonth) + '.', fields);
   }
   function recomputeIndex() {
     const input = readInputs();
-    if (!Number.isFinite(input.amount) || input.amount < 0) { fail('calc-result', 'יש להזין סכום תקין שאינו שלילי.'); return; }
+    if (!Number.isFinite(input.amount) || input.amount < 0) { fail('calc-result', 'יש להזין סכום תקין שאינו שלילי.', ['calc-amount']); return; }
     const baseResolved = Statso.core.resolveIndexMonth(input.baseMonth, input.mode);
     const targetResolved = Statso.core.resolveIndexMonth(input.targetMonth, input.mode);
     const base = Statso.core.lookupChained(indexMap, baseResolved, firstMonth, lastMonth);
-    if (!base.ok) { reject(baseResolved, base.reason); return; }
+    if (!base.ok) { reject(baseResolved, base.reason, BASE_FIELDS); return; }
     const target = Statso.core.lookupChained(indexMap, targetResolved, firstMonth, lastMonth);
-    if (!target.ok) { reject(targetResolved, target.reason); return; }
+    if (!target.ok) { reject(targetResolved, target.reason, TARGET_FIELDS); return; }
     const result = Statso.core.indexAmount(input.amount, base.value, target.value);
-    document.getElementById('calc-error').textContent = '';
+    showError('');
     document.getElementById('calc-result').hidden = false;
     document.getElementById('calc-result-indexed').textContent = Statso.core.formatNumber(result.indexed, 2);
     document.getElementById('calc-result-difference').textContent = Statso.core.formatNumber(result.difference, 2);
@@ -69,24 +76,24 @@
     if (!found.ok) { return {ok: false, code: code, first: entry.dates[0]}; }
     return {ok: true, rate: found.rate, unit: entry.unit, date: found.date};
   }
-  function rejectQuote(quoted) {
+  function rejectQuote(quoted, currencyField) {
     const name = Statso.core.CURRENCY_NAMES[quoted.code] || quoted.code;
     fail('calc-fx-result', quoted.first
       ? 'אין שער ל' + name + ' לפני ' + Statso.core.formatIsoDateHe(quoted.first) + '.'
-      : 'אין נתוני שער עבור ' + name + '.');
+      : 'אין נתוני שער עבור ' + name + '.', [currencyField, 'calc-fx-date']);
   }
   function recomputeFx() {
     const input = readFxInputs();
-    if (!Number.isFinite(input.amount) || input.amount < 0) { fail('calc-fx-result', 'יש להזין סכום תקין שאינו שלילי.'); return; }
-    if (!input.date) { fail('calc-fx-result', 'יש לבחור תאריך.'); return; }
+    if (!Number.isFinite(input.amount) || input.amount < 0) { fail('calc-fx-result', 'יש להזין סכום תקין שאינו שלילי.', ['calc-amount']); return; }
+    if (!input.date) { fail('calc-fx-result', 'יש לבחור תאריך.', ['calc-fx-date']); return; }
     if (!fxDaily) { fail('calc-fx-result', fxPending ? 'טוען שערי חליפין…' : 'שערי החליפין אינם זמינים.'); return; }
     const from = quote(input.from, input.date);
-    if (!from.ok) { rejectQuote(from); return; }
+    if (!from.ok) { rejectQuote(from, 'calc-fx-from'); return; }
     const to = quote(input.to, input.date);
-    if (!to.ok) { rejectQuote(to); return; }
+    if (!to.ok) { rejectQuote(to, 'calc-fx-to'); return; }
     const result = Statso.core.convertAmount(input.amount, from, to);
     const used = [from.date, to.date].filter(Boolean).sort();
-    document.getElementById('calc-error').textContent = '';
+    showError('');
     document.getElementById('calc-fx-result').hidden = false;
     document.getElementById('calc-fx-converted').textContent = Statso.core.formatNumber(result.amount, 2);
     document.getElementById('calc-fx-unit').textContent = input.to === 'ILS' ? '₪' : input.to;
@@ -114,7 +121,7 @@
     document.getElementById('calc-result').hidden = fx;
     document.getElementById('calc-fx-result').hidden = !fx;
     document.getElementById('calc-amount-label').textContent = fx ? 'סכום' : 'סכום בשקלים';
-    document.getElementById('calc-error').textContent = '';
+    showError('');
     if (fx) { ensureFxData(); }
     recompute();
   }

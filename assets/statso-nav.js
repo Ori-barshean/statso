@@ -65,7 +65,8 @@
 
   function route() {
     const hash = root.location.hash;
-    const guides = hash === '#/guides';
+    const guideMatch = /^#\/guides\/([a-z0-9-]+)$/.exec(hash);
+    const guides = hash === '#/guides' || Boolean(guideMatch);
     const mcode = hash === '#/mcode';
     const infoPageId = infoRoutes[hash];
     const info = Boolean(infoPageId);
@@ -89,7 +90,9 @@
     infoView.querySelectorAll('.info-page').forEach(function (page) {
       page.hidden = page.id !== infoPageId;
     });
-    if (guides && Statso.guides) { Statso.guides.showIndex(true); }
+    if (guides && Statso.guides) {
+      if (!(guideMatch && Statso.guides.showGuide(guideMatch[1], true))) { Statso.guides.showIndex(true); }
+    }
     if (mcode && Statso.mcode) { Statso.mcode.render(); }
     if (info || tools || mcode) { root.scrollTo(0, 0); }
     document.querySelectorAll('.site-nav a').forEach(function (link) {

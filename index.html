@@ -35,7 +35,7 @@
         <a class="nav-item nav-item-stacked" href="#/mcode">קודים לייצוא (Power Query)</a>
       </nav>
       <div class="brand-group">
-        <a class="brand" href="index.html" aria-label="statso — דף הבית"><span class="brand-mark">s</span><span>statso</span></a>
+        <a class="brand" href="index.html" aria-label="statso — דף הבית"><span class="brand-mark" aria-hidden="true">s</span><span>statso</span></a>
         <div class="lang-picker" id="lang-picker" data-i18n-skip>
           <button type="button" class="lang-button" id="lang-toggle" lang="en" aria-expanded="false" aria-controls="lang-menu">Switch Language</button>
           <ul class="lang-menu" id="lang-menu" hidden>
@@ -54,8 +54,8 @@
     </section>
 
     <section class="kpi-grid" aria-label="נתונים מרכזיים">
-      <article class="kpi-card accent-blue" id="cpi-kpi" data-state="loading">
-        <span class="kpi-label">מדד המחירים לצרכן</span>
+      <article class="kpi-card accent-blue" id="cpi-kpi" aria-labelledby="cpi-kpi-title" data-state="loading">
+        <h2 class="kpi-label" id="cpi-kpi-title">מדד המחירים לצרכן</h2>
         <div class="state-loading">טוען נתונים…</div>
         <div class="state-error" id="kpi-cpi-error"></div>
         <div class="state-ready">
@@ -66,8 +66,8 @@
           <span class="kpi-footnote">פרסום המדד הבא: <strong id="kpi-cpi-next" dir="ltr">—</strong><span class="kpi-footnote-sub">התאריך משוער; הלמ״ס דוחה פרסום שחל בסוף שבוע או בחג ליום החול הבא</span></span>
         </div>
       </article>
-      <article class="kpi-card accent-violet" id="boi-kpi" data-state="loading">
-        <span class="kpi-label">ריבית בנק ישראל</span>
+      <article class="kpi-card accent-violet" id="boi-kpi" aria-labelledby="boi-kpi-title" data-state="loading">
+        <h2 class="kpi-label" id="boi-kpi-title">ריבית בנק ישראל</h2>
         <div class="state-loading">טוען נתונים…</div>
         <div class="state-error" id="kpi-boi-error"></div>
         <div class="state-ready">
@@ -78,8 +78,8 @@
           <span class="kpi-footnote">החלטת הריבית הבאה: <strong id="kpi-next-decision" dir="ltr">—</strong><span class="kpi-footnote-sub">המועד עשוי להשתנות בהתאם להודעות בנק ישראל</span></span>
         </div>
       </article>
-      <article class="kpi-card accent-cyan" id="fx-kpi" data-state="loading">
-        <span class="kpi-label">שערי חליפין נבחרים</span>
+      <article class="kpi-card accent-cyan" id="fx-kpi" aria-labelledby="fx-kpi-title" data-state="loading">
+        <h2 class="kpi-label" id="fx-kpi-title">שערי חליפין נבחרים</h2>
         <div class="state-loading">טוען נתונים…</div>
         <div class="state-error" id="kpi-fx-error"></div>
         <div class="state-ready">
@@ -91,7 +91,7 @@
         </div>
       </article>
       <article class="kpi-card accent-orange" id="brand-kpi">
-        <div class="kpi-brand"><span class="brand"><span class="brand-mark">s</span><span>statso</span></span></div>
+        <div class="kpi-brand"><span class="brand"><span class="brand-mark" aria-hidden="true">s</span><span>statso</span></span></div>
       </article>
     </section>
 
@@ -127,8 +127,8 @@
           <fieldset class="wide"><legend>סוג החישוב</legend><label><input type="radio" name="calc-kind" value="index" checked> הצמדה למדד</label><label><input type="radio" name="calc-kind" value="fx"> המרת מטבע</label></fieldset>
           <label class="wide"><span id="calc-amount-label">סכום בשקלים</span> <input id="calc-amount" type="number" min="0" step="any" value="1000" inputmode="decimal"></label>
           <fieldset class="wide calc-index-only"><legend>סוג המדד</legend><label><input type="radio" name="calc-mode" value="known" checked> מדד ידוע</label><label><input type="radio" name="calc-mode" value="for"> מדד בגין</label></fieldset>
-          <div class="date-group calc-index-only"><span>חודש בסיס</span><label>שנה <select id="calc-base-year"></select></label><label>חודש <select id="calc-base-month"></select></label></div>
-          <div class="date-group calc-index-only"><span>חודש יעד</span><label>שנה <select id="calc-target-year"></select></label><label>חודש <select id="calc-target-month"></select></label></div>
+          <div class="date-group calc-index-only" role="group" aria-labelledby="calc-base-title"><span id="calc-base-title">חודש בסיס</span><label>שנה <select id="calc-base-year"></select></label><label>חודש <select id="calc-base-month"></select></label></div>
+          <div class="date-group calc-index-only" role="group" aria-labelledby="calc-target-title"><span id="calc-target-title">חודש יעד</span><label>שנה <select id="calc-target-year"></select></label><label>חודש <select id="calc-target-month"></select></label></div>
           <div class="date-group calc-fx-only" hidden><span>המרה</span><label>ממטבע <select id="calc-fx-from"></select></label><label>למטבע <select id="calc-fx-to"></select></label></div>
           <label class="wide calc-fx-only" hidden>לפי השער ליום <input id="calc-fx-date" type="date"></label>
         </form>
@@ -147,7 +147,7 @@
       <div class="guide-cards" id="guide-cards"></div>
     </section>
     <article class="guide-detail" id="guide-detail" hidden aria-labelledby="excel-guide-title">
-      <button class="guide-back" id="guide-back" type="button">← חזרה לכל המדריכים</button>
+      <a class="guide-back" id="guide-back" href="#/guides"><span class="back-arrow" aria-hidden="true">←</span> חזרה לכל המדריכים</a>
       <div id="guide-content"></div>
     </article>
   </main>
@@ -174,7 +174,7 @@
       </fieldset>
     </form>
     <p id="mc-error" role="alert"></p>
-    <div class="code-block mcode-output"><pre dir="ltr" tabindex="0" aria-label="קוד לדוגמה" data-i18n-skip><code id="mc-code"></code></pre><button type="button" id="mc-copy">העתקת הקוד</button></div>
+    <div class="code-block mcode-output"><pre dir="ltr" role="region" tabindex="0" aria-label="קוד לדוגמה" data-i18n-skip><code id="mc-code" lang="en"></code></pre><button type="button" id="mc-copy">העתקת הקוד</button></div>
     <aside class="guide-note"><p>הסבר שלב-אחר-שלב איך מדביקים את הקוד באקסל נמצא בעמוד <a href="#/guides">מדריכים</a>.</p></aside>
   </main>
 
@@ -195,14 +195,14 @@
     </div>
 
     <section class="panel tool-page" id="tool-index-page" hidden aria-labelledby="tool-index-title">
-      <div class="section-heading"><div><p class="eyebrow">כלי 1</p><h2 id="tool-index-title">הצמדה למדדים</h2></div><a class="tool-back" href="#/tools">← לכל הכלים</a></div>
+      <div class="section-heading"><div><p class="eyebrow">כלי 1</p><h2 id="tool-index-title">הצמדה למדדים</h2></div><a class="tool-back" href="#/tools"><span class="back-arrow" aria-hidden="true">←</span> לכל הכלים</a></div>
       <div class="tool-layout">
         <form class="calc-form" onsubmit="return false">
           <label class="wide">סכום בשקלים <input id="ti-amount" type="number" min="0" step="any" value="1000" inputmode="decimal"></label>
           <fieldset class="wide"><legend>סדרת המדד</legend><label><input type="radio" name="ti-series" value="cpi" id="ti-series-cpi" checked> מדד המחירים לצרכן</label><label><input type="radio" name="ti-series" value="construction" id="ti-series-construction"> מדד תשומות הבנייה למגורים</label></fieldset>
           <fieldset class="wide"><legend>סוג המדד לחישוב</legend><label><input type="radio" name="ti-mode" value="known" checked> מדד ידוע</label><label><input type="radio" name="ti-mode" value="for"> מדד בגין</label></fieldset>
-          <div class="date-group"><span>חודש בסיס</span><label>שנה <select id="ti-base-year"></select></label><label>חודש <select id="ti-base-month"></select></label></div>
-          <div class="date-group"><span>חודש יעד</span><label>שנה <select id="ti-target-year"></select></label><label>חודש <select id="ti-target-month"></select></label></div>
+          <div class="date-group" role="group" aria-labelledby="ti-base-title"><span id="ti-base-title">חודש בסיס</span><label>שנה <select id="ti-base-year"></select></label><label>חודש <select id="ti-base-month"></select></label></div>
+          <div class="date-group" role="group" aria-labelledby="ti-target-title"><span id="ti-target-title">חודש יעד</span><label>שנה <select id="ti-target-year"></select></label><label>חודש <select id="ti-target-month"></select></label></div>
         </form>
         <div class="calc-output">
           <p class="inline-error" id="ti-error" role="alert"></p>
@@ -218,7 +218,7 @@
     </section>
 
     <section class="panel tool-page" id="tool-fx-page" hidden aria-labelledby="tool-fx-title">
-      <div class="section-heading"><div><p class="eyebrow">כלי 2</p><h2 id="tool-fx-title">הצמדה למטבע</h2></div><a class="tool-back" href="#/tools">← לכל הכלים</a></div>
+      <div class="section-heading"><div><p class="eyebrow">כלי 2</p><h2 id="tool-fx-title">הצמדה למטבע</h2></div><a class="tool-back" href="#/tools"><span class="back-arrow" aria-hidden="true">←</span> לכל הכלים</a></div>
       <div class="tool-layout">
         <form class="calc-form" onsubmit="return false">
           <fieldset class="wide"><legend>סוג החישוב</legend><label><input type="radio" name="tf-kind" value="convert" checked> המרה לפי שער</label><label><input type="radio" name="tf-kind" value="link"> הצמדה בין תאריכים</label></fieldset>
@@ -242,7 +242,7 @@
     </section>
 
     <section class="panel tool-page" id="tool-history-page" hidden aria-labelledby="tool-history-title">
-      <div class="section-heading"><div><p class="eyebrow">כלי 3</p><h2 id="tool-history-title">נתוני מדד היסטוריים</h2></div><a class="tool-back" href="#/tools">← לכל הכלים</a></div>
+      <div class="section-heading"><div><p class="eyebrow">כלי 3</p><h2 id="tool-history-title">נתוני מדד היסטוריים</h2></div><a class="tool-back" href="#/tools"><span class="back-arrow" aria-hidden="true">←</span> לכל הכלים</a></div>
       <form class="rent-form" onsubmit="return false">
         <fieldset class="rent-block"><legend>סדרות</legend>
           <div class="tool-checkboxes">
@@ -251,8 +251,8 @@
           </div>
         </fieldset>
         <div class="range-controls">
-          <span>מ־</span><label>שנה <select id="th-start-year"></select></label><label>חודש <select id="th-start-month"></select></label>
-          <span>עד</span><label>שנה <select id="th-end-year"></select></label><label>חודש <select id="th-end-month"></select></label>
+          <div class="range-group" role="group" aria-label="חודש התחלה"><span>מ־</span><label>שנה <select id="th-start-year"></select></label><label>חודש <select id="th-start-month"></select></label></div>
+          <div class="range-group" role="group" aria-label="חודש סיום"><span>עד</span><label>שנה <select id="th-end-year"></select></label><label>חודש <select id="th-end-month"></select></label></div>
         </div>
       </form>
       <p class="inline-error" id="th-error" role="alert"></p>
@@ -262,7 +262,7 @@
     </section>
 
     <section class="panel tool-page" id="tool-rate-history-page" hidden aria-labelledby="tool-rate-history-title">
-      <div class="section-heading"><div><p class="eyebrow">כלי 4</p><h2 id="tool-rate-history-title">נתוני ריבית היסטוריים</h2></div><a class="tool-back" href="#/tools">← לכל הכלים</a></div>
+      <div class="section-heading"><div><p class="eyebrow">כלי 4</p><h2 id="tool-rate-history-title">נתוני ריבית היסטוריים</h2></div><a class="tool-back" href="#/tools"><span class="back-arrow" aria-hidden="true">←</span> לכל הכלים</a></div>
       <form class="rent-form" onsubmit="return false">
         <fieldset class="rent-block"><legend>סדרות</legend>
           <div class="tool-checkboxes">
@@ -288,7 +288,7 @@
     </section>
 
     <section class="panel tool-page" id="tool-fx-history-page" hidden aria-labelledby="tool-fx-history-title">
-      <div class="section-heading"><div><p class="eyebrow">כלי 5</p><h2 id="tool-fx-history-title">נתוני שער חליפין היסטוריים</h2></div><a class="tool-back" href="#/tools">← לכל הכלים</a></div>
+      <div class="section-heading"><div><p class="eyebrow">כלי 5</p><h2 id="tool-fx-history-title">נתוני שער חליפין היסטוריים</h2></div><a class="tool-back" href="#/tools"><span class="back-arrow" aria-hidden="true">←</span> לכל הכלים</a></div>
       <form class="rent-form" onsubmit="return false">
         <fieldset class="rent-block"><legend>מטבעות</legend>
           <div class="fxh-currencies" id="fxh-currencies"></div>
@@ -314,7 +314,7 @@
     </section>
 
     <section class="panel tool-page" id="tool-rent-page" hidden aria-labelledby="tool-rent-title">
-      <div class="section-heading"><div><p class="eyebrow">כלי 6</p><h2 id="tool-rent-title">הצמדת הסכם שכירות למדד</h2></div><a class="tool-back" href="#/tools">← לכל הכלים</a></div>
+      <div class="section-heading"><div><p class="eyebrow">כלי 6</p><h2 id="tool-rent-title">הצמדת הסכם שכירות למדד</h2></div><a class="tool-back" href="#/tools"><span class="back-arrow" aria-hidden="true">←</span> לכל הכלים</a></div>
       <form class="rent-form" onsubmit="return false">
         <fieldset class="rent-block"><legend>פרטי ההסכם</legend>
           <div class="rent-grid">
@@ -329,11 +329,13 @@
             <label>עד חודש <input id="tr-base-end" type="month" placeholder="YYYY-MM"></label>
             <label>דמי שכירות חודשיים (₪) <input id="tr-base-rent" type="number" min="0" step="any" value="5000" inputmode="decimal"></label>
           </div>
+          <p class="rent-hint" id="tr-base-month-hint" hidden>פורמט החודש: YYYY-MM או MM/YYYY (למשל 2024-09 או 09/2024)</p>
         </fieldset>
         <fieldset class="rent-block"><legend>תקופות אופציה והארכה</legend>
           <label class="rent-inline"><input id="tr-has-options" type="checkbox"> קיימות תקופות אופציה</label>
           <div id="tr-options" hidden>
             <div id="tr-option-rows"></div>
+            <p class="rent-hint" id="tr-options-month-hint" hidden>פורמט החודש: YYYY-MM או MM/YYYY (למשל 2024-09 או 09/2024)</p>
             <button type="button" class="btn-ghost" id="tr-add-option">הוספת תקופה</button>
           </div>
         </fieldset>
@@ -361,6 +363,7 @@
             <label>מחודש <input id="tr-export-from" type="month" placeholder="YYYY-MM"></label>
             <label>עד חודש <input id="tr-export-to" type="month" placeholder="YYYY-MM"></label>
           </div>
+          <p class="rent-hint" id="tr-export-month-hint" hidden>פורמט החודש: YYYY-MM או MM/YYYY (למשל 2024-09 או 09/2024)</p>
           <label class="rent-inline"><input id="tr-exclude-paid" type="checkbox" checked> להשמיט חודשים שההפרש בגינם כבר שולם</label>
         </fieldset>
         <div class="tool-actions"><button type="button" class="btn-ghost" id="tr-xlsx">ייצוא לאקסל</button><button type="button" class="btn-ghost" id="tr-pdf">ייצוא ל־PDF</button></div>
@@ -373,11 +376,13 @@
       <header class="info-header"><h1 id="about-title">אודות</h1></header>
       <div class="prose-guide" data-lang="he">
         <section>
+          <h2>מה זה statso</h2>
           <p>statso אוסף נתונים כלכליים ישראליים ממקורות רשמיים ומפרסם אותם כקבצים בכתובות קבועות, כדי שכלים אחרים — גיליונות אקסל, אתרים, מחשבונים — יוכלו למשוך מהם נתונים ישירות.</p>
           <p>הנתונים נאספים מהלשכה המרכזית לסטטיסטיקה (מדד המחירים לצרכן ומדד תשומות הבנייה למגורים) ומבנק ישראל (ריבית בנק ישראל, מועד ההחלטה הבאה ושערי החליפין היציגים של המטבעות).</p>
           <p>הנתונים מתרעננים אוטומטית כל לילה ב־<span dir="ltr">02:00</span> שעון ישראל. אם התוכן שנוצר זהה לקיים, לא נשמרת גרסה חדשה.</p>
         </section>
         <section>
+          <h2>מי מפעיל את האתר ואיך יוצרים קשר</h2>
           <p>statso הוא מיזם אישי וחובבני של מפעיל האתר, לא חברה או שירות מסחרי. השימוש באתר חינמי לחלוטין.</p>
           <p>statso הוא אתר אישי וחובבני, שאינו מופעל מטעם הלשכה המרכזית לסטטיסטיקה, בנק ישראל או גוף ממשלתי אחר.</p>
           <p>אפשר לפנות למפעיל האתר בכתובת <a href="mailto:ori.cpa.il@gmail.com" dir="ltr">ori.cpa.il@gmail.com</a>, או דרך <a href="#/contact">טופס יצירת הקשר</a>. פירוט מלא של מקורות הנתונים ושיטת החישוב מופיע ב<a href="#/method">עמוד שיטת החישוב</a>.</p>
@@ -386,18 +391,20 @@
       </div>
       <div class="prose-guide" data-lang="en" hidden>
         <section>
+          <h2>What statso is</h2>
           <p>statso collects Israeli economic data from official sources and publishes it as files at stable addresses, so that other tools — spreadsheets, websites, calculators — can pull the numbers directly.</p>
           <p>The data is collected from the Central Bureau of Statistics (the consumer price index and the residential construction inputs price index) and from the Bank of Israel (the Bank of Israel interest rate, the next decision date, and the representative exchange rates of the currencies).</p>
           <p>The data refreshes automatically every night at <span dir="ltr">02:00</span> Israel time. If the generated content is identical to what is already published, no new version is stored.</p>
         </section>
         <section>
+          <h2>Who runs the site and how to get in touch</h2>
           <p>statso is a personal hobby project of the site operator, not a company or a commercial service. Using the site is completely free.</p>
           <p>statso is a personal, hobby website, not operated on behalf of the Central Bureau of Statistics, the Bank of Israel, or any other government body.</p>
           <p>You can contact the site operator at <a href="mailto:ori.cpa.il@gmail.com" dir="ltr">ori.cpa.il@gmail.com</a>, or through the <a href="#/contact">contact form</a>. Full details of the data sources and calculation method are on the <a href="#/method">method page</a>.</p>
           <p>This page was last updated on 9 October 2026.</p>
         </section>
       </div>
-      <a class="info-back" href="#/">← חזרה לעמוד הבית</a>
+      <a class="info-back" href="#/"><span class="back-arrow" aria-hidden="true">←</span> חזרה לעמוד הבית</a>
     </article>
 
     <article class="info-page" id="method-page" hidden aria-labelledby="method-title">
@@ -406,8 +413,8 @@
         <section>
           <h2>מקורות הנתונים</h2>
           <ul class="source-list">
-            <li>הלמ״ס, מדד המחירים לצרכן (סדרה <span dir="ltr">120010</span>, ״מדד המחירים לצרכן - כללי״): <a href="https://api.cbs.gov.il/index/data/price?id=120010&amp;format=json&amp;download=false&amp;coef=true" dir="ltr">api.cbs.gov.il</a></li>
-            <li>הלמ״ס, מדד תשומות הבנייה למגורים (סדרה <span dir="ltr">200010</span>, ״מדד תשומות הבנייה למגורים - כללי״): <a href="https://api.cbs.gov.il/index/data/price?id=200010&amp;format=json&amp;download=false&amp;coef=true" dir="ltr">api.cbs.gov.il</a></li>
+            <li>הלמ״ס, מדד המחירים לצרכן (סדרה <span dir="ltr">120010</span>, ״מדד המחירים לצרכן - כללי״): <a href="https://api.cbs.gov.il/index/data/price?id=120010&amp;format=json&amp;download=false&amp;coef=true" dir="ltr">api.cbs.gov.il (120010)</a></li>
+            <li>הלמ״ס, מדד תשומות הבנייה למגורים (סדרה <span dir="ltr">200010</span>, ״מדד תשומות הבנייה למגורים - כללי״): <a href="https://api.cbs.gov.il/index/data/price?id=200010&amp;format=json&amp;download=false&amp;coef=true" dir="ltr">api.cbs.gov.il (200010)</a></li>
             <li>הלמ״ס, פורטל המפתחים: <a href="https://www.cbs.gov.il/he/Pages/%D7%9E%D7%9E%D7%A9%D7%A7-API.aspx" dir="ltr">cbs.gov.il</a></li>
             <li>בנק ישראל, ה־<span dir="ltr">API</span> הסטטיסטי (<span dir="ltr">SDMX</span>), סדרה <span dir="ltr">MNT_RIB_BOI_D “Bank Of Israel nominal interest rate”</span>: <a href="https://edge.boi.gov.il/FusionEdgeServer/sdmx/v2/" dir="ltr">edge.boi.gov.il</a></li>
             <li>בנק ישראל, ריבית נוכחית ומועד ההחלטה הבאה: <a href="https://boi.org.il/PublicApi/GetInterest" dir="ltr">boi.org.il/PublicApi/GetInterest</a></li>
@@ -439,8 +446,8 @@
         <section>
           <h2>Data sources</h2>
           <ul class="source-list">
-            <li>CBS, consumer price index (series <span dir="ltr">120010</span>, “Consumer Price Index — General”): <a href="https://api.cbs.gov.il/index/data/price?id=120010&amp;format=json&amp;download=false&amp;coef=true" dir="ltr">api.cbs.gov.il</a></li>
-            <li>CBS, residential construction inputs price index (series <span dir="ltr">200010</span>, “Residential Construction Inputs Price Index — General”): <a href="https://api.cbs.gov.il/index/data/price?id=200010&amp;format=json&amp;download=false&amp;coef=true" dir="ltr">api.cbs.gov.il</a></li>
+            <li>CBS, consumer price index (series <span dir="ltr">120010</span>, “Consumer Price Index — General”): <a href="https://api.cbs.gov.il/index/data/price?id=120010&amp;format=json&amp;download=false&amp;coef=true" dir="ltr">api.cbs.gov.il (120010)</a></li>
+            <li>CBS, residential construction inputs price index (series <span dir="ltr">200010</span>, “Residential Construction Inputs Price Index — General”): <a href="https://api.cbs.gov.il/index/data/price?id=200010&amp;format=json&amp;download=false&amp;coef=true" dir="ltr">api.cbs.gov.il (200010)</a></li>
             <li>CBS, developers portal: <a href="https://www.cbs.gov.il/he/Pages/%D7%9E%D7%9E%D7%A9%D7%A7-API.aspx" dir="ltr">cbs.gov.il</a></li>
             <li>Bank of Israel, statistical <span dir="ltr">API</span> (<span dir="ltr">SDMX</span>), series <span dir="ltr">MNT_RIB_BOI_D “Bank Of Israel nominal interest rate”</span>: <a href="https://edge.boi.gov.il/FusionEdgeServer/sdmx/v2/" dir="ltr">edge.boi.gov.il</a></li>
             <li>Bank of Israel, current rate and next decision date: <a href="https://boi.org.il/PublicApi/GetInterest" dir="ltr">boi.org.il/PublicApi/GetInterest</a></li>
@@ -468,111 +475,322 @@
           <p>Files are published as <span dir="ltr">JSON</span> and <span dir="ltr">CSV</span>. The <span dir="ltr">JSON</span> is encoded <span dir="ltr">UTF-8</span> without a <span dir="ltr">BOM</span>; the <span dir="ltr">CSV</span> carries one, so that Hebrew opens correctly in Excel with no special settings.</p>
         </section>
       </div>
-      <a class="info-back" href="#/">← חזרה לעמוד הבית</a>
+      <a class="info-back" href="#/"><span class="back-arrow" aria-hidden="true">←</span> חזרה לעמוד הבית</a>
     </article>
 
     <article class="info-page" id="privacy-page" hidden aria-labelledby="privacy-title">
       <header class="info-header"><h1 id="privacy-title">מדיניות פרטיות</h1></header>
       <div class="prose-guide" data-lang="he">
         <section>
-          <p>האתר אינו משתמש בעוגיות ואין בו כלי אנליטיקה או מעקב מכל סוג. הוא כן שומר בדפדפן שלך — באחסון מקומי (<span dir="ltr">localStorage</span>) בלבד — שני פרטי העדפה קטנים: השפה שבה מוצג האתר (עברית/אנגלית), והאם אזורים מסוימים בעמוד מוצגים פתוחים או מקופלים. שני הפרטים האלה נשארים במכשיר שלך בלבד, אינם מועברים לשום שרת, ואינם עוגייה ואינם אמצעי מעקב.</p>
+          <h2>עוגיות ואחסון בדפדפן</h2>
+          <p>האתר אינו משתמש בעוגיות ואין בו כלי אנליטיקה או מעקב מכל סוג. הוא כן שומר בדפדפן שלך — באחסון מקומי (<span dir="ltr">localStorage</span>) בלבד — שני פרטי העדפה קטנים:</p>
+          <ul class="info-list">
+            <li>השפה שבה מוצג האתר (עברית/אנגלית)</li>
+            <li>האם אזורים מסוימים בעמוד מוצגים פתוחים או מקופלים</li>
+          </ul>
+          <p>שני הפרטים האלה נשארים במכשיר שלך בלבד, אינם מועברים לשום שרת, ואינם עוגייה ואינם אמצעי מעקב.</p>
+        </section>
+        <section>
+          <h2>טופס יצירת הקשר</h2>
           <p>בדף ״צור קשר״ יש טופס. השדות שתמלאו — שם, כתובת מייל להחזרה ותוכן ההודעה — נשלחים ישירות דרך טופס ייעודי של צד שלישי, שמעביר אותם אלינו בדואר אלקטרוני. איננו מפעילים מסד נתונים ואיננו שומרים את ההודעות באתר עצמו.</p>
           <p>הטופס פועל באמצעות השירות <span dir="ltr">Web3Forms</span>. שרתי השירות ממוקמים באזור <span dir="ltr">US-East</span> בארצות הברית, והחברה המפעילה אותו רשומה בהודו — כלומר תוכן הפנייה מעובד מחוץ לישראל. לפי המדיניות המתועדת של <span dir="ltr">Web3Forms</span>, פניות נשמרות אצלם עד שלוש שנים ממועד השליחה, אלא אם תוכנית האירוח קובעת תקופה קצרה יותר או שהמידע נמחק קודם לכן. מדיניות הפרטיות המלאה של השירות זמינה בכתובת <a href="https://web3forms.com/privacy" dir="ltr">web3forms.com/privacy</a>.</p>
           <p>מפעיל האתר שומר פניות שנענו בתיבת הדואר האלקטרוני שלו עד 45 יום ממועד מתן המענה, ולאחר מכן מוחק אותן.</p>
           <p>מלבד הטופס אין באתר דרך אחרת לשלוח אלינו מידע.</p>
-          <p>בכל שאלה על מדיניות זו, או בקשה לעיין במידע שמסרתם או לתקן אותו, אפשר לפנות למפעיל האתר בכתובת <a href="mailto:ori.cpa.il@gmail.com" dir="ltr">ori.cpa.il@gmail.com</a>.</p>
+        </section>
+        <section>
+          <h2>אחסון האתר ושירותים חיצוניים</h2>
           <p>האתר מתארח ב־<span dir="ltr">GitHub Pages</span>. כמו כל שרת אינטרנט, <span dir="ltr">GitHub</span> מקבל את הבקשות לדפים ורואה נתוני בקשה סטנדרטיים כגון כתובת <span dir="ltr">IP</span> וסוג הדפדפן.</p>
           <p>ספריית התרשימים <span dir="ltr">Chart.js</span> נטענת מרשת ההפצה <span dir="ltr">cdnjs.cloudflare.com</span>. לכן <span dir="ltr">Cloudflare</span> מקבלת גם היא את כתובת ה־<span dir="ltr">IP</span> וסוג הדפדפן, במסגרת אותה בקשה בלבד.</p>
           <p>הגרסה המקומית של האתר, קובץ ה־<span dir="ltr">HTML</span> העצמאי, אינה מבצעת שום בקשת רשת.</p>
         </section>
+        <section>
+          <h2>שאלות ובקשות</h2>
+          <p>בכל שאלה על מדיניות זו, או בקשה לעיין במידע שמסרתם או לתקן אותו, אפשר לפנות למפעיל האתר בכתובת <a href="mailto:ori.cpa.il@gmail.com" dir="ltr">ori.cpa.il@gmail.com</a>.</p>
+        </section>
       </div>
       <div class="prose-guide" data-lang="en" hidden>
         <section>
-          <p>This site uses no cookies and carries no analytics or tracking of any kind. It does store, in your browser's local storage (<span dir="ltr">localStorage</span>) only, two small preferences: the display language you chose (Hebrew/English), and whether certain page sections are shown expanded or collapsed. Both stay on your own device, are never transmitted to any server, and are neither a cookie nor a tracking mechanism.</p>
+          <h2>Cookies and browser storage</h2>
+          <p>This site uses no cookies and carries no analytics or tracking of any kind. It does store, in your browser's local storage (<span dir="ltr">localStorage</span>) only, two small preferences:</p>
+          <ul class="info-list">
+            <li>the display language you chose (Hebrew/English)</li>
+            <li>whether certain page sections are shown expanded or collapsed</li>
+          </ul>
+          <p>Both stay on your own device, are never transmitted to any server, and are neither a cookie nor a tracking mechanism.</p>
+        </section>
+        <section>
+          <h2>The contact form</h2>
           <p>The contact page has a form. The fields you fill in — name, reply address and message — are sent directly through a dedicated third-party form service, which forwards them to us by email. We run no database and store no messages on the site itself.</p>
           <p>The form runs on the <span dir="ltr">Web3Forms</span> service. Its servers are located in the <span dir="ltr">US-East</span> region of the United States, and the company operating it is registered in India — meaning the content of your message is processed outside Israel. Per Web3Forms' documented policy, submissions are retained on their end for up to three years from submission, unless a shorter plan applies or the data is deleted earlier. Web3Forms' full privacy policy is available at <a href="https://web3forms.com/privacy" dir="ltr">web3forms.com/privacy</a>.</p>
           <p>The site operator keeps inquiries that have been answered in their email inbox for up to 45 days from the date of the reply, after which they are deleted.</p>
           <p>Apart from that form there is no other way to send us information through the site.</p>
-          <p>For any question about this policy, or a request to review or correct information you provided, you can contact the site operator at <a href="mailto:ori.cpa.il@gmail.com" dir="ltr">ori.cpa.il@gmail.com</a>.</p>
+        </section>
+        <section>
+          <h2>Hosting and third-party services</h2>
           <p>The site is hosted on <span dir="ltr">GitHub Pages</span>. Like any web server, <span dir="ltr">GitHub</span> receives the page requests and sees standard request data such as the <span dir="ltr">IP</span> address and browser type.</p>
           <p>The charting library <span dir="ltr">Chart.js</span> is loaded from the <span dir="ltr">cdnjs.cloudflare.com</span> delivery network, so <span dir="ltr">Cloudflare</span> also receives the <span dir="ltr">IP</span> address and browser type, as part of that request alone.</p>
           <p>The local copy of the site, the standalone <span dir="ltr">HTML</span> file, makes no network requests at all.</p>
         </section>
+        <section>
+          <h2>Questions and requests</h2>
+          <p>For any question about this policy, or a request to review or correct information you provided, you can contact the site operator at <a href="mailto:ori.cpa.il@gmail.com" dir="ltr">ori.cpa.il@gmail.com</a>.</p>
+        </section>
       </div>
-      <a class="info-back" href="#/">← חזרה לעמוד הבית</a>
+      <a class="info-back" href="#/"><span class="back-arrow" aria-hidden="true">←</span> חזרה לעמוד הבית</a>
     </article>
 
     <article class="info-page" id="terms-page" hidden aria-labelledby="terms-title">
       <header class="info-header"><h1 id="terms-title">תנאי שימוש והבהרות</h1></header>
       <div class="prose-guide" data-lang="he">
         <section>
+          <h2>מטרת האתר</h2>
           <p>עמוד זה נועד להבהיר את אופי השימוש באתר statso ואת מגבלות האחריות שלו. הוא כתוב בשפה פשוטה, כמתאים לאתר מידע אישי וחינמי — ולא כתקנון של חנות מקוונת.</p>
           <p>האתר נועד למידע כללי ולהמחשה בלבד. הנתונים המוצגים בו נאספים ממקורות רשמיים, אך ייתכנו בהם עיכובים, טעויות העתקה, תקלות טכניות, שינויים, חוסרים או תקופות של אי־זמינות.</p>
+        </section>
+        <section>
+          <h2>נתונים ותוצאות המחשבונים</h2>
           <p>אין לראות באתר תחליף לפרסום הרשמי של הלשכה המרכזית לסטטיסטיקה, בנק ישראל, או כל גוף מוסמך אחר. במקרה של סתירה בין הנתונים באתר לבין הפרסום הרשמי — הפרסום הרשמי והדין החל גוברים.</p>
           <p>תוצאות המחשבונים באתר (הצמדה למדד, המרת מטבע, הצמדת הסכם שכירות וכדומה) הן תוצאות עזר בלבד, ואינן מהוות ייעוץ חשבונאי, משפטי, פיננסי, השקעות, מס או אשראי.</p>
           <p>לפני קבלת החלטה, ביצוע תשלום, או חישוב בעל משמעות משפטית או כספית — יש לאמת את הנתונים ואת דרך החישוב מול המקור הרשמי, או להיוועץ באיש מקצוע מתאים.</p>
+        </section>
+        <section>
+          <h2>שינויים ואחריות</h2>
           <p>האתר עשוי להשתנות, להתעדכן, או להפסיק לפעול ללא הודעה מוקדמת.</p>
           <p>אין באמור לעיל כדי לפטור את מפעיל האתר מאחריות באופן גורף או בלתי חוקי, ואין בו כדי לשלול מהמשתמש זכות שאינה ניתנת לוויתור לפי דין.</p>
         </section>
       </div>
       <div class="prose-guide" data-lang="en" hidden>
         <section>
+          <h2>What the site is for</h2>
           <p>This page explains the nature of using the statso site and the limits of its liability. It is written in plain language, as fits a free, personal information site — not as an online store's terms of service.</p>
           <p>The site is intended for general information and illustration only. The data shown here is collected from official sources, but delays, copying errors, technical issues, changes, gaps, or periods of unavailability may occur.</p>
+        </section>
+        <section>
+          <h2>Data and calculator results</h2>
           <p>The site is not a substitute for the official publications of the Central Bureau of Statistics, the Bank of Israel, or any other authorized body. In case of a contradiction between the data on this site and an official publication, the official publication and applicable law prevail.</p>
           <p>The site's calculator results (index linkage, currency conversion, rent-agreement linkage, and similar tools) are auxiliary results only, and do not constitute accounting, legal, financial, investment, tax, or credit advice.</p>
           <p>Before making a decision, making a payment, or performing a calculation with legal or financial significance, verify the data and the calculation method against the official source, or consult an appropriate professional.</p>
+        </section>
+        <section>
+          <h2>Changes and liability</h2>
           <p>The site may change, be updated, or cease operating without prior notice.</p>
           <p>Nothing above releases the site operator from liability in a sweeping or unlawful manner, and nothing here denies a user any right that cannot be waived under law.</p>
         </section>
       </div>
-      <a class="info-back" href="#/">← חזרה לעמוד הבית</a>
+      <a class="info-back" href="#/"><span class="back-arrow" aria-hidden="true">←</span> חזרה לעמוד הבית</a>
     </article>
 
     <article class="info-page" id="accessibility-page" hidden aria-labelledby="accessibility-title">
       <header class="info-header"><h1 id="accessibility-title">הצהרת נגישות</h1></header>
       <div class="prose-guide" data-lang="he">
         <section>
+          <h2>מחויבות לנגישות</h2>
           <p>מפעיל האתר מחויב לאפשר שימוש נוח ככל האפשר באתר לאנשים עם מוגבלות, וממשיך לעבוד על שיפור הנגישות לאורך זמן.</p>
           <p>האתר נבנה תוך התייחסות לתקן הישראלי הרלוונטי (ת"י 5568) ולהנחיות <span dir="ltr">WCAG</span>. כללי הנגישות מתועדים בקובץ <span dir="ltr">README</span> של הפרויקט במאגר הציבורי ב־<span dir="ltr">GitHub</span>, חלים על כל תכנון ושינוי באתר, וחלקם נאכפים בבדיקות אוטומטיות.</p>
-          <p>בין ההתאמות שבוצעו בפועל: כפתור דילוג לתוכן המרכזי בתחילת כל עמוד; העברת פוקוס לכותרת העמוד החדש בכל מעבר בין עמודים, כך שקורא מסך מכריז עליה; תפריט "כלים" בניווט שפועל גם במקלדת, כולל סגירה במקש <span dir="ltr">Escape</span>; חלופה נגישה לתרשים המדד ההיסטורי — תיאור טקסטואלי הכולל סיכום נתונים לכל סדרה בטווח שנבחר (הערך הראשון והאחרון, הנמוך והגבוה ביותר והחודשים שלהם), את המדד שמוצג על כל ציר ואת האירועים המסומנים, וקישור לטבלת נתונים מקבילה, לצד חקירת התרשים עצמו במקלדת: חצים לחודש הקודם או הבא, <span dir="ltr">Page Up/Page Down</span> לקפיצה של שנה ו־<span dir="ltr">Home/End</span> לקצות הטווח, עם הקראת החודש, ערכי הסדרות והאירוע המסומן; מחוון לבחירת חודש מתחת לתרשים, שפועל במקלדת ובעכבר, מסונכרן עם הבחירה בתרשים ומציג את אותו מידע כערך שלו; תיבות סימון להצגה או להסתרה של כל סדרה, וסדרת מדד תשומות הבנייה מסומנת בקו מקווקו כך שאין תלות בצבע בלבד; כותרות (<span dir="ltr">captions</span>) לטבלאות הנתונים בדף הבית ובכלים ההיסטוריים; טבלאות הנתונים ההיסטוריות וטבלת שערי המטבע גוללות בתוך מסגרת בגובה מוגבל, עם שורת כותרות שנשארת גלויה בזמן הגלילה; גיליון ההדפסה שממנו שומרים <span dir="ltr">PDF</span> בנוי כ־<span dir="ltr">HTML</span> סמנטי — כותרות, טבלאות עם כיתוב (<span dir="ltr">caption</span>) וכותרות עמודה מסומנות, ושפה וכיוון של המסמך; קובצי ה־<span dir="ltr">XLSX</span> נוצרים ללא תאים ממוזגים וכוללים כותרת ושפה במאפייני הקובץ, ובקובצי הייצוא של נתוני המדד, הריבית ושערי החליפין ההיסטוריים שורת הכותרות מוקפאת ועליה מסנן אוטומטי; הודעה בעברית ובאנגלית למי שהדפדפן שלו אינו מריץ <span dir="ltr">JavaScript</span>; כותרת ייחודית בלשונית הדפדפן לכל עמוד; הקראת תוצאות המחשבונים, אישורי ההעתקה והודעות שגיאה (כולל כשטעינת נתונים נכשלת) לקורא מסך; טופס יצירת הקשר ששומר על המיקוד בזמן השליחה ומעביר אותו להודעת האישור; חזרת המיקוד לכפתור בחירת השפה אחרי בחירת שפה או סגירת התפריט במקש <span dir="ltr">Escape</span>; שמות ברורים לתקופות בכלי הצמדת הסכם שכירות והעברת מיקוד תקינה בהוספה ובהסרה שלהן; כיתוב לכל טבלת תקופה בכלי הזה, ועדכון הטבלה במקומה בעריכת סכום ששולם או בסימון "שולם", כך שהמיקוד ומקום הגלילה נשמרים; אזורי הגלילה האופקית — של טבלאות הנתונים ההיסטוריות וטבלת שערי המטבע, איורי המדריכים וקטעי הקוד לדוגמה — ניתנים למיקוד וגלילה גם במקלדת; ניגודיות צבע תקינה בטקסטים המשניים, בתוויות האירועים בתרשים ובמסגרות שדות הטופס; סימון בולט של מיקוד המקלדת בכל רכיב אינטראקטיבי, שאינו מוסתר מתחת לכותרת הדביקה גם כשהיא גובהת במסכים צרים; סימון העמוד הנוכחי בניווט באמצעות קו תחתון שאינו תלוי בצבע, גם במצב צבעים כפויים (<span dir="ltr">forced colors</span>), למשל במצב ניגודיות גבוהה של <span dir="ltr">Windows</span>; יעדי לחיצה בגובה של 24 פיקסלים לפחות; וכיבוד הגדרת "הפחתת תנועה" (<span dir="ltr">prefers-reduced-motion</span>) של המשתמש, כולל ביטול אנימציית הציור של התרשים.</p>
-          <p>מגבלות ידועות: הצירים, המקרא וקווי האירועים בתרשים עדיין מצוירים כתמונה; הם מתוארים בטקסט — סיכום הנתונים, שמות הצירים ורשימת האירועים — ונגישים גם דרך מחוון החודשים, תיבות הסימון של הסדרות והטבלה המקושרת; בקוראי מסך במצב גלישה (<span dir="ltr">NVDA/JAWS</span>) ייתכן שיידרש מעבר למצב מיקוד כדי שמקשי החצים יגיעו לתרשים עצמו, ומחוון החודשים — רכיב טופס רגיל — מציע דרך נוספת לעבור בין החודשים; ה־<span dir="ltr">PDF</span> נוצר בשמירה כ־<span dir="ltr">PDF</span> של הדפדפן: בבדיקה ב־<span dir="ltr">Chrome</span>, כשהתיוג מופעל, הקובץ יצא מתויג — עם כותרת ראשית, טבלה עם כותרות עמודה מסומנות, שפה וכותרת מסמך (כיתוב הטבלה אינו נשמר בתיוג) — אך אם גם שמירה רגילה מתיבת ההדפסה מתויגת תלוי בדפדפן ובגרסה ולא אומת, ובדפדפנים אחרים לא נבדק; בודק הנגישות של <span dir="ltr">Excel</span> לא הורץ על קובצי ה־<span dir="ltr">XLSX</span>; בכלי הצמדת הסכם שכירות, במסכים צרים, לאזור הגלילה האופקי של הטבלאות אין עצירת מקלדת משלו — אפשר להגיע במקלדת לשדות שבתוכו והדפדפן גולל אליהם; כל האתר דורש <span dir="ltr">JavaScript</span> — טעינת הנתונים, המעבר בין העמודים ובחירת השפה — ובלי <span dir="ltr">JavaScript</span> מוצגת הודעה על כך בעברית ובאנגלית.</p>
-          <p>נגישות האתר נבדקה באופן אוטומטי וידני: סריקת <span dir="ltr">axe-core</span> על כל עמודי האתר בעברית ובאנגלית, כולל מצבי ממשק כמו שגיאות, תוצאות חישוב, תרשים פתוח ומדריכים; ובדיקה ידנית בדפדפן מבוסס <span dir="ltr">Chromium</span>: ניווט מקלדת בכל הנתיבים והכלים באתר, כולל התרשים, תצוגה ברוחב 320 פיקסלים ללא גלילה אופקית של העמוד, הגדלת טקסט ל־200% והגדלת ריווח הטקסט, גודל יעדי לחיצה, ניגודיות של טקסט ושל רכיבי ממשק, מיקוד שאינו מוסתר מתחת לכותרת הדביקה, וסריקה של הגרסה האנגלית לאיתור טקסט שנשאר בעברית. נבדקו גם קובצי הייצוא: קובץ <span dir="ltr">PDF</span> שנוצר ב־<span dir="ltr">Chrome</span> נבדק לתיוג, לשפה ולכותרת, וקובצי <span dir="ltr">XLSX</span> נפתחו בספריית גיליונות לבדיקת מאפייני המסמך, ההקפאה, המסנן והיעדר תאים ממוזגים. הבדיקות לא כללו קורא מסך (<span dir="ltr">VoiceOver</span>, <span dir="ltr">NVDA</span>, <span dir="ltr">JAWS</span> או <span dir="ltr">TalkBack</span>), דפדפנים נוספים מלבד <span dir="ltr">Chromium</span>, מכשירים ניידים אמיתיים או בדיקה עם משתמשים עם מוגבלות, ואינן ביקורת נגישות מקצועית.</p>
+        </section>
+        <section>
+          <h2>התאמות שבוצעו בפועל</h2>
+          <h3>ניווט, מיקוד ומבנה</h3>
+          <ul class="info-list">
+            <li>כפתור דילוג לתוכן המרכזי בתחילת כל עמוד</li>
+            <li>העברת פוקוס לכותרת העמוד החדש בכל מעבר בין עמודים, כך שקורא מסך מכריז עליה</li>
+            <li>לכל מדריך כתובת משלו: במדריך שנפתח מרשימת המדריכים, כפתור "חזרה" של הדפדפן סוגר את המדריך, מחזיר לרשימת המדריכים ומעביר את המיקוד לכותרת העמוד (למדריך שנפתח מקישור ישיר אין בהיסטוריה רשומה קודמת של רשימת המדריכים, ולכן "חזרה" מוביל למה שהיה פתוח לפני הקישור)</li>
+            <li>תפריט "כלים" בניווט שפועל גם במקלדת, כולל סגירה במקש <span dir="ltr">Escape</span></li>
+            <li>חזרת המיקוד לכפתור בחירת השפה אחרי בחירת שפה או סגירת התפריט במקש <span dir="ltr">Escape</span></li>
+            <li>סימון בולט של מיקוד המקלדת בכל רכיב אינטראקטיבי, שאינו מוסתר מתחת לכותרת הדביקה גם כשהיא גובהת במסכים צרים</li>
+            <li>סימון העמוד הנוכחי בניווט באמצעות קו תחתון שאינו תלוי בצבע, גם במצב צבעים כפויים (<span dir="ltr">forced colors</span>), למשל במצב ניגודיות גבוהה של <span dir="ltr">Windows</span></li>
+            <li>כותרת ייחודית בלשונית הדפדפן לכל עמוד</li>
+            <li>כותרות משנה בדפי המידע — אודות, תנאי השימוש, מדיניות הפרטיות והצהרה זו — ורשימות של ממש במקומות שבהם הטקסט מונה פריטים (מדיניות הפרטיות והצהרה זו), וכותרת לכל אחד משלושת כרטיסי הנתונים בדף הבית</li>
+            <li>שם לכל צמד של שנה וחודש — חודש בסיס וחודש יעד במחשבון בדף הבית ובכלי ההצמדה למדדים, וחודש התחלה וחודש סיום בנתוני המדד ההיסטוריים — כך שקורא מסך מבחין ביניהם</li>
+            <li>סמל הלוגו הדקורטיבי מוסתר מקוראי מסך, כך ששם הקישור לדף הבית תואם את הטקסט הגלוי, ושני הקישורים לממשק הלמ״ס בעמוד שיטת החישוב נבדלים בטקסט הגלוי שלהם</li>
+            <li>אזורי הגלילה האופקית — של טבלאות הנתונים ההיסטוריות וטבלת שערי המטבע, איורי המדריכים וקטעי הקוד לדוגמה — ניתנים למיקוד וגלילה גם במקלדת</li>
+            <li>קטעי הקוד לדוגמה ואיורי המדריכים מסומנים כאזור בעל שם, והקוד עצמו מסומן כטקסט באנגלית</li>
+            <li>לכל איור במדריכים יש תיאור במילים שנקרא בקורא מסך (למשל: איור של <span dir="ltr">Excel</span> עם לשונית ״נתונים״ ברצועת הכלים וכפתור קבלת הנתונים מסומן), ולא שם פנימי של האיור</li>
+            <li>כפתורי ״העתק״ במדריכים נבדלים זה מזה בשם הנגיש לפי הקובץ שהם מעתיקים, והחץ בקישורים ״חזרה״ ו״לכל הכלים״ מוסתר מקוראי מסך, כך ששם הקישור הוא הטקסט הגלוי שלו</li>
+          </ul>
+          <h3>תרשים המדד ההיסטורי</h3>
+          <ul class="info-list">
+            <li>חלופה נגישה לתרשים המדד ההיסטורי — תיאור טקסטואלי הכולל סיכום נתונים לכל סדרה בטווח שנבחר (הערך הראשון והאחרון, הנמוך והגבוה ביותר והחודשים שלהם), את המדד שמוצג על כל ציר ואת האירועים המסומנים, וקישור לטבלת נתונים מקבילה, לצד חקירת התרשים עצמו במקלדת: חצים לחודש הקודם או הבא, <span dir="ltr">Page Up/Page Down</span> לקפיצה של שנה ו־<span dir="ltr">Home/End</span> לקצות הטווח, עם הקראת החודש, ערכי הסדרות והאירוע המסומן</li>
+            <li>מחוון לבחירת חודש מתחת לתרשים, שפועל במקלדת ובעכבר, מסונכרן עם הבחירה בתרשים ומציג את אותו מידע כערך שלו</li>
+            <li>תיבות סימון להצגה או להסתרה של כל סדרה, וסדרת מדד תשומות הבנייה מסומנת בקו מקווקו כך שאין תלות בצבע בלבד</li>
+          </ul>
+          <h3>טבלאות וקובצי ייצוא</h3>
+          <ul class="info-list">
+            <li>כותרות (<span dir="ltr">captions</span>) לטבלאות הנתונים בדף הבית ובכלים ההיסטוריים</li>
+            <li>טבלאות הנתונים ההיסטוריות וטבלת שערי המטבע גוללות בתוך מסגרת בגובה מוגבל, עם שורת כותרות שנשארת גלויה בזמן הגלילה</li>
+            <li>גיליון ההדפסה שממנו שומרים <span dir="ltr">PDF</span> בנוי כ־<span dir="ltr">HTML</span> סמנטי — כותרות, טבלאות עם כיתוב (<span dir="ltr">caption</span>) וכותרות עמודה מסומנות, ושפה וכיוון של המסמך</li>
+            <li>קובצי ה־<span dir="ltr">XLSX</span> נוצרים ללא תאים ממוזגים וכוללים כותרת ושפה במאפייני הקובץ, ובקובצי הייצוא של נתוני המדד, הריבית ושערי החליפין ההיסטוריים שורת הכותרות מוקפאת ועליה מסנן אוטומטי</li>
+          </ul>
+          <h3>טפסים, כלים והודעות</h3>
+          <ul class="info-list">
+            <li>הקראת תוצאות המחשבונים, אישורי ההעתקה והודעות שגיאה (כולל כשטעינת נתונים נכשלת) לקורא מסך</li>
+            <li>במחשבון בדף הבית, בכלי ההצמדה, בכלי הנתונים ההיסטוריים, בכלי קודי הייצוא, בכלי הצמדת הסכם שכירות ובטווח השנים של התרשים, הודעת שגיאה על ערך שגוי (סכום, תאריך, חודש, טווח, בחירת סדרה או מטבע) מסמנת גם את השדה עצמו כלא תקין ומקושרת אליו, כך שקורא מסך שמגיע לשדה מקריא גם את הסיבה</li>
+            <li>טופס יצירת הקשר מציג הערה גלויה שכל השדות חובה, המקושרת לכל שדה, שומר על המיקוד בזמן השליחה ומעביר אותו להודעת האישור</li>
+            <li>שמות ברורים לתקופות בכלי הצמדת הסכם שכירות והעברת מיקוד תקינה בהוספה ובהסרה שלהן</li>
+            <li>כיתוב לכל טבלת תקופה בכלי הצמדת הסכם שכירות, ועדכון הטבלה במקומה בעריכת סכום ששולם או בסימון "שולם", כך שהמיקוד ומקום הגלילה נשמרים</li>
+            <li>בכלי הצמדת הסכם שכירות, השם הנגיש של כל שדה "שולם בפועל" ושל כל תיבת "שולם" כולל את חודש השורה, והשם של תיבת "סימון כל התקופה כשולמה" כולל את שם התקופה</li>
+            <li>שדות החודש בכלי הצמדת הסכם שכירות: כשהדפדפן אינו מציג בורר חודשים מובנה אפשר להקליד <span dir="ltr">YYYY-MM</span> או <span dir="ltr">MM/YYYY</span> (גם עם חודש בספרה אחת), מוצגת הנחיית פורמט גלויה המקושרת לשדה, וערך שלא ניתן לפענח מציג הודעת שגיאה מוכרזת במקום טבלה ריקה</li>
+            <li>הודעה בעברית ובאנגלית למי שהדפדפן שלו אינו מריץ <span dir="ltr">JavaScript</span></li>
+          </ul>
+          <h3>תצוגה</h3>
+          <ul class="info-list">
+            <li>ניגודיות צבע תקינה בטקסטים המשניים, בתוויות האירועים בתרשים ובמסגרות שדות הטופס</li>
+            <li>יעדי לחיצה בגובה של 24 פיקסלים לפחות</li>
+            <li>במסכים צרים (עד 900 פיקסלים) כלי החישוב מוצגים בעמודה אחת, כך שהטופס והתוצאה אינם מכסים זה את זה</li>
+            <li>בהגדלת הטקסט ל־200% הכותרת העליונה (כולל כפתור בחירת השפה), הניווט וכרטיסי הנתונים בדף הבית עוברים לשורה נוספת במקום לצאת מהמסך, ומילה ארוכה בכותרת נשברת במקום להרחיב את העמוד</li>
+            <li>כיבוד הגדרת "הפחתת תנועה" (<span dir="ltr">prefers-reduced-motion</span>) של המשתמש, כולל ביטול אנימציית הציור של התרשים.</li>
+          </ul>
+        </section>
+        <section>
+          <h2>מגבלות ידועות</h2>
+          <ul class="info-list">
+            <li>הצירים, המקרא וקווי האירועים בתרשים עדיין מצוירים כתמונה; הם מתוארים בטקסט (סיכום הנתונים, שמות הצירים ורשימת האירועים) ונגישים גם דרך מחוון החודשים, תיבות הסימון של הסדרות והטבלה המקושרת</li>
+            <li>בקוראי מסך במצב גלישה (<span dir="ltr">NVDA/JAWS</span>) ייתכן שיידרש מעבר למצב מיקוד כדי שמקשי החצים יגיעו לתרשים עצמו, ומחוון החודשים — רכיב טופס רגיל — מציע דרך נוספת לעבור בין החודשים</li>
+            <li>ה־<span dir="ltr">PDF</span> נוצר בשמירה כ־<span dir="ltr">PDF</span> של הדפדפן: בבדיקה ב־<span dir="ltr">Chrome</span>, כשהתיוג מופעל, הקובץ יצא מתויג — עם כותרת ראשית, טבלה עם כותרות עמודה מסומנות, שפה וכותרת מסמך (כיתוב הטבלה אינו נשמר בתיוג) — אך אם גם שמירה רגילה מתיבת ההדפסה מתויגת תלוי בדפדפן ובגרסה ולא אומת, ובדפדפנים אחרים לא נבדק</li>
+            <li>בודק הנגישות של <span dir="ltr">Excel</span> לא הורץ על קובצי ה־<span dir="ltr">XLSX</span></li>
+            <li>בכלי הצמדת הסכם שכירות, במסכים צרים, לאזור הגלילה האופקי של הטבלאות אין עצירת מקלדת משלו — אפשר להגיע במקלדת לשדות שבתוכו והדפדפן גולל אליהם</li>
+            <li>כל האתר דורש <span dir="ltr">JavaScript</span> — טעינת הנתונים, המעבר בין העמודים ובחירת השפה — ובלי <span dir="ltr">JavaScript</span> מוצגת הודעה על כך בעברית ובאנגלית.</li>
+            <li>התנהגות שדות החודש בדפדפן שאין בו בורר חודשים נבדקה רק בהדמיה ב־<span dir="ltr">Chromium</span> (החלפת סוג השדה לטקסט), ולא בדפדפן כזה עצמו</li>
+            <li>בחלון צר (עד 375 פיקסלים) ובטקסט מוגדל ל־200% הכותרת הדביקה גבוהה (כ־280 פיקסלים) ומכסה חלק ניכר מהמסך</li>
+            <li>בשילוב של טקסט מוגדל ל־200% עם ריווח טקסט מוגדל, בחלון צר מאוד (320 פיקסלים ופחות) וגם בכלי הצמדת הסכם שכירות באנגלית ברוחב 768 פיקסלים, נותרה בכמה עמודים גלילה אופקית קלה</li>
+          </ul>
+        </section>
+        <section>
+          <h2>איך נבדקה הנגישות</h2>
+          <p>נגישות האתר נבדקה באופן אוטומטי וידני:</p>
+          <ul class="info-list">
+            <li>סריקת <span dir="ltr">axe-core</span> על כל עמודי האתר בעברית ובאנגלית, כולל מצבי ממשק כמו שגיאות, תוצאות חישוב, תרשים פתוח ומדריך פתוח</li>
+            <li>בדיקה ידנית בדפדפן מבוסס <span dir="ltr">Chromium</span>: ניווט מקלדת בכל הנתיבים והכלים באתר, כולל התרשים</li>
+            <li>תצוגה ברוחב 320 פיקסלים (וגם ב־305 פיקסלים, חלון צר עם פס גלילה קלאסי) ללא גלילה אופקית של העמוד וללא רכיבים החופפים זה לזה, הגדלת טקסט ל־200% והגדלת ריווח הטקסט</li>
+            <li>בדיקת גלישה בכל עמודי האתר, בעברית ובאנגלית, ברוחבי חלון בין 305 ל־1100 פיקסלים, בגודל טקסט רגיל ובטקסט מוגדל ל־200%: אין גלילה אופקית של העמוד (חריגות בשילוב עם ריווח טקסט מוגדל מפורטות במגבלות)</li>
+            <li>גודל יעדי לחיצה, ניגודיות של טקסט ושל רכיבי ממשק, ומיקוד שאינו מוסתר מתחת לכותרת הדביקה</li>
+            <li>סריקה של הגרסה האנגלית לאיתור טקסט שנשאר בעברית</li>
+            <li>בדיקת עץ הנגישות של <span dir="ltr">Chrome</span> לאיתור רכיבים ללא שם ורכיבים בעלי שם זהה באותו הקשר</li>
+          </ul>
+          <p>נבדקו גם קובצי הייצוא: קובץ <span dir="ltr">PDF</span> שנוצר ב־<span dir="ltr">Chrome</span> נבדק לתיוג, לשפה ולכותרת, וקובצי <span dir="ltr">XLSX</span> נפתחו בספריית גיליונות לבדיקת מאפייני המסמך, ההקפאה, המסנן והיעדר תאים ממוזגים.</p>
+          <p>הבדיקות לא כללו קורא מסך (<span dir="ltr">VoiceOver</span>, <span dir="ltr">NVDA</span>, <span dir="ltr">JAWS</span> או <span dir="ltr">TalkBack</span>), דפדפנים נוספים מלבד <span dir="ltr">Chromium</span>, מכשירים ניידים אמיתיים או בדיקה עם משתמשים עם מוגבלות, ואינן ביקורת נגישות מקצועית.</p>
+        </section>
+        <section>
+          <h2>דיווח על בעיית נגישות</h2>
           <p>נתקלתם בבעיית נגישות? אפשר לדווח למפעיל האתר בכתובת <a href="mailto:ori.cpa.il@gmail.com" dir="ltr">ori.cpa.il@gmail.com</a>.</p>
-          <p>תאריך בדיקת הנגישות האחרונה: 10/10/2026.</p>
+          <p>תאריך בדיקת הנגישות האחרונה: 11/10/2026.</p>
         </section>
       </div>
       <div class="prose-guide" data-lang="en" hidden>
         <section>
+          <h2>Commitment to accessibility</h2>
           <p>The site operator is committed to making the site as usable as reasonably possible for people with disabilities, and continues working to improve its accessibility over time.</p>
           <p>The site was built with attention to the relevant Israeli standard (IS 5568) and to the <span dir="ltr">WCAG</span> guidelines. The accessibility rules are documented in the project's <span dir="ltr">README</span> in the public <span dir="ltr">GitHub</span> repository, apply to every design and change to the site, and some of them are enforced by automated tests.</p>
-          <p>Accommodations actually implemented include: a "skip to main content" button at the start of every page; moving focus to the new page's heading on every page transition, so screen readers announce it; a "Tools" navigation menu that is fully keyboard-operable, including closing with the <span dir="ltr">Escape</span> key; an accessible alternative for the historical index chart — a text description with a data summary for each series in the selected range (the first and last values and the lowest and highest values, with their months), the index shown on each axis and the events marked, plus a link to an equivalent data table, together with keyboard exploration of the chart itself: arrows move to the previous or next month, Page Up/Page Down jump a year, and Home/End move to the ends of the range, with the month, series values and marked event announced; a month slider under the chart that works with the keyboard and the mouse, stays in sync with the chart's selection and carries the same information as its value; checkboxes to show or hide each series, with the construction inputs series drawn as a dashed line so the two series do not depend on color alone; captions on the data tables on the home page and in the historical tools; the historical data tables and the exchange-rate table scroll inside a box of limited height, with a header row that stays visible while scrolling; a print sheet, from which the <span dir="ltr">PDF</span> is saved, built as semantic <span dir="ltr">HTML</span> — headings, tables with a caption and marked-up column headers, and the document's language and direction; <span dir="ltr">XLSX</span> files that contain no merged cells and carry a title and language in their file properties, with the header row frozen and an AutoFilter on it in the historical index, interest-rate and exchange-rate exports; a notice in Hebrew and English for browsers that do not run <span dir="ltr">JavaScript</span>; a distinct browser-tab title for every page; calculator results, copy confirmations and error messages (including when data fails to load) announced to screen readers; a contact form that keeps keyboard focus while sending and moves it to the confirmation message; focus returning to the language button after a language is chosen or the menu is closed with the <span dir="ltr">Escape</span> key; clear names for the periods in the rental-agreement tool, with focus handled when they are added or removed, a caption on each period table in that tool, and the table updating in place when a paid amount is edited or "paid" is ticked, so keyboard focus and scroll position are kept; keyboard-focusable, keyboard-scrollable containers for the historical data tables, the exchange-rate table, guide illustrations, and sample-code blocks; adequate color contrast on secondary text, on the chart's event labels and on form-field borders; a prominent keyboard-focus indicator on every interactive element that is never hidden under the sticky header, including when it grows taller on narrow screens; a non-color indicator (a bottom bar) for the current page in navigation, also in forced colors mode such as Windows High Contrast; click targets at least 24 pixels tall; and respecting the user's "reduce motion" (<span dir="ltr">prefers-reduced-motion</span>) preference, including turning off the chart's draw-in animation.</p>
-          <p>Known limitations: the chart's axes, legend and event lines are still drawn as an image; they are described in text (the data summary, the axis names and the list of events) and are also reachable through the month slider, the series checkboxes and the linked table; screen readers in browse mode (NVDA/JAWS) may need focus mode before arrow keys reach the chart itself, and the month slider, a standard form control, offers another way to move through the months; the <span dir="ltr">PDF</span> is produced by the browser's save-as-<span dir="ltr">PDF</span>: in a test with <span dir="ltr">Chrome</span>, with tagging enabled, the file came out tagged — with a main heading, a table with marked column headers, and the document language and title (the table caption is not kept in the tags) — but whether a regular save from the print dialog is tagged depends on the browser and version and has not been verified, and other browsers were not tested; Excel's accessibility checker has not been run on the <span dir="ltr">XLSX</span> files; in the rental-agreement tool, on narrow screens, the tables' horizontal scroll area has no keyboard stop of its own — the fields inside it can be reached with the keyboard and the browser scrolls them into view; the whole site requires <span dir="ltr">JavaScript</span> — loading the data, moving between pages and choosing the language — and without it a notice in Hebrew and English says so.</p>
-          <p>The site's accessibility was tested automatically and manually: an <span dir="ltr">axe-core</span> scan across every page in Hebrew and English, including interface states such as errors, calculation results, an open chart and the guides; plus manual testing in a <span dir="ltr">Chromium</span>-based browser: keyboard-only navigation across every route and tool on the site, including the chart, a 320-pixel-wide view with no horizontal page scroll, text enlarged to 200% and increased text spacing, click-target size, the contrast of text and of interface components, focus that is not hidden under the sticky header, and a scan of the English version for text left in Hebrew. The export files were checked too: a <span dir="ltr">PDF</span> produced in <span dir="ltr">Chrome</span> was inspected for tagging, language and title, and <span dir="ltr">XLSX</span> files were opened with a spreadsheet library to check the document properties, the frozen header, the filter and the absence of merged cells. The testing did not include a screen reader (<span dir="ltr">VoiceOver</span>, <span dir="ltr">NVDA</span>, <span dir="ltr">JAWS</span> or <span dir="ltr">TalkBack</span>), browsers other than <span dir="ltr">Chromium</span>, real mobile devices, or testing with people with disabilities, and it is not a professional accessibility audit.</p>
+        </section>
+        <section>
+          <h2>Accommodations actually implemented</h2>
+          <h3>Navigation, focus and structure</h3>
+          <ul class="info-list">
+            <li>a "skip to main content" button at the start of every page</li>
+            <li>moving focus to the new page's heading on every page transition, so screen readers announce it</li>
+            <li>Each guide has its own address: for a guide opened from the guide list, the browser's Back button closes it, returns to the guide list and moves focus to the page heading (a guide opened from a direct link has no earlier guide-list entry in the history, so Back goes to whatever was open before the link)</li>
+            <li>a "Tools" navigation menu that is fully keyboard-operable, including closing with the <span dir="ltr">Escape</span> key</li>
+            <li>focus returning to the language button after a language is chosen or the menu is closed with the <span dir="ltr">Escape</span> key</li>
+            <li>a prominent keyboard-focus indicator on every interactive element that is never hidden under the sticky header, including when it grows taller on narrow screens</li>
+            <li>a non-color indicator (a bottom bar) for the current page in navigation, also in forced colors mode such as Windows High Contrast</li>
+            <li>a distinct browser-tab title for every page</li>
+            <li>Section headings on the information pages (about, terms, privacy and this statement), real lists where the text enumerates items (the privacy policy and this statement), and a heading on each of the three data cards on the home page</li>
+            <li>A name for every year-and-month pair (base and target month in the home-page calculator and the index-linkage tool, start and end month in the historical index data), so a screen reader can tell them apart</li>
+            <li>The decorative logo mark is hidden from screen readers, so the home link's name matches its visible text, and the two links to the CBS interface on the method page have distinct visible text</li>
+            <li>keyboard-focusable, keyboard-scrollable containers for the historical data tables, the exchange-rate table, guide illustrations, and sample-code blocks</li>
+            <li>Sample-code blocks and guide illustrations are marked as named regions, and the code itself is marked as English text</li>
+            <li>Every illustration in the guides has a description in words that a screen reader reads (for example: an <span dir="ltr">Excel</span> illustration of the Data tab with the Get Data button highlighted), instead of an internal name for the picture</li>
+            <li>The "Copy" buttons in the guides are told apart by their accessible names, according to the file each one copies, and the arrow in the "Back" and "All tools" links is hidden from screen readers, so the link's name is its visible text</li>
+          </ul>
+          <h3>The historical index chart</h3>
+          <ul class="info-list">
+            <li>an accessible alternative for the historical index chart — a text description with a data summary for each series in the selected range (the first and last values and the lowest and highest values, with their months), the index shown on each axis and the events marked, plus a link to an equivalent data table, together with keyboard exploration of the chart itself: arrows move to the previous or next month, Page Up/Page Down jump a year, and Home/End move to the ends of the range, with the month, series values and marked event announced</li>
+            <li>a month slider under the chart that works with the keyboard and the mouse, stays in sync with the chart's selection and carries the same information as its value</li>
+            <li>checkboxes to show or hide each series, with the construction inputs series drawn as a dashed line so the two series do not depend on color alone</li>
+          </ul>
+          <h3>Tables and export files</h3>
+          <ul class="info-list">
+            <li>captions on the data tables on the home page and in the historical tools</li>
+            <li>the historical data tables and the exchange-rate table scroll inside a box of limited height, with a header row that stays visible while scrolling</li>
+            <li>a print sheet, from which the <span dir="ltr">PDF</span> is saved, built as semantic <span dir="ltr">HTML</span> — headings, tables with a caption and marked-up column headers, and the document's language and direction</li>
+            <li><span dir="ltr">XLSX</span> files that contain no merged cells and carry a title and language in their file properties, with the header row frozen and an AutoFilter on it in the historical index, interest-rate and exchange-rate exports</li>
+          </ul>
+          <h3>Forms, tools and messages</h3>
+          <ul class="info-list">
+            <li>calculator results, copy confirmations and error messages (including when data fails to load) announced to screen readers</li>
+            <li>In the home-page calculator, the indexation tools, the historical data tools, the export-code tool, the rental-agreement tool and the chart's year range, an error message about a wrong value (an amount, a date, a month, a range, or a choice of series or currency) also marks the field itself as invalid and is linked to it, so a screen reader that reaches the field reads the reason as well</li>
+            <li>The contact form shows a visible note that all fields are required, linked to each field, keeps keyboard focus while sending and moves it to the confirmation message</li>
+            <li>clear names for the periods in the rental-agreement tool, with focus handled when they are added or removed</li>
+            <li>A caption on each period table in the rental-agreement tool, and the table updating in place when a paid amount is edited or "paid" is ticked, so keyboard focus and scroll position are kept</li>
+            <li>In the rental-agreement tool, the accessible name of every "Actually paid" field and every "Settled" box includes the row's month, and each "Mark the whole period as settled" box includes the period's name</li>
+            <li>Month fields in the rental-agreement tool: when the browser has no built-in month picker, you can type <span dir="ltr">YYYY-MM</span> or <span dir="ltr">MM/YYYY</span> (including a single-digit month), a visible format hint is linked to the field, and an unrecognised value produces an announced error instead of an empty table</li>
+            <li>a notice in Hebrew and English for browsers that do not run <span dir="ltr">JavaScript</span></li>
+          </ul>
+          <h3>Display</h3>
+          <ul class="info-list">
+            <li>adequate color contrast on secondary text, on the chart's event labels and on form-field borders</li>
+            <li>click targets at least 24 pixels tall</li>
+            <li>on narrow screens (up to 900 pixels) the calculation tools lay out in a single column, so the form and the result do not cover each other</li>
+            <li>with text enlarged to 200% the top header (including the language button), the navigation and the home-page data cards move onto another row instead of leaving the screen, and a long word in a heading breaks instead of widening the page</li>
+            <li>respecting the user's "reduce motion" (<span dir="ltr">prefers-reduced-motion</span>) preference, including turning off the chart's draw-in animation.</li>
+          </ul>
+        </section>
+        <section>
+          <h2>Known limitations</h2>
+          <ul class="info-list">
+            <li>the chart's axes, legend and event lines are still drawn as an image — they are described in text (the data summary, the axis names and the list of events) and are also reachable through the month slider, the series checkboxes and the linked table</li>
+            <li>screen readers in browse mode (NVDA/JAWS) may need focus mode before arrow keys reach the chart itself, and the month slider, a standard form control, offers another way to move through the months</li>
+            <li>the <span dir="ltr">PDF</span> is produced by the browser's save-as-<span dir="ltr">PDF</span>: in a test with <span dir="ltr">Chrome</span>, with tagging enabled, the file came out tagged — with a main heading, a table with marked column headers, and the document language and title (the table caption is not kept in the tags) — but whether a regular save from the print dialog is tagged depends on the browser and version and has not been verified, and other browsers were not tested</li>
+            <li>Excel's accessibility checker has not been run on the <span dir="ltr">XLSX</span> files</li>
+            <li>in the rental-agreement tool, on narrow screens, the tables' horizontal scroll area has no keyboard stop of its own — the fields inside it can be reached with the keyboard and the browser scrolls them into view</li>
+            <li>The whole site requires <span dir="ltr">JavaScript</span> — loading the data, moving between pages and choosing the language — and without it a notice in Hebrew and English says so.</li>
+            <li>The month fields' behaviour in a browser without a month picker was tested only by simulation in <span dir="ltr">Chromium</span> (switching the field type to text), not in such a browser itself</li>
+            <li>In a narrow window (up to 375 pixels) with text enlarged to 200%, the sticky header is tall (about 280 pixels) and covers a large part of the screen</li>
+            <li>With text enlarged to 200% combined with increased text spacing, in a very narrow window (320 pixels and below), and also in the rental-agreement tool in English at 768 pixels, a slight horizontal scroll remains on some pages</li>
+          </ul>
+        </section>
+        <section>
+          <h2>How accessibility was tested</h2>
+          <p>The site's accessibility was tested automatically and manually:</p>
+          <ul class="info-list">
+            <li>An <span dir="ltr">axe-core</span> scan across every page in Hebrew and English, including interface states such as errors, calculation results, an open chart and an open guide</li>
+            <li>Manual testing in a <span dir="ltr">Chromium</span>-based browser: keyboard-only navigation across every route and tool on the site, including the chart</li>
+            <li>A 320-pixel-wide view (and 305 pixels, a narrow window with a classic scrollbar) with no horizontal page scroll and no overlapping components, text enlarged to 200% and increased text spacing</li>
+            <li>An overflow check on every page of the site, in Hebrew and English, at window widths from 305 to 1100 pixels, at normal text size and at text enlarged to 200%: no horizontal page scroll (exceptions in combination with increased text spacing are listed under limitations)</li>
+            <li>Click-target size, the contrast of text and of interface components, and focus that is not hidden under the sticky header</li>
+            <li>A scan of the English version for text left in Hebrew</li>
+            <li>A check of <span dir="ltr">Chrome</span>'s accessibility tree for unnamed controls and controls sharing a name in the same context</li>
+          </ul>
+          <p>The export files were checked too: a <span dir="ltr">PDF</span> produced in <span dir="ltr">Chrome</span> was inspected for tagging, language and title, and <span dir="ltr">XLSX</span> files were opened with a spreadsheet library to check the document properties, the frozen header, the filter and the absence of merged cells.</p>
+          <p>The testing did not include a screen reader (<span dir="ltr">VoiceOver</span>, <span dir="ltr">NVDA</span>, <span dir="ltr">JAWS</span> or <span dir="ltr">TalkBack</span>), browsers other than <span dir="ltr">Chromium</span>, real mobile devices, or testing with people with disabilities, and it is not a professional accessibility audit.</p>
+        </section>
+        <section>
+          <h2>Reporting an accessibility issue</h2>
           <p>Found an accessibility issue? You can report it to the site operator at <a href="mailto:ori.cpa.il@gmail.com" dir="ltr">ori.cpa.il@gmail.com</a>.</p>
-          <p>Last accessibility review date: 10 October 2026.</p>
+          <p>Last accessibility review date: 11 October 2026.</p>
         </section>
       </div>
-      <a class="info-back" href="#/">← חזרה לעמוד הבית</a>
+      <a class="info-back" href="#/"><span class="back-arrow" aria-hidden="true">←</span> חזרה לעמוד הבית</a>
     </article>
 
     <article class="info-page" id="contact-page" hidden aria-labelledby="contact-title">
       <header class="info-header"><h1 id="contact-title">צור קשר</h1></header>
       <div class="prose-guide"><section id="contact-form-area">
         <form class="contact-form" id="contact-form" novalidate>
+          <p class="contact-required" id="contact-required">כל השדות חובה.</p>
           <div class="contact-field">
             <label for="contact-name">שם מלא</label>
-            <input id="contact-name" name="name" type="text" required autocomplete="name" aria-describedby="contact-name-error">
+            <input id="contact-name" name="name" type="text" required autocomplete="name" aria-describedby="contact-required contact-name-error">
             <p class="field-error" id="contact-name-error"></p>
           </div>
           <div class="contact-field">
             <label for="contact-email">אימייל לחזרה</label>
-            <input id="contact-email" name="email" type="email" dir="ltr" required autocomplete="email" aria-describedby="contact-email-error">
+            <input id="contact-email" name="email" type="email" dir="ltr" required autocomplete="email" aria-describedby="contact-required contact-email-error">
             <p class="field-error" id="contact-email-error"></p>
           </div>
           <div class="contact-field">
             <label for="contact-message">תוכן ההודעה</label>
-            <textarea id="contact-message" name="message" maxlength="300" required aria-describedby="contact-message-error contact-message-count"></textarea>
+            <textarea id="contact-message" name="message" maxlength="300" required aria-describedby="contact-required contact-message-error contact-message-count"></textarea>
             <div class="contact-field-meta">
               <p class="field-error" id="contact-message-error"></p>
               <span id="contact-message-count" dir="ltr">0/300</span><span class="sr-only" id="contact-message-limit" role="status" aria-live="polite" aria-atomic="true"></span>
@@ -584,12 +802,12 @@
           <button class="contact-submit" id="contact-submit" type="submit">שלח</button>
         </form>
       </section></div>
-      <a class="info-back" href="#/">← חזרה לעמוד הבית</a>
+      <a class="info-back" href="#/"><span class="back-arrow" aria-hidden="true">←</span> חזרה לעמוד הבית</a>
     </article>
   </main>
 
   <div class="sr-only" id="result-live" role="status" aria-live="polite" aria-atomic="true"></div>
-  <footer><div class="shell footer-inner"><div class="footer-meta"><span class="brand"><span class="brand-mark">s</span><span>statso</span></span><span>נתונים ממקורות רשמיים<span id="app-version-line" hidden> · גרסה <span id="app-version" dir="ltr"></span></span></span></div><nav class="footer-links" aria-label="מידע"><a href="#/about">אודות</a><span aria-hidden="true">·</span><a href="#/method">שיטת החישוב</a><span aria-hidden="true">·</span><a href="#/terms">תנאי שימוש והבהרות</a><span aria-hidden="true">·</span><a href="#/privacy">מדיניות פרטיות</a><span aria-hidden="true">·</span><a href="#/accessibility">הצהרת נגישות</a><span aria-hidden="true">·</span><a href="#/contact">צור קשר</a></nav></div><div class="shell footer-legal"><p>statso הוא אתר אישי וחובבני, שאינו מופעל מטעם הלשכה המרכזית לסטטיסטיקה, בנק ישראל או גוף ממשלתי אחר.</p><p>© 2026 מפעיל האתר. נתוני המקור שייכים לגופים המפרסמים.</p></div></footer>
+  <footer><div class="shell footer-inner"><div class="footer-meta"><span class="brand"><span class="brand-mark" aria-hidden="true">s</span><span>statso</span></span><span>נתונים ממקורות רשמיים<span id="app-version-line" hidden> · גרסה <span id="app-version" dir="ltr"></span></span></span></div><nav class="footer-links" aria-label="מידע"><a href="#/about">אודות</a><span aria-hidden="true">·</span><a href="#/method">שיטת החישוב</a><span aria-hidden="true">·</span><a href="#/terms">תנאי שימוש והבהרות</a><span aria-hidden="true">·</span><a href="#/privacy">מדיניות פרטיות</a><span aria-hidden="true">·</span><a href="#/accessibility">הצהרת נגישות</a><span aria-hidden="true">·</span><a href="#/contact">צור קשר</a></nav></div><div class="shell footer-legal"><p>statso הוא אתר אישי וחובבני, שאינו מופעל מטעם הלשכה המרכזית לסטטיסטיקה, בנק ישראל או גוף ממשלתי אחר.</p><p>© 2026 מפעיל האתר. נתוני המקור שייכים לגופים המפרסמים.</p></div></footer>
 
   <script type="application/json" id="data-cpi" data-inline="json" data-src="data/cpi.json" data-label="מדד המחירים לצרכן"></script>
   <script type="application/json" id="data-construction-inputs" data-inline="json" data-src="data/construction_inputs.json" data-label="מדד תשומות הבנייה למגורים"></script>

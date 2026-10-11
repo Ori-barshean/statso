@@ -86,6 +86,16 @@
 
   function formatRate(x) { return new Intl.NumberFormat('he-IL', {minimumFractionDigits: 2, maximumFractionDigits: 4}).format(x); }
   function formatMonthHe(key) { const p = key.split('-'); return p[1] + '/' + p[0]; }
+  function parseMonthInput(text) {
+    const value = text.trim();
+    if (!value) { return ''; }
+    const iso = /^(\d{4})-(\d{1,2})$/.exec(value);
+    const slash = /^(\d{1,2})\/(\d{4})$/.exec(value);
+    if (!iso && !slash) { return null; }
+    const year = iso ? iso[1] : slash[2];
+    const month = Number(iso ? iso[2] : slash[1]);
+    return Number(year) >= 1 && month >= 1 && month <= 12 ? year + '-' + String(month).padStart(2, '0') : null;
+  }
   function formatIsoDateHe(value) { const p = value.split('-'); return p[2] + '/' + p[1] + '/' + p[0]; }
 
   // Israeli statutory non-working days (Rosh Hashana, Yom Kippur, Sukkot I, Shmini Atzeret,
@@ -132,6 +142,31 @@
     return String(value == null ? '' : value).replace(/[&<>"']/g, function (ch) { return ESCAPE_MAP[ch]; });
   }
 
+  // An error line says what is wrong; the controls it is about have to say so too. Each control passed in reports
+  // itself as invalid and points at the line, so a person who tabs into it hears the reason. Every call first
+  // withdraws the flags it set before, so calling it with no fields clears them. A control that something else
+  // already marked invalid (the month text fallback in the rent tool) is left to that mechanism.
+  function flagFields(errorId, fields) {
+    if (typeof document === 'undefined') { return; }
+    const doc = document;
+    function tokens(field) { return (field.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean); }
+    Array.prototype.slice.call(doc.querySelectorAll('[data-error-flag="' + errorId + '"]')).forEach(function (field) {
+      const rest = tokens(field).filter(function (token) { return token !== errorId; });
+      if (rest.length) { field.setAttribute('aria-describedby', rest.join(' ')); } else { field.removeAttribute('aria-describedby'); }
+      field.removeAttribute('aria-invalid');
+      field.removeAttribute('data-error-flag');
+    });
+    (fields || []).forEach(function (item) {
+      const field = typeof item === 'string' ? doc.getElementById(item) : item;
+      if (!field || field.getAttribute('aria-invalid') === 'true') { return; }
+      const list = tokens(field);
+      if (list.indexOf(errorId) === -1) { list.push(errorId); }
+      field.setAttribute('aria-describedby', list.join(' '));
+      field.setAttribute('aria-invalid', 'true');
+      field.setAttribute('data-error-flag', errorId);
+    });
+  }
+
   Statso.core = {monthToOrdinal: monthToOrdinal, ordinalToMonth: ordinalToMonth, shiftMonth: shiftMonth,
     buildIndexMap: buildIndexMap, resolveIndexMonth: resolveIndexMonth, lookupChained: lookupChained,
     indexAmount: indexAmount, readingInBase: readingInBase, lookupRateAt: lookupRateAt, convertAmount: convertAmount,
@@ -140,5 +175,7 @@
     formatRateSmart: formatRateSmart,
     CURRENCY_NAMES: CURRENCY_NAMES, latestObservation: latestObservation,
     formatNumber: formatNumber, formatPercent: formatPercent, formatMonthHe: formatMonthHe,
-    formatIsoDateHe: formatIsoDateHe, nextCpiPublicationDate: nextCpiPublicationDate, escapeHtml: escapeHtml};
+    parseMonthInput: parseMonthInput,
+    formatIsoDateHe: formatIsoDateHe, nextCpiPublicationDate: nextCpiPublicationDate, escapeHtml: escapeHtml,
+    flagFields: flagFields};
 })(window);
