@@ -5,6 +5,11 @@
   // them, so every failed dataset is also named once in a notice above the page (see index.html #data-problem).
   const failedData = [];
   function noteFailure(name) { if (failedData.indexOf(name) < 0) { failedData.push(name); } }
+  const GENERIC_ERROR = 'אירעה שגיאה בעיבוד הנתונים. אפשר לרענן את הדף ולנסות שוב.';
+  function userMessage(error) {
+    const text = error && typeof error.message === 'string' ? error.message.trim() : '';
+    return /[֐-׿]/.test(text) ? text : GENERIC_ERROR;
+  }
   function showDataProblems() {
     const wrap = document.getElementById('data-problem-wrap'); const box = document.getElementById('data-problem');
     if (!wrap || !box || !failedData.length) { return; }
@@ -104,11 +109,11 @@
     Statso.data.loadAll().then(function (results) {
       const cpi = results[0], boi = results[1], next = results[2], fx = results[3], construction = results[4];
       const constructionDoc = construction && construction.status === 'fulfilled' ? construction.value : null;
-      if (cpi.status === 'fulfilled') { try { showCpi(cpi.value, constructionDoc); } catch (error) { failCpi(error.message); } } else { failCpi(cpi.reason.message); }
-      if (boi.status === 'fulfilled') { try { showBoi(boi.value); } catch (error) { failBoi(error.message); } }
-      else { failBoi(boi.reason.message); }
+      if (cpi.status === 'fulfilled') { try { showCpi(cpi.value, constructionDoc); } catch (error) { failCpi(userMessage(error)); } } else { failCpi(userMessage(cpi.reason)); }
+      if (boi.status === 'fulfilled') { try { showBoi(boi.value); } catch (error) { failBoi(userMessage(error)); } }
+      else { failBoi(userMessage(boi.reason)); }
       if (next.status === 'fulfilled') { try { showNext(next.value); } catch (error) { showNextUnavailable(); } } else { showNextUnavailable(); }
-      if (fx.status === 'fulfilled') { try { showFx(fx.value); } catch (error) { failFx(error.message); } } else { failFx(fx.reason.message); }
+      if (fx.status === 'fulfilled') { try { showFx(fx.value); } catch (error) { failFx(userMessage(error)); } } else { failFx(userMessage(fx.reason)); }
       // without it the construction series is left out of the chart and its options in the tools are disabled
       if (!constructionDoc) { noteFailure('מדד תשומות הבנייה למגורים'); }
       showDataProblems();
@@ -123,5 +128,5 @@
     clearTimeout(kpiResizeTimer);
     kpiResizeTimer = setTimeout(alignKpiFootnotes, 150);
   });
-  Statso.app = {init: init};
+  Statso.app = {init: init, userMessage: userMessage};
 })(window);

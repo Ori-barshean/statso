@@ -1152,8 +1152,8 @@ process.stdout.write(JSON.stringify({before, after, fallback: target.textContent
         page = re.search(r'<article[^>]*id="accessibility-page".*?</article>', self.html, re.DOTALL).group(0)
         he = re.search(r'data-lang="he">(.*?)</div>\s*<div class="prose-guide" data-lang="en"', page, re.DOTALL).group(1)
         en = re.search(r'data-lang="en" hidden>(.*?)</div>', page, re.DOTALL).group(1)
-        self.assertIn('11/10/2026', he)
-        self.assertIn('11 October 2026', en)
+        self.assertRegex(he, r'<time datetime="\d{4}-\d{2}-\d{2}">')
+        self.assertRegex(en, r'<time datetime="\d{4}-\d{2}-\d{2}">')
         for block in (he, en):
             self.assertIn('forced colors', block)
             self.assertIn('Page Up/Page Down', block)
@@ -1274,7 +1274,7 @@ process.stdout.write(JSON.stringify({before, after, fallback: target.textContent
                      'מעבר בין השפות דורש', 'switching languages requires', 'לא נבדקה נגישותם של קובצי',
                      'has not been checked'):
             self.assertNotIn(text, page)
-        for old in ('10/10/2026', '10 October 2026', '09/10/2026', '9 October 2026', 'לא מתוך הגרף עצמו', 'not from the chart itself'):
+        for old in ('11/10/2026', '11 October 2026', '10/10/2026', '10 October 2026', '09/10/2026', '9 October 2026', 'לא מתוך הגרף עצמו', 'not from the chart itself'):
             self.assertNotIn(old, page)
 
     def test_contact_hebrew_messages_have_english_entries(self):

@@ -3,6 +3,7 @@ import re
 import unittest
 from pathlib import Path
 
+from scripts import run_tests
 from scripts.common import http_get
 
 ROOT = Path(__file__).parent.parent
@@ -19,6 +20,40 @@ class WorkflowTests(unittest.TestCase):
         cls.defaults = {name: parameter.default
                         for name, parameter in inspect.signature(http_get).parameters.items()
                         if parameter.default is not inspect.Parameter.empty}
+
+    def step(self, name):
+        match = re.search(r"\n      - name: " + re.escape(name) + r"\n(.*?)(?=\n      - name:|\Z)",
+                          self.text, re.S)
+        self.assertIsNotNone(match, f"the {name} step is missing")
+        return match.group(1)
+
+    def test_step_order(self):
+        self.assertEqual(re.findall(r"^      - name: (.+)$", self.text, re.M),
+                         ["DST guard", "Unit tests", "Refresh datasets", "Commit data changes",
+                          "Site tests (non-blocking)"])
+        self.assertIn("id: guard", self.step("DST guard"))
+
+    def test_blocking_step_runs_only_the_data_group(self):
+        body = self.step("Unit tests")
+        self.assertIn("if: steps.guard.outputs.should_run == 'true'", body)
+        self.assertIn("run: python3 -m scripts.run_tests --group data", body)
+        self.assertNotIn("continue-on-error", body)
+        self.assertNotIn("--group site", body)
+        self.assertNotIn("unittest discover", self.text)
+
+    def test_site_tests_warn_without_blocking_the_refresh(self):
+        body = self.step("Site tests (non-blocking)")
+        self.assertIn("if: steps.guard.outputs.should_run == 'true'", body)
+        self.assertIn("if python3 -m scripts.run_tests --group site; then", body)
+        self.assertIn("::warning::", body)
+        self.assertNotIn("exit 1", body)
+        self.assertNotIn("continue-on-error", body)
+
+    def test_pipeline_tests_stay_in_the_blocking_group(self):
+        for name in ("test_workflow.py", "test_schedule_guard.py", "test_published_data.py",
+                     "test_serialization.py", "test_indexation_reference.py"):
+            with self.subTest(name=name):
+                self.assertIn(name, run_tests.DATA_TESTS)
 
     def test_source_fetches_wait_long_enough(self):
         self.assertGreaterEqual(self.defaults["timeout"], 120)

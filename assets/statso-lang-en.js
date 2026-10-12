@@ -94,6 +94,8 @@
     'השלבים עודכנו לפי הבחירה': 'The steps were updated to match your choice',
     'חלק מהנתונים לא נטענו, ולכן ייתכן שחלק מהכלים לא יפעלו. אפשר לרענן את הדף ולנסות שוב.': 'Some of the data did not load, so some of the tools may not work. You can refresh the page and try again.',
     'נתונים שלא נטענו:': 'Data that did not load:',
+    'תקלה בטעינת האתר': 'Site loading problem',
+    'אירעה שגיאה בעיבוד הנתונים. אפשר לרענן את הדף ולנסות שוב.': 'An error occurred while processing the data. You can refresh the page and try again.',
     'מטבעות נבחרים מול השקל': 'Selected currencies against the shekel',
     'טוען שערי חליפין…': 'Loading exchange rates…',
     'מטבע': 'Currency',
@@ -366,6 +368,9 @@
     'שערים יציגים של בנק ישראל': 'Bank of Israel representative rates',
 
     // --- info pages ---------------------------------------------------------
+    'הדף לא נמצא': 'Page not found',
+    'הכתובת שנפתחה אינה מובילה לעמוד באתר. ייתכן שהקישור שגוי או ישן.': 'The address you opened does not lead to a page on this site. The link may be wrong or out of date.',
+    'לאן אפשר להמשיך': 'Where to go from here',
     'אודות': 'About',
     'שיטת החישוב': 'Method',
     'תנאי שימוש והבהרות': 'Terms of Use & Disclaimers',

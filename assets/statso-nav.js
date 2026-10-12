@@ -63,15 +63,22 @@
     trigger.setAttribute('aria-expanded', 'false');
   }
 
+  function knownGuide(id) {
+    if (!Statso.guides) { return true; }   // module missing: guides view as before; the script notice explains
+    return (Statso.guides.guides || []).some(function (guide) { return guide.id === id && !guide.soon; });
+  }
+
   function route() {
-    const hash = root.location.hash;
+    const hash = String(root.location.hash || '');
     const guideMatch = /^#\/guides\/([a-z0-9-]+)$/.exec(hash);
-    const guides = hash === '#/guides' || Boolean(guideMatch);
+    const guides = hash === '#/guides' || Boolean(guideMatch && knownGuide(guideMatch[1]));
     const mcode = hash === '#/mcode';
-    const infoPageId = infoRoutes[hash];
-    const info = Boolean(infoPageId);
     const toolPageId = toolRoutes[hash];
     const tools = hash === '#/tools' || Boolean(toolPageId);
+    const home = hash === '' || hash === '#' || hash === '#/';
+    const notFound = !home && !guides && !mcode && !tools && !infoRoutes[hash];
+    const infoPageId = infoRoutes[hash] || (notFound ? 'notfound-page' : '');
+    const info = Boolean(infoPageId);
     const dashboardView = document.getElementById('dashboard-view');
     const guidesView = document.getElementById('guides-view');
     const infoView = document.getElementById('info-view');

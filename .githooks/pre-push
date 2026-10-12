@@ -1,0 +1,35 @@
+#!/bin/sh
+# statso pre-push hook: runs the full test suite before every push.
+# A push to main is also a deploy (GitHub Pages and the raw data URLs), so a
+# failing suite aborts the push. Enable once per clone:
+#     git config core.hooksPath .githooks
+# Deliberate bypass (only when you know why):
+#     git push --no-verify
+
+PATH="$PATH:/opt/homebrew/bin:/usr/local/bin"
+export PATH
+
+root=$(git rev-parse --show-toplevel 2>/dev/null) || {
+    echo "pre-push: לא נמצאה תיקיית השורש של המאגר — הדחיפה בוטלה." >&2
+    echo "pre-push: could not find the repository root — push aborted." >&2
+    exit 1
+}
+cd "$root" || exit 1
+
+if ! command -v python3 >/dev/null 2>&1; then
+    echo "pre-push: python3 לא נמצא — הדחיפה בוטלה. עקיפה מכוונת: git push --no-verify" >&2
+    echo "pre-push: python3 not found — push aborted. Deliberate bypass: git push --no-verify" >&2
+    exit 1
+fi
+
+echo "pre-push: מריץ את כל הבדיקות / running the full test suite" >&2
+if python3 -m unittest discover -s tests -t . </dev/null; then
+    exit 0
+fi
+
+echo "" >&2
+echo "pre-push: בדיקות נכשלו — הדחיפה בוטלה." >&2
+echo "pre-push: tests failed — push aborted." >&2
+echo "  הפקודה שנכשלה / failed command: python3 -m unittest discover -s tests -t ." >&2
+echo "  עקיפה מכוונת / deliberate bypass: git push --no-verify" >&2
+exit 1

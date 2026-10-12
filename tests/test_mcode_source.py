@@ -182,7 +182,7 @@ global.document = {addEventListener() {},
         self.assertEqual(out['copied'], [out['code']])
         self.assertTrue(out['wired'])
 
-    def test_mcode_route_preserves_focus_and_dashboard_fallback(self):
+    def test_mcode_route_preserves_focus_and_unknown_hash_is_not_found(self):
         out = node('''
 let renders = 0, resizes = 0;
 S.mcode = {render() { renders++; }};
@@ -195,7 +195,7 @@ window.location.hash = '#/mcode'; S.nav.route();
 const mcode = {visible: !els['mcode-view'].hidden, dashboardHidden: els['dashboard-view'].hidden,
  active: links.filter(l => l.attrs['aria-current']).map(l => l.href), renders, resizes, focuses};
 window.location.hash = '#/unknown'; S.nav.route();
-process.stdout.write(JSON.stringify({mcode, fallback: !els['dashboard-view'].hidden && els['mcode-view'].hidden}));
+process.stdout.write(JSON.stringify({mcode, fallback: els['dashboard-view'].hidden && els['mcode-view'].hidden && !els['info-view'].hidden}));
 ''', setup='''
 const els = {}; let focuses = 0;
 const heading = {hasAttribute() { return false; }, setAttribute() {}, focus() { focuses++; }};

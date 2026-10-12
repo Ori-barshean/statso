@@ -29,7 +29,7 @@ jobs:
 
       - name: Unit tests
         if: steps.guard.outputs.should_run == 'true'
-        run: python3 -m unittest discover -v
+        run: python3 -m scripts.run_tests --group data
 
       - name: Refresh datasets
         if: steps.guard.outputs.should_run == 'true'
@@ -61,3 +61,11 @@ jobs:
             git pull --rebase origin main
           done
           exit 1
+
+      - name: Site tests (non-blocking)
+        if: steps.guard.outputs.should_run == 'true'
+        run: |
+          if python3 -m scripts.run_tests --group site; then
+            exit 0
+          fi
+          echo "::warning::site tests failed; the data refresh was not blocked (see this step's log)"

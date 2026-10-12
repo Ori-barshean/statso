@@ -35,7 +35,7 @@
         <a class="nav-item nav-item-stacked" href="#/mcode">קודים לייצוא (Power Query)</a>
       </nav>
       <div class="brand-group">
-        <a class="brand" href="index.html" aria-label="statso — דף הבית"><span class="brand-mark" aria-hidden="true">s</span><span>statso</span></a>
+        <a class="brand" href="#/" aria-label="statso — דף הבית"><span class="brand-mark" aria-hidden="true">s</span><span>statso</span></a>
         <div class="lang-picker" id="lang-picker" data-i18n-skip>
           <button type="button" class="lang-button" id="lang-toggle" lang="en" aria-expanded="false" aria-controls="lang-menu">Switch Language</button>
           <ul class="lang-menu" id="lang-menu" hidden>
@@ -47,6 +47,9 @@
     </div>
   </header>
 
+  <section class="shell data-problem-wrap" id="script-problem-wrap" aria-label="תקלה בטעינת האתר" hidden>
+    <div class="data-problem" id="script-problem" role="alert" data-i18n-skip></div>
+  </section>
   <section class="shell data-problem-wrap" id="data-problem-wrap" aria-label="תקלה בטעינת נתונים" hidden>
     <div class="data-problem" id="data-problem" role="alert"></div>
   </section>
@@ -607,6 +610,7 @@
           <h2>מחויבות לנגישות</h2>
           <p>מפעיל האתר מחויב לאפשר שימוש נוח ככל האפשר באתר לאנשים עם מוגבלות, וממשיך לעבוד על שיפור הנגישות לאורך זמן.</p>
           <p>האתר נבנה תוך התייחסות לתקן הישראלי הרלוונטי (ת"י 5568) ולהנחיות <span dir="ltr">WCAG</span>. כללי הנגישות מתועדים בקובץ <span dir="ltr">README</span> של הפרויקט במאגר הציבורי ב־<span dir="ltr">GitHub</span>, חלים על כל תכנון ושינוי באתר, וחלקם נאכפים בבדיקות אוטומטיות.</p>
+          <p>האתר אינו טוען להתאמה מלאה לתקן הישראלי ת"י 5568 או להנחיות <span dir="ltr">WCAG 2.x</span> ברמת <span dir="ltr">AA</span>. לא נערכה לאתר ביקורת נגישות מקצועית חיצונית: הבדיקות המתוארות בהצהרה זו נעשו על ידי מפעיל האתר בעצמו, באופן אוטומטי וידני, בדפדפן מבוסס <span dir="ltr">Chromium</span>.</p>
         </section>
         <section>
           <h2>התאמות שבוצעו בפועל</h2>
@@ -629,6 +633,8 @@
             <li>לכל איור במדריכים יש תיאור במילים שנקרא בקורא מסך (למשל: איור של <span dir="ltr">Excel</span> עם לשונית ״נתונים״ ברצועת הכלים וכפתור קבלת הנתונים מסומן), ולא שם פנימי של האיור</li>
             <li>כפתורי ״העתק״ במדריכים נבדלים זה מזה בשם הנגיש לפי הקובץ שהם מעתיקים, והחץ בקישורים ״חזרה״ ו״לכל הכלים״ מוסתר מקוראי מסך, כך ששם הקישור הוא הטקסט הגלוי שלו</li>
             <li>סמלי הכרטיסים בעמוד הכלים, סימן ה־✓ בתפריט בחירת השפה וסימן ה־✓ באישור ההעתקה הם קישוט ואינם נקראים כחלק מהשם של הרכיב</li>
+            <li>כתובת בתוך האתר שאינה מובילה לעמוד קיים (חלק הכתובת שאחרי הסימן <span dir="ltr">#</span>, למשל כלי או מדריך שאינם קיימים) מציגה עמוד ״הדף לא נמצא״ עם כותרת ראשית, כותרת משלו בלשונית הדפדפן, העברת מיקוד לכותרת וקישורים לדף הבית, לכלי החישוב ולמדריכים, במקום להציג בלי הסבר את דף הבית או את רשימת המדריכים</li>
+            <li>כתובת שאינה קיימת בשרת של האתר מציגה דף שגיאה עצמאי (404) בעברית ובאנגלית, עם כותרת ראשית אחת, קישור לדף הבית של האתר וסימון מיקוד גלוי</li>
           </ul>
           <h3>תרשים המדד ההיסטורי</h3>
           <ul class="info-list">
@@ -656,6 +662,7 @@
             <li>בכלי הצמדת הסכם שכירות, השם הנגיש של כל שדה "שולם בפועל" ושל כל תיבת "שולם" כולל את חודש השורה, והשם של תיבת "סימון כל התקופה כשולמה" כולל את שם התקופה</li>
             <li>שדות החודש בכלי הצמדת הסכם שכירות: כשהדפדפן אינו מציג בורר חודשים מובנה אפשר להקליד <span dir="ltr">YYYY-MM</span> או <span dir="ltr">MM/YYYY</span> (גם עם חודש בספרה אחת), מוצגת הנחיית פורמט גלויה המקושרת לשדה, וערך שלא ניתן לפענח מציג הודעת שגיאה מוכרזת במקום טבלה ריקה</li>
             <li>הודעה בעברית ובאנגלית למי שהדפדפן שלו אינו מריץ <span dir="ltr">JavaScript</span></li>
+            <li>כשאחד מקובצי הסקריפט של האתר אינו נטען (למשל בגלל חסימה או תקלת רשת), מוצגת ומוכרזת מעל כל עמוד הודעה שחלק מהאתר לא נטען ושאפשר לרענן את הדף; ההודעה כתובה בעברית ובאנגלית יחד ואינה תלויה במנגנון התרגום, כך שהיא מופיעה גם כשקובץ התרגום הוא שלא נטען</li>
           </ul>
           <h3>תצוגה</h3>
           <ul class="info-list">
@@ -679,6 +686,7 @@
             <li>התנהגות שדות החודש בדפדפן שאין בו בורר חודשים נבדקה רק בהדמיה ב־<span dir="ltr">Chromium</span> (החלפת סוג השדה לטקסט), ולא בדפדפן כזה עצמו</li>
             <li>בחלון צר (עד 375 פיקסלים) ובטקסט מוגדל ל־200% הכותרת הדביקה גבוהה (כ־280 פיקסלים) ומכסה חלק ניכר מהמסך</li>
             <li>בשילוב של טקסט מוגדל ל־200% עם ריווח טקסט מוגדל, בחלון צר מאוד (320 פיקסלים ופחות) וגם בכלי הצמדת הסכם שכירות באנגלית ברוחב 768 פיקסלים, נותרה בכמה עמודים גלילה אופקית קלה</li>
+            <li>ההודעה על חלק מהאתר שלא נטען מזהה רק קובץ סקריפט של האתר שלא נטען כלל או שנעצר לפני שרשם את עצמו; קובץ שנטען ונכשל מאוחר יותר, בזמן הפעולה, אינו מזוהה על ידה. קובץ טופס יצירת הקשר ומונה הביקורים אינם נבדקים בה, ולספריית התרשים יש הודעה משלה באזור התרשים</li>
           </ul>
         </section>
         <section>
@@ -695,6 +703,7 @@
             <li>הדמיית מצב צבעים כפויים (<span dir="ltr">forced colors</span>) לאיתור רכיבים בלי מסגרת, עם צילומי מסך לאימות</li>
             <li>מעבר מקלדת אמיתי (<span dir="ltr">Tab</span>) על כל נתיבי האתר ברוחב 1100 ו־375 פיקסלים, לבדיקה שטבעת המיקוד אינה נחתכת בקצה אזור גלילה, וגם בטקסט מוגדל ל־200% לבדיקה שהמיקוד אינו מוסתר מתחת לכותרת הדביקה</li>
             <li>חסימת טעינת קובצי הנתונים לבדיקת ההודעה על כשל בטעינה בכל נתיב</li>
+            <li>חסימת הטעינה של כל אחד מקובצי הסקריפט של האתר בתורו, לבדיקת ההודעה על חלק מהאתר שלא נטען, ומעבר מקלדת אמיתי לעמוד ״הדף לא נמצא״ ובתוך דף השגיאה 404</li>
           </ul>
           <p>נבדקו גם קובצי הייצוא: קובץ <span dir="ltr">PDF</span> שנוצר ב־<span dir="ltr">Chrome</span> נבדק לתיוג, לשפה ולכותרת, וקובצי <span dir="ltr">XLSX</span> נפתחו בספריית גיליונות לבדיקת מאפייני המסמך, ההקפאה, המסנן והיעדר תאים ממוזגים.</p>
           <p>הבדיקות לא כללו קורא מסך (<span dir="ltr">VoiceOver</span>, <span dir="ltr">NVDA</span>, <span dir="ltr">JAWS</span> או <span dir="ltr">TalkBack</span>), דפדפנים נוספים מלבד <span dir="ltr">Chromium</span>, מכשירים ניידים אמיתיים או בדיקה עם משתמשים עם מוגבלות, ואינן ביקורת נגישות מקצועית.</p>
@@ -703,7 +712,7 @@
         <section>
           <h2>דיווח על בעיית נגישות</h2>
           <p>נתקלתם בבעיית נגישות? אפשר לדווח למפעיל האתר בכתובת <a href="mailto:ori.cpa.il@gmail.com" dir="ltr">ori.cpa.il@gmail.com</a>.</p>
-          <p>תאריך בדיקת הנגישות האחרונה: 11/10/2026.</p>
+          <p>הצהרה זו עודכנה לאחרונה, ובדיקת הנגישות האחרונה נערכה, ב־<time datetime="2026-10-12">12 באוקטובר 2026</time>.</p>
         </section>
       </div>
       <div class="prose-guide" data-lang="en" hidden>
@@ -711,6 +720,7 @@
           <h2>Commitment to accessibility</h2>
           <p>The site operator is committed to making the site as usable as reasonably possible for people with disabilities, and continues working to improve its accessibility over time.</p>
           <p>The site was built with attention to the relevant Israeli standard (IS 5568) and to the <span dir="ltr">WCAG</span> guidelines. The accessibility rules are documented in the project's <span dir="ltr">README</span> in the public <span dir="ltr">GitHub</span> repository, apply to every design and change to the site, and some of them are enforced by automated tests.</p>
+          <p>The site does not claim full conformance with Israeli Standard IS 5568 or with <span dir="ltr">WCAG 2.x</span> at level <span dir="ltr">AA</span>. No external professional accessibility audit has been carried out: the checks described in this statement were done by the site operator, automatically and manually, in a <span dir="ltr">Chromium</span>-based browser.</p>
         </section>
         <section>
           <h2>Accommodations actually implemented</h2>
@@ -733,6 +743,8 @@
             <li>Every illustration in the guides has a description in words that a screen reader reads (for example: an <span dir="ltr">Excel</span> illustration of the Data tab with the Get Data button highlighted), instead of an internal name for the picture</li>
             <li>The "Copy" buttons in the guides are told apart by their accessible names, according to the file each one copies, and the arrow in the "Back" and "All tools" links is hidden from screen readers, so the link's name is its visible text</li>
             <li>The symbols on the cards on the tools page, the ✓ in the language menu and the ✓ in the copy confirmation are decoration and are not read as part of the component's name</li>
+            <li>An address inside the site that does not lead to an existing page (the part of the address after the <span dir="ltr">#</span> sign, for example a tool or a guide that does not exist) shows a "Page not found" view with a main heading, its own browser-tab title, focus moved to the heading, and links to the home page, the calculation tools and the guides, instead of silently showing the home page or the guide list</li>
+            <li>An address that does not exist on the site's server shows a standalone error page (404) in Hebrew and English, with a single main heading, a link to the site's home page and a visible focus indicator</li>
           </ul>
           <h3>The historical index chart</h3>
           <ul class="info-list">
@@ -760,6 +772,7 @@
             <li>In the rental-agreement tool, the accessible name of every "Actually paid" field and every "Settled" box includes the row's month, and each "Mark the whole period as settled" box includes the period's name</li>
             <li>Month fields in the rental-agreement tool: when the browser has no built-in month picker, you can type <span dir="ltr">YYYY-MM</span> or <span dir="ltr">MM/YYYY</span> (including a single-digit month), a visible format hint is linked to the field, and an unrecognised value produces an announced error instead of an empty table</li>
             <li>a notice in Hebrew and English for browsers that do not run <span dir="ltr">JavaScript</span></li>
+            <li>When one of the site's script files does not load (for example because it was blocked or the network failed), a notice above every page says that part of the site did not load and that refreshing the page may help, and is announced; the notice is written in Hebrew and English together and does not depend on the translation mechanism, so it appears even when the translation file is the one that failed to load</li>
           </ul>
           <h3>Display</h3>
           <ul class="info-list">
@@ -783,6 +796,7 @@
             <li>The month fields' behaviour in a browser without a month picker was tested only by simulation in <span dir="ltr">Chromium</span> (switching the field type to text), not in such a browser itself</li>
             <li>In a narrow window (up to 375 pixels) with text enlarged to 200%, the sticky header is tall (about 280 pixels) and covers a large part of the screen</li>
             <li>With text enlarged to 200% combined with increased text spacing, in a very narrow window (320 pixels and below), and also in the rental-agreement tool in English at 768 pixels, a slight horizontal scroll remains on some pages</li>
+            <li>The notice about part of the site not loading detects only a site script file that did not load at all or stopped before registering itself; a file that loads and fails later, while running, is not detected by it. The contact-form script and the visit counter are not checked by it, and the chart library has its own message in the chart section</li>
           </ul>
         </section>
         <section>
@@ -799,6 +813,7 @@
             <li>A simulation of forced colors mode to find components with no border, with screenshots to confirm</li>
             <li>A real keyboard walk (<span dir="ltr">Tab</span>) across every route of the site at 1100 and 375 pixels wide, to check that the focus indicator is not cut off at the edge of a scroll area, and also at text enlarged to 200%, to check that focus is not hidden under the sticky header</li>
             <li>Blocking the data files from loading to check the notice about a loading failure on every route</li>
+            <li>Blocking each of the site's script files from loading in turn, to check the notice about part of the site not loading, and a real keyboard walk to the "Page not found" view and through the 404 error page</li>
           </ul>
           <p>The export files were checked too: a <span dir="ltr">PDF</span> produced in <span dir="ltr">Chrome</span> was inspected for tagging, language and title, and <span dir="ltr">XLSX</span> files were opened with a spreadsheet library to check the document properties, the frozen header, the filter and the absence of merged cells.</p>
           <p>The testing did not include a screen reader (<span dir="ltr">VoiceOver</span>, <span dir="ltr">NVDA</span>, <span dir="ltr">JAWS</span> or <span dir="ltr">TalkBack</span>), browsers other than <span dir="ltr">Chromium</span>, real mobile devices, or testing with people with disabilities, and it is not a professional accessibility audit.</p>
@@ -807,7 +822,7 @@
         <section>
           <h2>Reporting an accessibility issue</h2>
           <p>Found an accessibility issue? You can report it to the site operator at <a href="mailto:ori.cpa.il@gmail.com" dir="ltr">ori.cpa.il@gmail.com</a>.</p>
-          <p>Last accessibility review date: 11 October 2026.</p>
+          <p>This statement was last updated, and accessibility was last reviewed, on <time datetime="2026-10-12">12 October 2026</time>.</p>
         </section>
       </div>
       <a class="info-back" href="#/"><span class="back-arrow" aria-hidden="true">←</span> חזרה לעמוד הבית</a>
@@ -844,6 +859,20 @@
       </section></div>
       <a class="info-back" href="#/"><span class="back-arrow" aria-hidden="true">←</span> חזרה לעמוד הבית</a>
     </article>
+
+    <article class="info-page" id="notfound-page" hidden aria-labelledby="notfound-title">
+      <header class="info-header"><h1 id="notfound-title">הדף לא נמצא</h1><p>הכתובת שנפתחה אינה מובילה לעמוד באתר. ייתכן שהקישור שגוי או ישן.</p></header>
+      <div class="prose-guide">
+        <section>
+          <h2>לאן אפשר להמשיך</h2>
+          <ul class="info-list">
+            <li><a href="#/">דף הבית</a></li>
+            <li><a href="#/tools">כלי חישוב</a></li>
+            <li><a href="#/guides">מדריכים</a></li>
+          </ul>
+        </section>
+      </div>
+    </article>
   </main>
 
   <div class="sr-only" id="result-live" role="status" aria-live="polite" aria-atomic="true"></div>
@@ -878,6 +907,31 @@
   <script src="assets/statso-nav.js" data-inline="script"></script>
   <script src="assets/statso-app.js" data-inline="script"></script>
   <script src="assets/statso-visits.js" data-inline="script"></script>
+  <script id="script-guard">
+  (function (root) {
+    'use strict';
+    var REQUIRED = ['lang', 'i18n', 'core', 'data', 'collapse', 'chart', 'fxtable', 'calculator', 'guideArt', 'mcode',
+      'guides', 'xlsx', 'exporter', 'tools', 'fxhistory', 'ratehistory', 'rent', 'nav', 'app'];
+    var S = root.Statso || {};
+    var missing = [];
+    for (var i = 0; i < REQUIRED.length; i += 1) { if (!S[REQUIRED[i]]) { missing.push(REQUIRED[i]); } }
+    var wrap = document.getElementById('script-problem-wrap');
+    var box = document.getElementById('script-problem');
+    if (!missing.length || !wrap || !box) { return; }
+    function line(lang, dir, text) {
+      var p = document.createElement('p');
+      p.setAttribute('lang', lang); p.setAttribute('dir', dir); p.setAttribute('data-i18n-skip', '');
+      p.textContent = text;
+      return p;
+    }
+    box.textContent = '';
+    wrap.hidden = false;
+    root.setTimeout(function () {
+      box.appendChild(line('he', 'rtl', 'חלק מהאתר לא נטען, ולכן ייתכן שחלק מהעמודים והכלים לא יפעלו. אפשר לרענן את הדף ולנסות שוב.'));
+      box.appendChild(line('en', 'ltr', 'Part of the site did not load, so some pages and tools may not work. You can refresh the page and try again.'));
+    }, 50);
+  })(window);
+  </script>
   <div id="print-root"></div>
 </body>
 </html>

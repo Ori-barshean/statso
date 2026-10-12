@@ -31,7 +31,7 @@ class A11yPagesSourceTests(unittest.TestCase):
         self.assertEqual([lang for lang, _ in blocks], ['he', 'en'])
         return dict(blocks)
 
-    def test_guide_routes_return_to_index_and_keep_navigation_current(self):
+    def test_guide_routes_return_to_index_and_unknown_ids_are_not_found(self):
         seen = node('''
 const els = {}, calls = []; let focuses = 0, headingText = 'Guides';
 const heading = {get textContent() { return headingText; },
@@ -48,6 +48,7 @@ window.location = {hash: '#/guides'};
 window.scrollTo = () => {};
 window.requestAnimationFrame = fn => fn();
 window.Statso = {guides: {
+ guides: [{id: 'excel'}, {id: 'cpi-terms'}, {id: 'live-pull', soon: true}],
  showIndex(fromRoute) { calls.push(['index', fromRoute]); headingText = 'Guides'; },
  showGuide(id, fromRoute) { calls.push(['guide', id, fromRoute]);
   if (id !== 'excel') { return false; } headingText = 'Excel'; return true; }
@@ -57,23 +58,26 @@ const views = [];
 for (const hash of ['#/guides', '#/guides/excel', '#/guides', '#/guides/nope', '#/guides/live-pull']) {
  window.location.hash = hash; window.Statso.nav.route();
  views.push({dashboardHidden: els['dashboard-view'].hidden, guidesHidden: els['guides-view'].hidden,
+  infoHidden: els['info-view'].hidden,
   active: links.filter(l => l.attrs['aria-current']).map(l => l.href), focuses, title: document.title});
 }
 delete window.Statso.guides;
 window.location.hash = '#/guides/excel'; window.Statso.nav.route();
+const missingModule = els['dashboard-view'].hidden && !els['guides-view'].hidden && els['info-view'].hidden;
 window.location.hash = '#/unknown'; window.Statso.nav.route();
-process.stdout.write(JSON.stringify({calls, views,
- fallback: !els['dashboard-view'].hidden && els['guides-view'].hidden}));
+process.stdout.write(JSON.stringify({calls, views, missingModule,
+ fallback: els['dashboard-view'].hidden && els['guides-view'].hidden && !els['info-view'].hidden}));
 ''')
-        self.assertEqual(seen['calls'], [['index', True], ['guide', 'excel', True], ['index', True],
-                                        ['guide', 'nope', True], ['index', True],
-                                        ['guide', 'live-pull', True], ['index', True]])
+        self.assertEqual(seen['calls'], [['index', True], ['guide', 'excel', True], ['index', True]])
         for i, view in enumerate(seen['views']):
             self.assertTrue(view['dashboardHidden'])
-            self.assertFalse(view['guidesHidden'])
-            self.assertEqual(view['active'], ['#/guides'])
+            self.assertEqual(view['guidesHidden'], i >= 3)
+            self.assertEqual(view['infoHidden'], i < 3)
+            self.assertEqual(view['active'], ['#/guides'] if i < 3 else [])
             self.assertEqual(view['focuses'], i)
-            self.assertEqual(view['title'], ('Excel' if i == 1 else 'Guides') + ' — statso')
+            if i < 3:
+                self.assertEqual(view['title'], ('Excel' if i == 1 else 'Guides') + ' — statso')
+        self.assertTrue(seen['missingModule'])
         self.assertTrue(seen['fallback'])
 
     def test_guide_links_and_id_validation(self):
