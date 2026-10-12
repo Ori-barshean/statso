@@ -399,9 +399,25 @@
     }
   }
 
+  // A tooltip that appears because the mouse rests on the chart covers the lines it is about; Escape removes it without
+  // moving the pointer (WCAG 1.4.13). While a month is selected from the keyboard, Escape clears that selection instead.
+  // The canvas and slider handlers call preventDefault when Escape clears a keyboard-selected month, so a key press that
+  // reached the document unhandled is for the tooltip - also when an old selection is still there but focus has moved on.
+  function dismissHoverTooltip(chart, event) {
+    if (event.key !== 'Escape' || !chart || event.defaultPrevented) { return false; }
+    const shown = chart.tooltip && chart.tooltip.getActiveElements ? chart.tooltip.getActiveElements() : [];
+    if (!shown.length) { return false; }
+    chart.setActiveElements([]);
+    chart.tooltip.setActiveElements([], {x: 0, y: 0});
+    chart.update('none');
+    return true;
+  }
+  function onEscapeDismissesTooltip(event) { dismissHoverTooltip(chartInstance, event); }
+
   function start() {
     if (started || !hasData || !opened) { return; }
     started = true;
+    if (typeof document.addEventListener === 'function') { document.addEventListener('keydown', onEscapeDismissesTooltip); }
     const years = Array.from(new Set(observations.map(function (row) { return row.year; })));
     populateYearSelects(years);
     document.getElementById('chart-start-year').addEventListener('change', onRangePicked);
@@ -422,5 +438,5 @@
     describeData();
     syncSlider();
   });
-  Statso.chart = {EVENTS: EVENTS, eventIndex: eventIndex, populateYearSelects: populateYearSelects, sliceByYears: sliceByYears, buildConfig: buildConfig, describeEvents: describeEvents, render: render, onRangeChange: onRangeChange, init: init, activate: activate, showUnavailable: showUnavailable, resize: resize, nextIndex: nextIndex, announcementText: announcementText, sliderState: sliderState, sliderKeyIsInert: sliderKeyIsInert, seriesExtremes: seriesExtremes, summaryText: summaryText};
+  Statso.chart = {dismissHoverTooltip: dismissHoverTooltip, EVENTS: EVENTS, eventIndex: eventIndex, populateYearSelects: populateYearSelects, sliceByYears: sliceByYears, buildConfig: buildConfig, describeEvents: describeEvents, render: render, onRangeChange: onRangeChange, init: init, activate: activate, showUnavailable: showUnavailable, resize: resize, nextIndex: nextIndex, announcementText: announcementText, sliderState: sliderState, sliderKeyIsInert: sliderKeyIsInert, seriesExtremes: seriesExtremes, summaryText: summaryText};
 })(window);

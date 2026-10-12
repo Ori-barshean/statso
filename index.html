@@ -618,18 +618,19 @@
           <ul class="info-list">
             <li>חלופה נגישה לתרשים המדד ההיסטורי — תיאור טקסטואלי הכולל סיכום נתונים לכל סדרה בטווח שנבחר (הערך הראשון והאחרון, הנמוך והגבוה ביותר והחודשים שלהם), את המדד שמוצג על כל ציר ואת האירועים המסומנים, וקישור לטבלת נתונים מקבילה, לצד חקירת התרשים עצמו במקלדת: חצים לחודש הקודם או הבא, <span dir="ltr">Page Up/Page Down</span> לקפיצה של שנה ו־<span dir="ltr">Home/End</span> לקצות הטווח, עם הקראת החודש, ערכי הסדרות והאירוע המסומן</li>
             <li>מחוון לבחירת חודש מתחת לתרשים, שפועל במקלדת ובעכבר, מסונכרן עם הבחירה בתרשים ומציג את אותו מידע כערך שלו</li>
+            <li>ההסבר הקופץ שמופיע כשהעכבר נח על התרשים נסגר במקש <span dir="ltr">Escape</span> בלי להזיז את העכבר</li>
             <li>תיבות סימון להצגה או להסתרה של כל סדרה, וסדרת מדד תשומות הבנייה מסומנת בקו מקווקו כך שאין תלות בצבע בלבד</li>
           </ul>
           <h3>טבלאות וקובצי ייצוא</h3>
           <ul class="info-list">
             <li>כותרות (<span dir="ltr">captions</span>) לטבלאות הנתונים בדף הבית ובכלים ההיסטוריים</li>
             <li>טבלאות הנתונים ההיסטוריות וטבלת שערי המטבע גוללות בתוך מסגרת בגובה מוגבל, עם שורת כותרות שנשארת גלויה בזמן הגלילה</li>
-            <li>גיליון ההדפסה שממנו שומרים <span dir="ltr">PDF</span> בנוי כ־<span dir="ltr">HTML</span> סמנטי — כותרות, טבלאות עם כיתוב (<span dir="ltr">caption</span>) וכותרות עמודה מסומנות, ושפה וכיוון של המסמך</li>
+            <li>גיליון ההדפסה שממנו שומרים <span dir="ltr">PDF</span> בנוי כ־<span dir="ltr">HTML</span> סמנטי — כותרות, טבלאות עם כיתוב (<span dir="ltr">caption</span>) וכותרות עמודה מסומנות, ושפה וכיוון של המסמך, וכותרת הקובץ שנשמר היא בשפת הדף</li>
             <li>קובצי ה־<span dir="ltr">XLSX</span> נוצרים ללא תאים ממוזגים וכוללים כותרת ושפה במאפייני הקובץ, ובקובצי הייצוא של נתוני המדד, הריבית ושערי החליפין ההיסטוריים שורת הכותרות מוקפאת ועליה מסנן אוטומטי</li>
           </ul>
           <h3>טפסים, כלים והודעות</h3>
           <ul class="info-list">
-            <li>הקראת תוצאות המחשבונים, אישורי ההעתקה והודעות שגיאה לקורא מסך</li>
+            <li>הקראת תוצאות המחשבונים, אישורי ההעתקה והודעות שגיאה לקורא מסך, וכן הודעה בשפה החדשה כשמחליפים שפה</li>
             <li>הבחירות הבאות מוכרזות לקורא מסך, משום שהן משנות תוכן במקום אחר בעמוד: בכלי הנתונים ההיסטוריים (מדד, ריבית ושערי חליפין) נאמר שהטבלה עודכנה ומספר השורות שבה, בטווח השנים של התרשים נאמר הטווח החדש, בכלי קודי הייצוא נאמר שהקוד עודכן, ובמדריך הייבוא ל־<span dir="ltr">Excel</span> נאמר שהשלבים עודכנו</li>
             <li>כשמדד המחירים לצרכן, מדד תשומות הבנייה, ריבית בנק ישראל או סיכום שערי החליפין אינם נטענים, מוצגת ומוכרזת הודעה מעל כל עמוד שמציינת איזה מהם חסר, כך שגם מי שהגיע ישירות לכלי או למדריך יודע זאת (כשמדד תשומות הבנייה חסר, הסדרה שלו חסרה בתרשים והאפשרויות לבחור בה בכלי ההצמדה למדדים ובנתוני המדד ההיסטוריים מושבתות). כשנכשלת טעינה של מועד ההחלטה הבאה של בנק ישראל או של שערי החליפין היומיים, ההודעה מוצגת רק במקום שבו הם בשימוש</li>
             <li>במחשבון בדף הבית, בכלי ההצמדה, בכלי הנתונים ההיסטוריים, בכלי קודי הייצוא, בכלי הצמדת הסכם שכירות ובטווח השנים של התרשים, הודעת שגיאה על ערך שגוי (סכום, תאריך, חודש, טווח, בחירת סדרה או מטבע) מסמנת גם את השדה עצמו כלא תקין ומקושרת אליו, כך שקורא מסך שמגיע לשדה מקריא גם את הסיבה</li>
@@ -673,7 +674,7 @@
             <li>תצוגה ברוחב 320 פיקסלים (וגם ב־305 פיקסלים, חלון צר עם פס גלילה קלאסי) ללא גלילה אופקית של העמוד וללא רכיבים החופפים זה לזה, הגדלת טקסט ל־200% והגדלת ריווח הטקסט</li>
             <li>בדיקת גלישה בכל עמודי האתר, בעברית ובאנגלית, ברוחבי חלון בין 305 ל־1100 פיקסלים, בגודל טקסט רגיל ובטקסט מוגדל ל־200%: אין גלילה אופקית של העמוד (חריגות בשילוב עם ריווח טקסט מוגדל מפורטות במגבלות)</li>
             <li>גודל יעדי לחיצה, ניגודיות של טקסט ושל רכיבי ממשק, ומיקוד שאינו מוסתר מתחת לכותרת הדביקה</li>
-            <li>סריקה של הגרסה האנגלית לאיתור טקסט שנשאר בעברית</li>
+            <li>סריקה של הגרסה האנגלית לאיתור טקסט שנשאר בעברית, בעשרות מצבי ממשק (תוצאות, שגיאות, טבלאות ומדריכים), באפשרויות של הפקדים בכלים (ברשימות ארוכות, כמו שנים, נבדקו דגימות), כולל החלפת שפה והחזרה לעברית, ובקובצי הייצוא (גיליונות <span dir="ltr">XLSX</span> וגיליון ההדפסה) בשתי השפות</li>
             <li>בדיקת עץ הנגישות של <span dir="ltr">Chrome</span> לאיתור רכיבים ללא שם ורכיבים בעלי שם זהה באותו הקשר, וסריקת שמות הרכיבים בכל הנתיבים והמצבים (בשתי השפות, כולל תפריט השפה הפתוח ואישור ההעתקה) לאיתור סמלים שנכנסו לשם</li>
             <li>הדמיית מצב צבעים כפויים (<span dir="ltr">forced colors</span>) לאיתור רכיבים בלי מסגרת, עם צילומי מסך לאימות</li>
             <li>מעבר מקלדת אמיתי (<span dir="ltr">Tab</span>) על כל נתיבי האתר ברוחב 1100 ו־375 פיקסלים, לבדיקה שטבעת המיקוד אינה נחתכת בקצה אזור גלילה, וגם בטקסט מוגדל ל־200% לבדיקה שהמיקוד אינו מוסתר מתחת לכותרת הדביקה</li>
@@ -721,18 +722,19 @@
           <ul class="info-list">
             <li>an accessible alternative for the historical index chart — a text description with a data summary for each series in the selected range (the first and last values and the lowest and highest values, with their months), the index shown on each axis and the events marked, plus a link to an equivalent data table, together with keyboard exploration of the chart itself: arrows move to the previous or next month, Page Up/Page Down jump a year, and Home/End move to the ends of the range, with the month, series values and marked event announced</li>
             <li>a month slider under the chart that works with the keyboard and the mouse, stays in sync with the chart's selection and carries the same information as its value</li>
+            <li>the tooltip that appears when the mouse rests on the chart closes with the <span dir="ltr">Escape</span> key without moving the mouse</li>
             <li>checkboxes to show or hide each series, with the construction inputs series drawn as a dashed line so the two series do not depend on color alone</li>
           </ul>
           <h3>Tables and export files</h3>
           <ul class="info-list">
             <li>captions on the data tables on the home page and in the historical tools</li>
             <li>the historical data tables and the exchange-rate table scroll inside a box of limited height, with a header row that stays visible while scrolling</li>
-            <li>a print sheet, from which the <span dir="ltr">PDF</span> is saved, built as semantic <span dir="ltr">HTML</span> — headings, tables with a caption and marked-up column headers, and the document's language and direction</li>
+            <li>a print sheet, from which the <span dir="ltr">PDF</span> is saved, built as semantic <span dir="ltr">HTML</span> — headings, tables with a caption and marked-up column headers, and the document's language and direction, with the saved file's title in the page language</li>
             <li><span dir="ltr">XLSX</span> files that contain no merged cells and carry a title and language in their file properties, with the header row frozen and an AutoFilter on it in the historical index, interest-rate and exchange-rate exports</li>
           </ul>
           <h3>Forms, tools and messages</h3>
           <ul class="info-list">
-            <li>calculator results, copy confirmations and error messages announced to screen readers</li>
+            <li>calculator results, copy confirmations and error messages announced to screen readers, and a notice in the new language when the language is changed</li>
             <li>These choices are announced to screen readers, because they rewrite content elsewhere on the page: in the historical-data tools (index, interest rate and exchange rates) the table update and its row count, in the chart's year range the new range, in the export-code tool that the code was updated, and in the Excel import guide that the steps were updated</li>
             <li>When the consumer price index, the construction-inputs index, the Bank of Israel rate or the exchange-rate summary does not load, a notice above every page says which of them is missing and is announced, so someone who arrived directly at a tool or a guide knows too (when the construction-inputs index is missing, its series is left out of the chart and the options to choose it in the index-linkage tool and in the historical index data are disabled). When the next Bank of Israel decision date or the daily exchange rates fail to load, the message appears only where they are used</li>
             <li>In the home-page calculator, the indexation tools, the historical data tools, the export-code tool, the rental-agreement tool and the chart's year range, an error message about a wrong value (an amount, a date, a month, a range, or a choice of series or currency) also marks the field itself as invalid and is linked to it, so a screen reader that reaches the field reads the reason as well</li>
@@ -776,7 +778,7 @@
             <li>A 320-pixel-wide view (and 305 pixels, a narrow window with a classic scrollbar) with no horizontal page scroll and no overlapping components, text enlarged to 200% and increased text spacing</li>
             <li>An overflow check on every page of the site, in Hebrew and English, at window widths from 305 to 1100 pixels, at normal text size and at text enlarged to 200%: no horizontal page scroll (exceptions in combination with increased text spacing are listed under limitations)</li>
             <li>Click-target size, the contrast of text and of interface components, and focus that is not hidden under the sticky header</li>
-            <li>A scan of the English version for text left in Hebrew</li>
+            <li>A scan of the English version for text left in Hebrew, in dozens of interface states (results, errors, tables and guides), for the options of the controls in the tools (long lists such as years were sampled), including switching the language and back, and in the export files (<span dir="ltr">XLSX</span> workbooks and the print sheet) in both languages</li>
             <li>A check of <span dir="ltr">Chrome</span>'s accessibility tree for unnamed controls and controls sharing a name in the same context, and a scan of component names on every route and state (in both languages, including the open language menu and the copy confirmation) for symbols that have crept into a name</li>
             <li>A simulation of forced colors mode to find components with no border, with screenshots to confirm</li>
             <li>A real keyboard walk (<span dir="ltr">Tab</span>) across every route of the site at 1100 and 375 pixels wide, to check that the focus indicator is not cut off at the edge of a scroll area, and also at text enlarged to 200%, to check that focus is not hidden under the sticky header</li>

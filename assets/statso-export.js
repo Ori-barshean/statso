@@ -70,7 +70,8 @@
     // synchronously below, so translate the document before it goes out.
     if (Statso.i18n) { Statso.i18n.apply(container); }
     document.body.classList.add('is-printing');
-    document.title = title;
+    // the title becomes the saved PDF's title, which the body translation above does not reach
+    document.title = Statso.i18n && Statso.i18n.t ? Statso.i18n.t(title) : title;
     let restored = false;
     function restore() {
       if (restored) { return; }

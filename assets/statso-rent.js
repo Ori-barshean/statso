@@ -475,14 +475,14 @@
 
     const blocks = ['<h2>פרטי ההסכם</h2>' + Statso.exporter.tableHtml(['פריט', 'ערך'], contractRows(), 'פרטי ההסכם')];
     selection.forEach(function (period) {
-      blocks.push('<h2>' + Statso.xlsx.escapeXml(period.label) + ' · '
+      blocks.push('<h2>' + Statso.xlsx.escapeXml(say(period.label)) + ' · '
         + Statso.core.formatMonthHe(period.start) + '–' + Statso.core.formatMonthHe(period.end) + '</h2>'
         + Statso.exporter.tableHtml(HEAD, matrix(period.rows), say(period.label) + ' · ' + Statso.core.formatMonthHe(period.start) + '–' + Statso.core.formatMonthHe(period.end)));
     });
     blocks.push('<p class="print-total">סך ההפרשים לתשלום: <strong dir="ltr">'
       + Statso.core.formatNumber(grand.payable, 2) + ' ₪</strong></p>');
-    blocks.push('<p class="print-note">החישוב מבוסס על מדד המחירים לצרכן שמפרסמת הלשכה המרכזית לסטטיסטיקה. '
-      + 'לכל חודש שכירות שימש המדד הידוע לאותו חודש, ביחס למדד הבסיס שנקבע בהסכם.</p>');
+    blocks.push('<p class="print-note">' + say('החישוב מבוסס על מדד המחירים לצרכן שמפרסמת הלשכה המרכזית לסטטיסטיקה.') + ' '
+      + say('לכל חודש שכירות שימש המדד הידוע לאותו חודש, ביחס למדד הבסיס שנקבע בהסכם.') + '</p>');
     Statso.exporter.printDocument('הפרשי הצמדה — הסכם שכירות',
       Statso.exporter.documentHtml('הצמדת הסכם שכירות למדד', subtitle, blocks));
   }

@@ -432,5 +432,143 @@ process.stdout.write(JSON.stringify(spoken));
         self.assertRegex(HTML, r'<div class="kpi-card accent-orange" id="brand-kpi" aria-hidden="true">')
 
 
+class StatusAndTooltipTests(unittest.TestCase):
+    def test_escape_dismisses_a_hover_tooltip_unless_the_canvas_already_used_it_for_a_selection(self):
+        seen = node(r"""
+global.window = {Statso: {i18n: {onChange() {}, t: text => text}}}; global.document = {addEventListener() {}};
+""" + module("statso-core.js") + module("statso-chart.js") + r"""
+const calls = [];
+const chart = (active) => ({tooltip: {getActiveElements: () => active, setActiveElements: (a) => calls.push(['tooltip', a.length])},
+  setActiveElements: (a) => calls.push(['chart', a.length]), update: mode => calls.push(['update', mode])});
+const dismiss = window.Statso.chart.dismissHoverTooltip;
+const out = {};
+out.hovered = dismiss(chart([{}]), {key: 'Escape', defaultPrevented: false}); out.hoveredCalls = calls.splice(0);
+out.noTooltip = dismiss(chart([]), {key: 'Escape', defaultPrevented: false}); out.noTooltipCalls = calls.splice(0);
+out.otherKey = dismiss(chart([{}]), {key: 'ArrowRight', defaultPrevented: false});
+out.handledByTheCanvas = dismiss(chart([{}]), {key: 'Escape', defaultPrevented: true});   // Escape that cleared a keyboard selection
+out.noChart = dismiss(null, {key: 'Escape', defaultPrevented: false});
+process.stdout.write(JSON.stringify(out));
+""")
+        self.assertTrue(seen["hovered"])
+        self.assertEqual(seen["hoveredCalls"], [["chart", 0], ["tooltip", 0], ["update", "none"]])
+        self.assertFalse(seen["noTooltip"])
+        self.assertEqual(seen["noTooltipCalls"], [])
+        self.assertFalse(seen["otherKey"])
+        self.assertFalse(seen["handledByTheCanvas"])
+        self.assertFalse(seen["noChart"])
+
+    def test_the_escape_listener_is_registered_when_the_chart_starts(self):
+        chart = (ROOT / "assets/statso-chart.js").read_text(encoding="utf-8")
+        start = chart[chart.index("function start() {"):]
+        self.assertIn("document.addEventListener('keydown', onEscapeDismissesTooltip)", start[:400])
+
+    def test_choosing_a_language_says_so_in_that_language_and_picking_the_same_one_does_not(self):
+        seen = node(r"""
+global.window = {setTimeout: fn => 1, clearTimeout() {}, location: {search: '', href: 'http://x/'}, history: {replaceState() {}}};
+const live = {textContent: ''}; const handlers = {};
+const choices = ['he', 'en'].map(code => ({getAttribute: n => n === 'data-lang-choice' ? code : null, setAttribute() {}, removeAttribute() {},
+  addEventListener(type, fn) { handlers[code] = fn; }}));
+const menu = {hidden: true, querySelectorAll: () => choices};
+const button = {addEventListener() {}, setAttribute() {}, focus() {}};
+const html = {setAttribute() {}};
+const body = {nodeType: 1, tagName: 'BODY', hasAttribute: () => false, firstChild: null, querySelectorAll: () => []};
+global.document = {documentElement: html, body, addEventListener() {}, createTextNode: () => ({}),
+  getElementById: id => id === 'result-live' ? live : id === 'lang-toggle' ? button : id === 'lang-menu' ? menu : id === 'lang-picker' ? {contains: () => false} : null,
+  querySelector: () => null, querySelectorAll: selector => selector === '.lang-choice' ? choices : []};
+""" + module("statso-i18n.js") + r"""
+window.Statso.i18n.init();
+const log = [];
+log.push(live.textContent);   // loading the page announces nothing
+handlers.en(); log.push(live.textContent); live.textContent = '';
+handlers.en(); log.push(live.textContent);   // already English: nothing to say
+handlers.he(); log.push(live.textContent);
+process.stdout.write(JSON.stringify(log));
+""")
+        self.assertEqual(seen, ["", "Language changed to English", "", "השפה שונתה לעברית"])
+
+
+class PrintSheetTests(unittest.TestCase):
+    def test_the_saved_pdf_gets_the_title_in_the_page_language(self):
+        seen = node(r"""
+global.window = {print() { seen.title = document.title; }, addEventListener() {}, removeEventListener() {}};
+const seen = {};
+const container = {innerHTML: '', setAttribute() {}};
+global.document = {title: 'page', getElementById: () => container, body: {classList: {add() {}, remove() {}}}};
+""" + module("statso-export.js") + r"""
+window.Statso.i18n = {current: () => 'en', t: text => text === 'הפרשי הצמדה — הסכם שכירות' ? 'Linkage differences — rental agreement' : text, apply() {}};
+window.Statso.exporter.printDocument('הפרשי הצמדה — הסכם שכירות', '<p>x</p>');
+const english = seen.title; const restored = document.title;
+window.Statso.i18n = {current: () => 'he', t: text => text, apply() {}};
+window.Statso.exporter.printDocument('הפרשי הצמדה — הסכם שכירות', '<p>x</p>');
+process.stdout.write(JSON.stringify({english, restored, hebrew: seen.title}));
+""")
+        self.assertEqual(seen, {"english": "Linkage differences — rental agreement", "restored": "page",
+                                "hebrew": "הפרשי הצמדה — הסכם שכירות"})
+
+    def test_the_rent_print_sheet_translates_its_period_headings_and_note(self):
+        rent = (ROOT / "assets/statso-rent.js").read_text(encoding="utf-8")
+        self.assertIn("Statso.xlsx.escapeXml(say(period.label))", rent)
+        note = rent[rent.index("print-note"):rent.index("print-note") + 400]
+        self.assertEqual(note.count("say('"), 2)
+
+    def test_every_title_passed_to_the_print_sheet_has_an_english_entry(self):
+        keys = dictionary_keys()
+        for path in ASSETS:
+            source = path.read_text(encoding="utf-8")
+            for match in re.finditer(r"printDocument\('([^']+)'", source):
+                self.assertIn(match.group(1), keys, path.name + " prints a Hebrew title with no English entry")
+
+
+class RuntimeSentenceTranslationTests(unittest.TestCase):
+    """Sentences that scripts build at run time reach the English page only if a dictionary entry or a pattern matches the
+    whole built sentence; a fragment that exists in the dictionary is not enough."""
+
+    SETUP = r"""
+global.window = {}; global.document = {addEventListener() {}};
+const translate = text => { const t = text.trim(); const S = window.Statso; if (S.lang.en[t] !== undefined) { return S.lang.en[t]; }
+  for (const rule of S.lang.enPatterns) { if (rule[0].test(t)) { return t.replace(rule[0], rule[1]); } } return null; };
+"""
+
+    def test_every_step_of_the_excel_guide_translates_in_every_platform_and_method(self):
+        missing = node(self.SETUP + module("statso-core.js") + module("statso-guide-art.js") + module("statso-guides.js")
+                       + module("statso-lang-en.js") + r"""
+const missing = []; let checked = 0;
+for (const platform of ['win', 'mac']) for (const method of ['power', 'manual', 'webservice']) {
+  for (const step of window.Statso.guides.getSteps(platform, method)) {
+    for (const key of ['text', 'textAfterLink']) {
+      if (!step[key]) { continue; }
+      checked += 1;
+      const english = translate(step[key]);
+      if (english === null || /[\u0590-\u05ff]/.test(english)) { missing.push(platform + '/' + method + ': ' + step[key]); }
+    }
+  }
+}
+process.stdout.write(JSON.stringify({missing, checked}));
+""")
+        self.assertEqual(missing["missing"], [])
+        self.assertGreaterEqual(missing["checked"], 20)
+
+    def test_every_hebrew_literal_handed_to_a_translate_helper_has_an_english_entry(self):
+        literals = []
+        for path in ASSETS:
+            if path.name == "statso-lang-en.js":
+                continue
+            source = path.read_text(encoding="utf-8")
+            for match in re.finditer(r"(?<![\w.])(?:say|t|Statso\.i18n\.t|root\.Statso\.i18n\.t)\(\s*'((?:[^'\\]|\\.)*)'\s*\)", source):
+                text = match.group(1).replace("\\'", "'")
+                if re.search("[\u0590-\u05ff]", text):
+                    literals.append(text)
+        self.assertGreater(len(literals), 30)
+        missing = node(self.SETUP + module("statso-lang-en.js") + "const literals = " + json.dumps(literals) + r""";
+process.stdout.write(JSON.stringify(literals.filter(text => translate(text) === null)));""")
+        self.assertEqual(missing, [])
+
+    def test_the_conversion_detail_translates_with_and_without_a_publication_date(self):
+        seen = node(self.SETUP + module("statso-lang-en.js") + r"""
+process.stdout.write(JSON.stringify(['שער 1.00', 'שער 3.2750 · לפי השער שפורסם ל־09/10/2026'].map(translate)));
+""")
+        self.assertEqual(seen, ["Rate 1.00", "Rate 3.2750 \u00b7 using the rate published for 09/10/2026"])
+
+
 if __name__ == "__main__":
     unittest.main()

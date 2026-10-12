@@ -1246,6 +1246,12 @@ process.stdout.write(JSON.stringify({before, after, fallback: target.textContent
         for text in ('These choices are announced to screen readers, because they rewrite content elsewhere on the page', 'the table update and its row count',
                      'shows a mixed state when only some of the months are marked', 'and the logo card among the data cards'):
             self.assertIn(text, en)
+        for text in ('וכותרת הקובץ שנשמר היא בשפת הדף', 'נסגר במקש <span dir="ltr">Escape</span> בלי להזיז את העכבר',
+                     'הודעה בשפה החדשה כשמחליפים שפה', 'ברשימות ארוכות, כמו שנים, נבדקו דגימות'):
+            self.assertIn(text, he)
+        for text in ("with the saved file's title in the page language", 'closes with the <span dir="ltr">Escape</span> key without moving the mouse',
+                     'a notice in the new language when the language is changed', 'long lists such as years were sampled'):
+            self.assertIn(text, en)
         # the old claim that loading failures are announced was true only on the home page; it is no longer worded that way
         self.assertNotIn('(כולל כשטעינת נתונים נכשלת)', he)
         self.assertNotIn('(including when data fails to load)', en)

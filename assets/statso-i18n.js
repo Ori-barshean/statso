@@ -140,6 +140,17 @@
     apply(document.body);
   }
 
+  // Choosing a language rewrites the whole page where a screen reader user cannot see it happen, so say it, in the
+  // language that was just chosen (English text is left alone by the engine; the Hebrew sentence is never translated away).
+  let languageNotice = null;
+  function announceLanguage() {
+    const live = document.getElementById('result-live');
+    if (!live) { return; }
+    live.textContent = lang === 'he' ? 'השפה שונתה לעברית' : 'Language changed to English';
+    root.clearTimeout(languageNotice);
+    languageNotice = root.setTimeout(function () { live.textContent = ''; }, 4000);
+  }
+
   function set(next) {
     if (next !== 'he' && next !== 'en') { return; }
     if (next === lang) { return; }
@@ -174,7 +185,9 @@
       });
       menu.querySelectorAll('.lang-choice').forEach(function (choice) {
         choice.addEventListener('click', function () {
+          const before = lang;
           set(choice.getAttribute('data-lang-choice'));
+          if (lang !== before) { announceLanguage(); }
           closeMenu();
           button.focus();
         });
