@@ -1161,7 +1161,7 @@ process.stdout.write(JSON.stringify({before, after, fallback: target.textContent
             self.assertIn('NVDA/JAWS', block)
         # the testing limits are stated plainly: no real screen reader, one browser, no user testing
         self.assertIn('לא כללו קורא מסך', he)
-        self.assertIn('VoiceOver</span>, <span dir="ltr">NVDA</span>', he)
+        self.assertIn('VoiceOver</span>, <span lang="en" dir="ltr">NVDA</span>', he)
         self.assertIn('ואינן ביקורת נגישות מקצועית', he)
         self.assertIn('did not include a screen reader', en)
         self.assertIn('VoiceOver</span>, <span dir="ltr">NVDA</span>', en)
@@ -1176,7 +1176,7 @@ process.stdout.write(JSON.stringify({before, after, fallback: target.textContent
         # touch use was never tried on a real device, so the slider claim stops at keyboard and mouse
         self.assertIn('שפועל במקלדת ובעכבר', he)
         self.assertIn('works with the keyboard and the mouse', en)
-        self.assertIn('כללי הנגישות מתועדים בקובץ <span dir="ltr">README</span>', he)
+        self.assertIn('כללי הנגישות מתועדים בקובץ <span lang="en" dir="ltr">README</span>', he)
         self.assertIn('accessibility rules are documented in the project\'s <span dir="ltr">README</span>', en)
         self.assertIn('נבדקו גם קובצי הייצוא', he)
         self.assertIn('The export files were checked too', en)
@@ -1246,7 +1246,7 @@ process.stdout.write(JSON.stringify({before, after, fallback: target.textContent
         for text in ('These choices are announced to screen readers, because they rewrite content elsewhere on the page', 'the table update and its row count',
                      'shows a mixed state when only some of the months are marked', 'and the logo card among the data cards'):
             self.assertIn(text, en)
-        for text in ('וכותרת הקובץ שנשמר היא בשפת הדף', 'נסגר במקש <span dir="ltr">Escape</span> בלי להזיז את העכבר',
+        for text in ('וכותרת הקובץ שנשמר היא בשפת הדף', 'נסגר במקש <span lang="en" dir="ltr">Escape</span> בלי להזיז את העכבר',
                      'הודעה בשפה החדשה כשמחליפים שפה', 'ברשימות ארוכות, כמו שנים, נבדקו דגימות'):
             self.assertIn(text, he)
         for text in ("with the saved file's title in the page language", 'closes with the <span dir="ltr">Escape</span> key without moving the mouse',
@@ -1263,8 +1263,8 @@ process.stdout.write(JSON.stringify({before, after, fallback: target.textContent
         self.assertIn('וללא רכיבים החופפים זה לזה', he)
         self.assertIn('no overlapping components', en)
         for text in ('מחוון לבחירת חודש', 'סיכום נתונים', 'שורת כותרות שנשארת גלויה', 'מסנן אוטומטי', 'ללא תאים ממוזגים',
-                     'כיתוב (<span dir="ltr">caption</span>)', 'כל האתר דורש <span dir="ltr">JavaScript</span>',
-                     'ולא אומת', 'בודק הנגישות של <span dir="ltr">Excel</span> לא הורץ'):
+                     'כיתוב (<span lang="en" dir="ltr">caption</span>)', 'כל האתר דורש <span lang="en" dir="ltr">JavaScript</span>',
+                     'ולא אומת', 'בודק הנגישות של <span lang="en" dir="ltr">Excel</span> לא הורץ'):
             self.assertIn(text, he)
         for text in ('month slider', 'data summary', 'header row that stays visible', 'AutoFilter', 'no merged cells',
                      'tables with a caption', 'whole site requires <span dir="ltr">JavaScript</span>',

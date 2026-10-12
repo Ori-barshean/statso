@@ -128,7 +128,9 @@
     const trigger = document.getElementById('tools-trigger');
     const group = trigger && trigger.closest('.nav-group');
     if (!trigger || !group) { return; }
+    let refocusing = false;
     function open() {
+      if (refocusing) { return; }
       group.removeAttribute('data-closed');
       group.setAttribute('data-open', 'true');
       trigger.setAttribute('aria-expanded', 'true');
@@ -151,14 +153,20 @@
     // link on click), so a listener scoped to the group could miss Escape
     // entirely there.
     document.addEventListener('keydown', function (event) {
-      if (event.key === 'Escape' && group.getAttribute('data-open') === 'true') {
+      if (event.key !== 'Escape') { return; }
+      if (group.getAttribute('data-open') === 'true') {
         close();
         // :focus-within would otherwise reopen it the instant focus lands
         // back on the trigger; data-closed forces it shut until the user
         // does something that means they want it back — focus leaving the
         // group, or a fresh mouse-hover attempt.
         group.setAttribute('data-closed', 'true');
-        trigger.focus();
+        refocusing = true;
+        try { trigger.focus(); } finally { refocusing = false; }
+      } else if (group.matches(':hover')) {
+        // Opened by the pointer alone (CSS :hover): nothing to un-set and focus never went there, so only force it
+        // shut (WCAG 1.4.13). The mouseenter listener clears this on the next fresh hover; focus opens it too.
+        group.setAttribute('data-closed', 'true');
       }
     });
     group.addEventListener('focusout', function (event) {

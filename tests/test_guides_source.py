@@ -98,9 +98,11 @@ process.stdout.write(JSON.stringify(out));
         def figures(step):
             return re.findall(r"<figure>.*?</figure>", step, re.S)
 
+        plain = lambda s: re.sub(r'<span lang="en" dir="ltr">([^<]*)</span>', r'\1', s)
         mac = steps("he/mac")
         self.assertEqual(len(mac), 6)
-        self.assertIn(new_text, mac[0])
+        self.assertIn(new_text, plain(mac[0]))
+        self.assertIn('ללשונית <span lang="en" dir="ltr">Data</span> / ״נתונים״', mac[0])
         pair = figures(mac[0])
         self.assertEqual(len(pair), 1)
         shot = pair[0]
@@ -123,6 +125,12 @@ process.stdout.write(JSON.stringify(out));
                          'מוחקים את כל מה שכתוב שם, מדביקים במקומו קוד מתוך '
                          '<a class="guide-pill" href="#/mcode">קודים לייצוא (Power Query)</a>'
                          ', ולוחצים אישור/הבא.</p>')
+            if page == 'he/mac':
+                paragraph = ('<p>בעורך <span lang="en" dir="ltr">Power Query</span> לוחצים על ״עורך מתקדם״ '
+                             '<span lang="en" dir="ltr">(Advanced Editor)</span>, '
+                             'מוחקים את כל מה שכתוב שם, מדביקים במקומו קוד מתוך '
+                             '<a class="guide-pill" href="#/mcode">קודים לייצוא '
+                             '<span lang="en" dir="ltr">(Power Query)</span></a>, ולוחצים אישור/הבא.</p>')
             example = '<p>הקוד שלהלן הוא דוגמה מוכנה לריבית בנק ישראל לטווח 2022-12-01 עד 2025-12-31.</p>'
             self.assertIn(paragraph + example + '<div class="code-block"><button class="copy-url guide-copy-pill" '
                           'type="button">העתקת הקוד</button><pre dir="ltr" role="region" tabindex="0" aria-label="קוד לדוגמה" data-i18n-skip><code lang="en">', third)
@@ -141,7 +149,7 @@ process.stdout.write(JSON.stringify(out));
         self.assertNotIn('<aside', out['he/mac'])
         self.assertIn('הקוד שלהלן הוא דוגמה מוכנה לריבית בנק ישראל לטווח 2022-12-01 עד 2025-12-31.', mac[2])
         for text in ('כל סדרה, טווח תאריכים והשוואה שהאתר מציע', 'להוסיף שורת ממוצע', 'קוד M מוכן להעתקה'):
-            self.assertIn(text, mac[2])
+            self.assertIn(text, plain(mac[2]))
         for name in ('Power Query', 'Choose data source', 'Blank Query', 'Advanced Editor',
                      'Configure connection', 'Anonymous', 'Close & Load', 'Refresh All'):
             self.assertIn('(' + name + ')', out['he/mac'])
@@ -170,7 +178,7 @@ process.stdout.write(JSON.stringify(out));
         # which shows two sequential real photos (the banner, then Anonymous/Connect).
         win = steps("he/win")
         self.assertEqual(len(win), 7)
-        self.assertIn(win_text, win[0])
+        self.assertIn(win_text, plain(win[0]))
         for index in (0, 1, 2, 5, 6):
             figs = figures(win[index])
             self.assertEqual(len(figs), 1)

@@ -36,6 +36,7 @@ SITE_TESTS = (
     "test_a11y_round4_source.py",    # index.html/CSS/assets + node
     "test_a11y_round5_source.py",    # index.html/CSS/assets + node
     "test_a11y_round8_source.py",    # script guard, 404, statement guard; uses build_offline
+    "test_a11y_round9_source.py",    # nav Escape on hover, language of parts (markup + guides via node)
     "test_a11y_source.py",           # main accessibility source checks + node
     "test_build_offline.py",         # offline single-file build (embeds data/*.json, index.html)
     "test_guides_source.py",         # guides markup/JS + node

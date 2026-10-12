@@ -187,13 +187,23 @@
     const site = Statso.i18n ? Statso.i18n.current() : 'he';
     return !!(step.shots && step.shots[site]);
   }
-  function mcodeLink() { return '<a class="guide-pill" href="#/mcode">קודים לייצוא (Power Query)</a>'; }
+  // English labels inside a Hebrew step carry their own language (WCAG 3.1.2). Only the Hebrew page gets the spans:
+  // the engine translates a whole text node by dictionary match, so the English page keeps each sentence one node.
+  const LATIN_RUN = /\([A-Za-z0-9][A-Za-z0-9 &+.\/-]*(?:\([A-Za-z0-9][A-Za-z0-9 &+.\/-]*\))?\)|\.?[A-Za-z][A-Za-z0-9]*(?:(?: ?[&+.\/\u2190-] ?| )[A-Za-z0-9]+)*/g;
+  function markEnglish(text) {
+    return String(text).replace(LATIN_RUN, function (run) { return '<span lang="en" dir="ltr">' + run + '</span>'; });
+  }
+  function stepProse(text) {
+    const site = Statso.i18n ? Statso.i18n.current() : 'he';
+    return site === 'he' ? markEnglish(text) : text;
+  }
+  function mcodeLink() { return '<a class="guide-pill" href="#/mcode">' + stepProse('קודים לייצוא (Power Query)') + '</a>'; }
   function mcodeExample() {
     return '<p>' + 'הקוד שלהלן הוא דוגמה מוכנה לריבית בנק ישראל לטווח 2022-12-01 עד 2025-12-31.' + '</p>';
   }
   function mcodeCta() {
     const explanation = 'בעמוד ״קודים לייצוא (Power Query)״ אפשר לבחור כל סדרה, טווח תאריכים והשוואה שהאתר מציע, להוסיף שורת ממוצע לפי הצורך ולקבל קוד M מוכן להעתקה למקרה שלכם.';
-    return '<div class="guide-mcode-cta"><p>' + explanation + '</p></div>';
+    return '<div class="guide-mcode-cta"><p>' + stepProse(explanation) + '</p></div>';
   }
 
   function renderSteps() {
@@ -212,7 +222,7 @@
     const artClass = realShotGuide() ? 'step-art step-art-single' : 'step-art';
     target.innerHTML = '<ol class="guide-steps">' + steps.map(function (step, index) {
       const number = index + 1;
-      return '<li><div class="step-copy"><h2>שלב ' + number + '</h2><p>' + step.text + (step.mcodeLink ? ' ' + mcodeLink() + step.textAfterLink : '') + '</p>' + (step.formula ? '<p><code dir="ltr">=WEBSERVICE(&quot;&lt;JSON URL&gt;&quot;)</code></p>' : '') + (step.url ? urlBlock(step.url) : '') + (step.code ? (step.mcodeCta ? mcodeExample() : '') + codeBlock(step.code) + (step.mcodeCta ? mcodeCta() : '') : '') + '</div>' + (stepHasArt(step) ? '<div class="' + artClass + '">' + artSlots(step, number) + '</div>' : '') + '</li>';
+      return '<li><div class="step-copy"><h2>שלב ' + number + '</h2><p>' + stepProse(step.text) + (step.mcodeLink ? ' ' + mcodeLink() + stepProse(step.textAfterLink) : '') + '</p>' + (step.formula ? '<p><code dir="ltr">=WEBSERVICE(&quot;&lt;JSON URL&gt;&quot;)</code></p>' : '') + (step.url ? urlBlock(step.url) : '') + (step.code ? (step.mcodeCta ? mcodeExample() : '') + codeBlock(step.code) + (step.mcodeCta ? mcodeCta() : '') : '') + '</div>' + (stepHasArt(step) ? '<div class="' + artClass + '">' + artSlots(step, number) + '</div>' : '') + '</li>';
     }).join('') + '</ol>';
     attachCopyButtons();
   }
