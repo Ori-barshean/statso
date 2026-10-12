@@ -2,7 +2,7 @@
    Disabled until GOATCOUNTER_CODE is set; never runs from file:// or localhost. */
 (function () {
   'use strict';
-  var GOATCOUNTER_CODE = '';
+  var GOATCOUNTER_CODE = 'statso';
   var host = location.hostname;
   if (!GOATCOUNTER_CODE || !/^https?:$/.test(location.protocol)) return;
   if (host === 'localhost' || host === '127.0.0.1' || host === '[::1]') return;
