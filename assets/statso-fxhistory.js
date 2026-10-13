@@ -192,6 +192,15 @@
     });
   }
 
+  // Both buttons set every box and then recompute once: assigning .checked fires no 'change', so the boxes' own
+  // listeners stay quiet. A click fires no 'change' either, and that is what statso-nav.js listens to before it says
+  // the table was updated, so the button sends one bubbling 'change' itself, after the table is built.
+  function setAllCurrencies(checked, button) {
+    document.querySelectorAll('#fxh-currencies input').forEach(function (box) { box.checked = checked; });
+    ensureData(); build();
+    button.dispatchEvent(new Event('change', {bubbles: true}));
+  }
+
   function init(fxSummary) {
     summary = fxSummary;
     const rates = summary.rates || [];
@@ -210,6 +219,8 @@
     document.querySelectorAll('#fxh-currencies input').forEach(function (box) {
       box.addEventListener('change', function () { ensureData(); build(); });
     });
+    on('fxh-select-all', 'click', function () { setAllCurrencies(true, el('fxh-select-all')); });
+    on('fxh-clear-all', 'click', function () { setAllCurrencies(false, el('fxh-clear-all')); });
     ['fxh-from', 'fxh-to', 'fxh-resolution'].forEach(function (id) {
       on(id, 'change', function () { ensureData(); build(); });
     });

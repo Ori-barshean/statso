@@ -237,6 +237,8 @@
     'ממוצע לתקופה': 'Period average',
     'ממוצע לתקופה ·': 'Period average ·',
     'יש לבחור מטבע אחד לפחות.': 'Choose at least one currency.',
+    'בחירת כל המטבעות': 'Select all currencies',
+    'ניקוי כל המטבעות': 'Clear all currencies',
     'יש לבחור טווח תאריכים.': 'Choose a date range.',
     'תאריך ההתחלה חייב להיות מוקדם מתאריך הסיום.': 'The start date must come before the end date.',
     'אין שערים שפורסמו בטווח שנבחר.': 'No rates were published in the selected range.',
