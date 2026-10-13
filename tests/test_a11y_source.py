@@ -382,7 +382,8 @@ process.stdout.write(JSON.stringify(seen));
 
     def test_form_field_border_clears_non_text_contrast(self):
         border = re.search(r'--field-border:\s*(#[0-9a-fA-F]{6});', self.css).group(1)
-        for background in ('#ffffff', '#f5f8fc'):
+        wash = re.search(r'--wash:\s*(#[0-9a-fA-F]{6});', self.css).group(1)
+        for background in ('#ffffff', wash):
             self.assertGreaterEqual(self._contrast(border, background), 3.0, f"{border} on {background}")
         rule = re.search(r'\ninput, select, textarea \{([^}]*)\}', self.css).group(1)
         self.assertIn('var(--field-border)', rule)
@@ -396,8 +397,16 @@ process.stdout.write(JSON.stringify(seen));
             self.assertRegex(selector, r'(^|, )' + tag + r'(,|$)')
         self.assertIn('[tabindex]:not([tabindex="-1"])', selector)
         self.assertRegex(body, r'outline:\s*3px solid')
-        self.assertGreaterEqual(self._contrast('#1d4ed8', '#ffffff'), 3.0)
-        self.assertGreaterEqual(self._contrast('#1d4ed8', '#f5f8fc'), 3.0)
+        ring = re.search(r'outline:\s*3px solid\s+([^;]+);', body).group(1).strip()
+        variable = re.fullmatch(r'var\((--[\w-]+)\)', ring)
+        if variable:
+            ring = re.search(re.escape(variable.group(1)) + r':\s*(#[0-9a-fA-F]{6});', self.css).group(1)
+        self.assertNotEqual(ring.lower(), '#1d4ed8')
+        backgrounds = ['#ffffff'] + [
+            re.search(re.escape(token) + r':\s*(#[0-9a-fA-F]{6});', self.css).group(1)
+            for token in ('--wash', '--blue-tint')]
+        for background in backgrounds:
+            self.assertGreaterEqual(self._contrast(ring, background), 3.0, f"{ring} on {background}")
 
     def test_standalone_links_meet_the_minimum_target_size(self):
         for selector in (r'\.footer-links a', r'\.tool-back'):
@@ -776,7 +785,7 @@ process.stdout.write(JSON.stringify(seen));
         for declaration in ('max-height: min(70vh, 640px)', 'overflow: auto', 'scroll-padding-top: 3rem'):
             self.assertIn(declaration, wrap)
         header = re.search(r'^\.table-wrap\[role="region"\] thead th \{([^}]+)\}', self.css, re.M).group(1)
-        for declaration in ('position: sticky', 'top: 0', 'background: #eef3f9', 'z-index: 1'):
+        for declaration in ('position: sticky', 'top: 0', 'background: var(--wash)', 'z-index: 1'):
             self.assertIn(declaration, header)
         global_header = re.search(r'^th \{([^}]+)\}', self.css, re.M).group(1)
         self.assertNotIn('sticky', global_header)
@@ -1318,8 +1327,8 @@ process.stdout.write(JSON.stringify(escapeHtml('<a "x" \\'y\\' & b>')));
     # axe-core found that --muted text, when the layout direction flips to ltr
     # (switching to English, or forcing dir="ltr"), drops to a 4.46:1 contrast
     # ratio against the page's --wash background — just under the 4.5:1 AA
-    # minimum for normal text. #5f6b80 clears 4.5:1 against both --wash (#f5f8fc)
-    # and white with real margin, in either direction, so the fix doesn't depend
+    # minimum for normal text. #6e6e73 is 5.07:1 on white and 4.66:1 on
+    # --wash (#f5f5f7), in either direction, so the fix doesn't depend
     # on understanding exactly why the ratio moves with direction.
 
     def test_muted_text_color_clears_aa_contrast_with_margin(self):
@@ -1338,7 +1347,8 @@ process.stdout.write(JSON.stringify(escapeHtml('<a "x" \\'y\\' & b>')));
             lighter, darker = max(l1, l2), min(l1, l2)
             return (lighter + 0.05) / (darker + 0.05)
 
-        for background in ('#f5f8fc', '#ffffff'):
+        wash = re.search(r'--wash:\s*(#[0-9a-fA-F]{6});', self.css).group(1)
+        for background in (wash, '#ffffff'):
             self.assertGreaterEqual(ratio(muted, background), 4.5,
                                      f"{muted} on {background} must clear WCAG AA (4.5:1) for normal text")
 

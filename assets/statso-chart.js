@@ -328,7 +328,7 @@
   function buildConfig(cpiRows, constructionRows) {
     const hasConstruction = !!(constructionRows && constructionRows.length);
     const constructionByMonth = new Map((constructionRows || []).map(function (r) { return [r.month, r.chained_1950_07]; }));
-    const datasets = [{label: Statso.i18n.t('מדד המחירים לצרכן'), data: cpiRows.map(function (r) { return r.chained_1951_09; }), borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,.1)', borderWidth: 2, pointRadius: 0, tension: 0, fill: true, yAxisID: 'y', hidden: !seriesVisible[0]}];
+    const datasets = [{label: Statso.i18n.t('מדד המחירים לצרכן'), data: cpiRows.map(function (r) { return r.chained_1951_09; }), borderColor: '#0071e3', backgroundColor: 'rgba(0,113,227,.1)', borderWidth: 2, pointRadius: 0, tension: 0, fill: true, yAxisID: 'y', hidden: !seriesVisible[0]}];
     if (hasConstruction) {
       datasets.push({label: Statso.i18n.t('מדד תשומות הבנייה למגורים'), data: cpiRows.map(function (r) { return constructionByMonth.has(r.month) ? constructionByMonth.get(r.month) : null; }), borderColor: '#16a34a', borderDash: [7, 4], backgroundColor: 'rgba(22,163,74,.1)', borderWidth: 2, pointRadius: 0, tension: 0, fill: false, spanGaps: false, yAxisID: 'y1', hidden: !seriesVisible[1]});
     }

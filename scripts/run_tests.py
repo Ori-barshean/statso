@@ -39,6 +39,8 @@ SITE_TESTS = (
     "test_a11y_round9_source.py",    # nav Escape on hover, language of parts (markup + guides via node)
     "test_a11y_source.py",           # main accessibility source checks + node
     "test_build_offline.py",         # offline single-file build (embeds data/*.json, index.html)
+    "test_design_apple_source.py",    # hover gating, 16px touch text fields, backdrop-filter twins, theme-color, home h1
+    "test_design_foundations_source.py",  # palette, link-for-text rule, contrast pairs, radius/shadow tokens, Hebrew tracking, footer, nav bar
     "test_guides_source.py",         # guides markup/JS + node
     "test_i18n.py",                  # every Hebrew string in index.html has an English entry
     "test_mcode_source.py",          # Power Query generator via node; also reads data/boi_interest_rate.csv
