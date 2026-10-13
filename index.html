@@ -674,6 +674,7 @@
             <li>יעדי לחיצה בגובה של 24 פיקסלים לפחות</li>
             <li>במסכים צרים (עד 900 פיקסלים) כלי החישוב מוצגים בעמודה אחת, כך שהטופס והתוצאה אינם מכסים זה את זה</li>
             <li>בהגדלת הטקסט ל־200% הכותרת העליונה (כולל כפתור בחירת השפה), הניווט וכרטיסי הנתונים בדף הבית עוברים לשורה נוספת במקום לצאת מהמסך, ומילה ארוכה בכותרת נשברת במקום להרחיב את העמוד</li>
+            <li>כשהכותרת העליונה גבוהה מרבע מגובה החלון (למשל בטקסט מוגדל ל־200% בחלון צר), היא אינה נשארת דביקה בראש המסך אלא נגללת עם העמוד, כך שאינה מכסה חלק גדול מהתוכן</li>
             <li>כיבוד הגדרת "הפחתת תנועה" (<span lang="en" dir="ltr">prefers-reduced-motion</span>) של המשתמש, כולל ביטול אנימציית הציור של התרשים.</li>
           </ul>
         </section>
@@ -684,8 +685,6 @@
             <li>בקוראי מסך במצב גלישה (<span lang="en" dir="ltr">NVDA/JAWS</span>) ייתכן שיידרש מעבר למצב מיקוד כדי שמקשי החצים יגיעו לתרשים עצמו, ומחוון החודשים — רכיב טופס רגיל — מציע דרך נוספת לעבור בין החודשים</li>
             <li>בודק הנגישות של <span lang="en" dir="ltr">Excel</span> לא הורץ על קובצי ה־<span lang="en" dir="ltr">XLSX</span></li>
             <li>כל האתר דורש <span lang="en" dir="ltr">JavaScript</span> — טעינת הנתונים, המעבר בין העמודים ובחירת השפה — ובלי <span lang="en" dir="ltr">JavaScript</span> מוצגת הודעה על כך בעברית ובאנגלית.</li>
-            <li>בחלון צר (עד 375 פיקסלים) ובטקסט מוגדל ל־200% הכותרת הדביקה גבוהה (כ־280 פיקסלים) ומכסה חלק ניכר מהמסך</li>
-            <li>בשילוב של טקסט מוגדל ל־200% עם ריווח טקסט מוגדל, בחלון צר מאוד (320 פיקסלים ופחות) וגם בכלי הצמדת הסכם שכירות באנגלית ברוחב 768 פיקסלים, נותרה בכמה עמודים גלילה אופקית קלה</li>
             <li>ההודעה על חלק מהאתר שלא נטען מזהה רק קובץ סקריפט של האתר שלא נטען כלל או שנעצר לפני שרשם את עצמו; קובץ שנטען ונכשל מאוחר יותר, בזמן הפעולה, אינו מזוהה על ידה. קובץ מונה הביקורים אינו נבדק בה, ולספריית התרשים יש הודעה משלה באזור התרשים</li>
             <li>בתיאורי צילומי המסך במדריכים ובשמות הנגישים של רכיבים אי אפשר לסמן שפה לחלק מהטקסט, ולכן תוויות ממשק באנגלית שבתוכם אינן מסומנות כטקסט באנגלית; גם בשאר טקסטי הממשק, שמתורגמים כיחידה שלמה — למשל ״ייצוא ל־<span lang="en" dir="ltr">PDF</span>״ בכלים, הניווט, הכותרות ותוויות השדות — מונחים באנגלית אינם מסומנים</li>
           </ul>
@@ -697,7 +696,7 @@
             <li>סריקת <span lang="en" dir="ltr">axe-core</span> על כל עמודי האתר בעברית ובאנגלית, כולל מצבי ממשק כמו שגיאות, תוצאות חישוב, תרשים פתוח ומדריך פתוח</li>
             <li>בדיקה ידנית בדפדפן מבוסס <span lang="en" dir="ltr">Chromium</span>: ניווט מקלדת בכל הנתיבים והכלים באתר, כולל התרשים</li>
             <li>תצוגה ברוחב 320 פיקסלים (וגם ב־305 פיקסלים, חלון צר עם פס גלילה קלאסי) ללא גלילה אופקית של העמוד וללא רכיבים החופפים זה לזה, הגדלת טקסט ל־200% והגדלת ריווח הטקסט</li>
-            <li>בדיקת גלישה בכל עמודי האתר, בעברית ובאנגלית, ברוחבי חלון בין 305 ל־1100 פיקסלים, בגודל טקסט רגיל ובטקסט מוגדל ל־200%: אין גלילה אופקית של העמוד (חריגות בשילוב עם ריווח טקסט מוגדל מפורטות במגבלות)</li>
+            <li>בדיקת גלישה בכל עמודי האתר, בעברית ובאנגלית, ברוחבי חלון בין 305 ל־1100 פיקסלים, בגודל טקסט רגיל, בטקסט מוגדל ל־200% ובטקסט מוגדל ל־200% יחד עם ריווח טקסט מוגדל: אין גלילה אופקית של העמוד</li>
             <li>גודל יעדי לחיצה, ניגודיות של טקסט ושל רכיבי ממשק, ומיקוד שאינו מוסתר מתחת לכותרת הדביקה</li>
             <li>סריקה של הגרסה האנגלית לאיתור טקסט שנשאר בעברית, בעשרות מצבי ממשק (תוצאות, שגיאות, טבלאות ומדריכים), באפשרויות של הפקדים בכלים (ברשימות ארוכות, כמו שנים, נבדקו דגימות), כולל החלפת שפה והחזרה לעברית, ובקובצי הייצוא (גיליונות <span lang="en" dir="ltr">XLSX</span> וגיליון ההדפסה) בשתי השפות</li>
             <li>בדיקת עץ הנגישות של <span lang="en" dir="ltr">Chrome</span> לאיתור רכיבים ללא שם ורכיבים בעלי שם זהה באותו הקשר, וסריקת שמות הרכיבים בכל הנתיבים והמצבים (בשתי השפות, כולל תפריט השפה הפתוח ואישור ההעתקה) לאיתור סמלים שנכנסו לשם</li>
@@ -783,6 +782,7 @@
             <li>click targets at least 24 pixels tall</li>
             <li>on narrow screens (up to 900 pixels) the calculation tools lay out in a single column, so the form and the result do not cover each other</li>
             <li>with text enlarged to 200% the top header (including the language button), the navigation and the home-page data cards move onto another row instead of leaving the screen, and a long word in a heading breaks instead of widening the page</li>
+            <li>when the top header is taller than a quarter of the window's height (for example with text enlarged to 200% in a narrow window), it does not stay stuck to the top of the screen but scrolls with the page, so it does not cover a large part of the content</li>
             <li>respecting the user's "reduce motion" (<span dir="ltr">prefers-reduced-motion</span>) preference, including turning off the chart's draw-in animation.</li>
           </ul>
         </section>
@@ -793,8 +793,6 @@
             <li>screen readers in browse mode (NVDA/JAWS) may need focus mode before arrow keys reach the chart itself, and the month slider, a standard form control, offers another way to move through the months</li>
             <li>Excel's accessibility checker has not been run on the <span dir="ltr">XLSX</span> files</li>
             <li>The whole site requires <span dir="ltr">JavaScript</span> — loading the data, moving between pages and choosing the language — and without it a notice in Hebrew and English says so.</li>
-            <li>In a narrow window (up to 375 pixels) with text enlarged to 200%, the sticky header is tall (about 280 pixels) and covers a large part of the screen</li>
-            <li>With text enlarged to 200% combined with increased text spacing, in a very narrow window (320 pixels and below), and also in the rental-agreement tool in English at 768 pixels, a slight horizontal scroll remains on some pages</li>
             <li>The notice about part of the site not loading detects only a site script file that did not load at all or stopped before registering itself; a file that loads and fails later, while running, is not detected by it. The visit counter script is not checked by it, and the chart library has its own message in the chart section</li>
             <li>The descriptions of the screenshots in the guides and the accessible names of components cannot mark the language of part of their text, so English interface labels inside them are not marked as English; in the rest of the interface text, which is translated as whole units — for example "Export to <span dir="ltr">PDF</span>" in the tools, the navigation, headings and field labels — English terms are not marked either</li>
           </ul>
@@ -806,7 +804,7 @@
             <li>An <span dir="ltr">axe-core</span> scan across every page in Hebrew and English, including interface states such as errors, calculation results, an open chart and an open guide</li>
             <li>Manual testing in a <span dir="ltr">Chromium</span>-based browser: keyboard-only navigation across every route and tool on the site, including the chart</li>
             <li>A 320-pixel-wide view (and 305 pixels, a narrow window with a classic scrollbar) with no horizontal page scroll and no overlapping components, text enlarged to 200% and increased text spacing</li>
-            <li>An overflow check on every page of the site, in Hebrew and English, at window widths from 305 to 1100 pixels, at normal text size and at text enlarged to 200%: no horizontal page scroll (exceptions in combination with increased text spacing are listed under limitations)</li>
+            <li>An overflow check on every page of the site, in Hebrew and English, at window widths from 305 to 1100 pixels, at normal text size, at text enlarged to 200% and at text enlarged to 200% together with increased text spacing: no horizontal page scroll</li>
             <li>Click-target size, the contrast of text and of interface components, and focus that is not hidden under the sticky header</li>
             <li>A scan of the English version for text left in Hebrew, in dozens of interface states (results, errors, tables and guides), for the options of the controls in the tools (long lists such as years were sampled), including switching the language and back, and in the export files (<span dir="ltr">XLSX</span> workbooks and the print sheet) in both languages</li>
             <li>A check of <span dir="ltr">Chrome</span>'s accessibility tree for unnamed controls and controls sharing a name in the same context, and a scan of component names on every route and state (in both languages, including the open language menu and the copy confirmation) for symbols that have crept into a name</li>

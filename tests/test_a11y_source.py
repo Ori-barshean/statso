@@ -508,6 +508,73 @@ process.stdout.write(JSON.stringify(seen));
                                 "resizeAlways": True,
                                 "fallbackInitial": "69px", "resizeListener": True, "fallbackResized": "132px"})
 
+    def test_a_tall_header_scrolls_away_instead_of_sticking(self):
+        script = """
+global.window = {};
+let height = 109, viewport = 800, observerCallback;
+const props = {}, listeners = {}, els = {}, docListeners = {}, classes = new Set();
+const header = {nodeType: 1, getBoundingClientRect: () => ({height}),
+ classList: {toggle(name, force) { if (force) { classes.add(name); } else { classes.delete(name); } return Boolean(force); }}};
+const heading = {textContent: 'about', hasAttribute() { return false; }, setAttribute() {}, focus() {}};
+const html = {style: {setProperty(k, v) { props[k] = v; }}};
+Object.defineProperty(html, 'clientHeight', {get: () => viewport});
+global.document = {title: 'site', addEventListener(type, fn, capture) { docListeners[type] = {fn, capture}; },
+ documentElement: html,
+ getElementById(id) { if (id === 'tools-trigger') { return null; }
+  return els[id] || (els[id] = {hidden: false, addEventListener() {}, querySelectorAll() { return []; }}); },
+ querySelector(selector) { return selector === '.site-header' ? header : {querySelector: () => heading}; },
+ querySelectorAll() { return []; }};
+window.location = {hash: '#/'};
+window.addEventListener = (type, fn) => { listeners[type] = fn; };
+window.scrollTo = () => {}; window.requestAnimationFrame = fn => fn(); window.setTimeout = fn => fn();
+window.Statso = {i18n: {t: s => s, onChange() {}}};
+window.ResizeObserver = class { constructor(fn) { observerCallback = fn; } observe() {} };
+require(%s);
+window.Statso.nav.init();
+const state = () => [classes.has('is-tall'), props['--header-height']];
+const seen = {normal: state()};
+height = 282.8; observerCallback(); seen.tall = state();
+observerCallback(); seen.tallAgain = state();
+height = 200; observerCallback(); seen.exactlyAQuarter = state();
+height = 282.8; viewport = 1200; listeners.resize(); seen.windowGrew = state();
+viewport = 1000; height = 260; docListeners.keydown.fn({key: 'Tab'}); seen.beforeTab = state();
+viewport = 0; window.innerHeight = 1000; listeners.resize(); seen.innerHeightFallback = state();
+window.innerHeight = undefined; listeners.resize(); seen.noWindowHeight = state();
+viewport = 800; height = 0; listeners.resize(); seen.hiddenHeader = state();
+delete header.classList; height = 400; listeners.resize(); seen.noClassList = state();
+process.stdout.write(JSON.stringify(seen));
+""" % json.dumps(str(ROOT / "assets/statso-nav.js"))
+        seen = json.loads(subprocess.run(
+            ["node", "-e", script], check=True, capture_output=True, text=True, encoding="utf-8"
+        ).stdout)
+        self.assertEqual(seen, {"normal": [False, "109px"], "tall": [True, "0px"], "tallAgain": [True, "0px"],
+            "exactlyAQuarter": [False, "200px"], "windowGrew": [False, "283px"], "beforeTab": [True, "0px"],
+            "innerHeightFallback": [True, "0px"], "noWindowHeight": [False, "260px"], "hiddenHeader": [False, "260px"],
+            "noClassList": [False, "400px"]})
+
+    def test_a_tall_header_rule_is_relative_and_precedes_forced_colors(self):
+        plain = re.sub(r'/\*.*?\*/', '', self.css, flags=re.S)
+        match = re.search(r'^\.site-header\.is-tall \{([^}]*)\}', plain, re.M)
+        self.assertIsNotNone(match)
+        self.assertEqual(match.group(1).strip(), 'position: relative;')
+        self.assertLess(match.start(), plain.index('@media (forced-colors: active)'))
+        self.assertIn("header.classList.toggle('is-tall', tall)", self.nav)
+
+    def test_large_text_with_wide_spacing_does_not_widen_the_page(self):
+        def body(selector):
+            m = re.search(r'(?m)^' + re.escape(selector) + r' \{([^}]*)\}', self.css)
+            self.assertIsNotNone(m, selector)
+            return m.group(1)
+        for selector in ('.section-toggle', '.fxh-currency, .tool-checkbox', '.radio-options label'):
+            self.assertIn('max-width: 100%', body(selector))
+            self.assertIn('overflow-wrap: anywhere', body(selector))
+        # wrapping would drop a label's text under its radio/checkbox, in Hebrew too (measured in Chrome)
+        self.assertNotIn('flex-wrap', body('.radio-options label'))
+        self.assertNotIn('flex-wrap', body('.fxh-currency, .tool-checkbox'))
+        self.assertIn('flex-shrink: 0', body('.fxh-currency .currency-code'))
+        self.assertIn('grid-template-columns: repeat(auto-fit, minmax(min(100%, 10.5rem), 1fr))', body('.rent-summary-grid'))
+        self.assertIn('overflow-wrap: anywhere', body('.rent-summary-grid strong'))
+
     def test_disclosure_buttons_do_not_claim_a_popup(self):
         self.assertNotIn('aria-haspopup', self.html)
         for id_, controls in [('tools-trigger', 'tools-submenu'), ('lang-toggle', 'lang-menu')]:
@@ -1269,6 +1336,18 @@ process.stdout.write(JSON.stringify({before, after, fallback: target.textContent
         self.assertNotIn('no keyboard stop of its own', en)
         self.assertNotIn('horizontal scroll area has no keyboard stop', en)
         self.assertNotIn('אין עצירת מקלדת משלו', (ROOT / 'README.md').read_text(encoding='utf-8'))
+        # 1.0.86: a header taller than a quarter of the window scrolls with the page, and the label/summary rules remove
+        # the overflow at 200% text with wider spacing (checked in a browser), so both limitations and the pointer to them are gone
+        for stale in ('הכותרת הדביקה גבוהה', 'ומכסה חלק ניכר מהמסך', 'נותרה בכמה עמודים גלילה אופקית קלה', 'מפורטות במגבלות'):
+            self.assertNotIn(stale, he)
+        for stale in ('the sticky header is tall', 'covers a large part of the screen', 'a slight horizontal scroll remains', 'listed under limitations'):
+            self.assertNotIn(stale, en)
+        # what replaced them was checked in a real browser (header at 42 width/zoom/language combinations, overflow on 17 routes
+        # at 5 widths in both languages at normal, 200% and 200% + spacing), so the statement now says it
+        self.assertIn('גבוהה מרבע מגובה החלון', he)
+        self.assertIn("taller than a quarter of the window's height", en)
+        self.assertIn('יחד עם ריווח טקסט מוגדל: אין גלילה אופקית של העמוד', he)
+        self.assertIn('together with increased text spacing: no horizontal page scroll', en)
         for stale in ('בונה אותן מחדש', 'מעבירה את המיקוד לראש הדף', 'אינן כוללות כיתוב',
                       'כותרות משנה ורשימות של ממש בדפי המידע', 'סוגר את המדריך הפתוח'):
             self.assertNotIn(stale, he)

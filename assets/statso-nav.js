@@ -257,12 +257,27 @@
     document.addEventListener('change', schedule);
   }
 
+  // A header taller than a quarter of the window (200% text in a narrow window: ~280px of 800) would cover that share of every
+  // screen if it stuck, so .is-tall lets it scroll away with the page and --header-height drops to 0px, so scroll-padding-top
+  // reserves nothing for it. Sticky and relative take the same room in the flow, so switching never changes the height measured
+  // here. The window's height is the root's clientHeight (it leaves out a horizontal scrollbar, as clientWidth does in the
+  // README's reflow checks), else innerHeight; with neither, or no classList, the header stays sticky exactly as before.
+  const TALL_HEADER_SHARE = 0.25;
+  function windowHeight(html) {
+    if (typeof html.clientHeight === 'number' && html.clientHeight > 0) { return html.clientHeight; }
+    return typeof root.innerHeight === 'number' && root.innerHeight > 0 ? root.innerHeight : 0;
+  }
   function syncHeaderOffset() {
     const header = typeof document.querySelector === 'function' ? document.querySelector('.site-header') : null;
     const html = document.documentElement;
     if (!header || typeof header.getBoundingClientRect !== 'function' || !html || !html.style) { return; }
     const height = Math.ceil(header.getBoundingClientRect().height);
-    if (height > 0) { html.style.setProperty('--header-height', height + 'px'); }
+    if (!(height > 0)) { return; }
+    const canMark = Boolean(header.classList) && typeof header.classList.toggle === 'function';
+    const viewport = windowHeight(html);
+    const tall = canMark && viewport > 0 && height > viewport * TALL_HEADER_SHARE;
+    if (canMark) { header.classList.toggle('is-tall', tall); }
+    html.style.setProperty('--header-height', (tall ? 0 : height) + 'px');
   }
   function initHeaderOffset() {
     syncHeaderOffset();
