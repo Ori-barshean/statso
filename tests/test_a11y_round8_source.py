@@ -19,14 +19,14 @@ HTML = (ROOT / 'index.html').read_text(encoding='utf-8')
 ASSETS = sorted((ROOT / 'assets').glob('statso-*.js'))
 GUARD = re.search(r'<script id="script-guard">(.*?)</script>', HTML, re.S).group(1)
 REQUIRED = re.findall(r"'([A-Za-z][A-Za-z0-9]*)'", re.search(r'var REQUIRED = \[(.*?)\]', GUARD, re.S).group(1))
-EXEMPT = {'statso-contact.js', 'statso-visits.js'}
+EXEMPT = {'statso-visits.js'}
 GENERIC = 'אירעה שגיאה בעיבוד הנתונים. אפשר לרענן את הדף ולנסות שוב.'
 GUARD_TEXTS = [
     'חלק מהאתר לא נטען, ולכן ייתכן שחלק מהעמודים והכלים לא יפעלו. אפשר לרענן את הדף ולנסות שוב.',
     'Part of the site did not load, so some pages and tools may not work. You can refresh the page and try again.',
 ]
 STATEMENT_DATE = '2026-10-13'
-STATEMENT_FINGERPRINT = '26f5f19802de9bc8a1983ef13b1de7097f1afe91f66121c3bb21066dc9923a0a'
+STATEMENT_FINGERPRINT = 'b1f6d056d3db047e5e171d72112b52e14310e9db515d84b59e432fff143a731e'
 
 
 def statement_blocks():
@@ -75,6 +75,20 @@ class ScriptGuardTests(unittest.TestCase):
         self.assertEqual(set(REQUIRED), registered)
         self.assertEqual(len(REQUIRED), len(registered))
         self.assertEqual(exempt, EXEMPT)
+
+    def test_contact_script_registers_itself_and_is_checked_by_the_guard(self):
+        self.assertIn('contact', REQUIRED)
+        seen = node(r"""
+global.window = {};
+let domReady = null;
+global.document = {addEventListener(type, fn) { domReady = {type, fn}; }};
+require(%s);
+process.stdout.write(JSON.stringify({registered: typeof window.Statso.contact.init, listener: domReady && domReady.type,
+ sameFunction: domReady && domReady.fn === window.Statso.contact.init}));
+""" % json.dumps(str(ROOT / 'assets' / 'statso-contact.js')))
+        self.assertEqual(seen, {'registered': 'function', 'listener': 'DOMContentLoaded', 'sameFunction': True})
+        # the visit counter stays outside the guard: privacy extensions may block it and visitors must not see a warning for that
+        self.assertNotIn('visits', REQUIRED)
 
     @staticmethod
     def run_guard(missing):

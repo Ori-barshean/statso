@@ -652,7 +652,6 @@
     [/^שער ל־(.+)$/, 'Rate at $1'],
     [/^שער סוף (\d+)$/, 'Year-end $1'],
     [/^ממוצע (\d+)$/, '$1 average'],
-    [/^(\d+) שערים שפורסמו$/, '$1 published rates'],
     [/^הופק ב־(.+?) · נתוני מקור: הלשכה המרכזית לסטטיסטיקה ובנק ישראל · statso$/,
       'Produced $1 · Sources: Israel Central Bureau of Statistics and Bank of Israel · statso'],
     [/^סך ההפרשים לתשלום:$/, 'Total amount due:'],

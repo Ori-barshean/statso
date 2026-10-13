@@ -91,6 +91,35 @@ process.stdout.write(JSON.stringify(seen));
         self.assertEqual(seen["afterLanguageChange"], "renamed \u2014 statso")
         self.assertEqual(seen["homeAgain"], "shown:site-title-he")
 
+    def test_exchange_rate_table_cells_carry_no_title_attribute(self):
+        # the cells once carried a native title (dates, rate counts) that no browser showed; it must not come back as
+        # information that only a hover could reveal
+        script = """
+global.window = {};
+require(%s); require(%s);
+const S = window.Statso;
+const doc = {years: [2025, 2024], rates: [
+  {code: 'USD', unit: 1, latest: {rate: 3.078, date: '2026-10-12'}, years: [
+    {year_end: {rate: 3.19, date: '2025-12-31'}, average: 3.4529, count: 246},
+    {year_end: {rate: 3.647, date: '2024-12-31'}, average: 3.699, count: 244}]},
+  {code: 'JPY', unit: 100, latest: null, years: [null, {year_end: null, average: 2.1, count: 5}]}]};
+const rows = doc.rates.map(row => S.fxtable.buildRow(row, doc.years.length));
+process.stdout.write(JSON.stringify({rows}));
+""" % (json.dumps(str(ROOT / "assets/statso-core.js")), json.dumps(str(ROOT / "assets/statso-fxtable.js")))
+        rows = json.loads(subprocess.run(
+            ["node", "-e", script], check=True, capture_output=True, text=True, encoding="utf-8"
+        ).stdout)["rows"]
+        for html in rows:
+            self.assertNotIn("title=", html)
+            self.assertNotIn("שערים שפורסמו", html)
+        # the values themselves are still there, and a missing value is a dash
+        self.assertEqual(rows[0].count("<td"), 5)
+        self.assertIn("3.078", rows[0])
+        self.assertIn("3.4529", rows[0])
+        self.assertEqual(rows[1].count("<td"), 5)
+        self.assertIn("\u2014", rows[1])
+        self.assertIn("2.1", rows[1])
+
     # ---------- spoken results and counters ------------------------------------
     # The calculators recompute silently as the visitor types, and the contact
     # form's character counter used to be a live region, which a screen reader
@@ -1189,11 +1218,18 @@ process.stdout.write(JSON.stringify({before, after, fallback: target.textContent
         self.assertIn('accessibility rules are documented in the project\'s <span dir="ltr">README</span>', en)
         self.assertIn('נבדקו גם קובצי הייצוא', he)
         self.assertIn('The export files were checked too', en)
-        # the PDF facts are what a real Chrome print-to-PDF check showed (tagged, Scope=Column, Lang, title; no Caption tag)
-        self.assertIn('יצא מתויג', he)
-        self.assertIn('came out tagged', en)
-        self.assertIn('כיתוב הטבלה אינו נשמר בתיוג', he)
-        self.assertIn('the table caption is not kept in the tags', en)
+        # the month-field limitation (simulation only, no browser without a month picker) was removed on the owner's word
+        self.assertNotIn('נבדקה רק בהדמיה', he)
+        self.assertNotIn('tested only by simulation', en)
+        # the exchange-rate table has no hover tooltip in any browser (checked by the owner), so the statement does not claim one
+        self.assertNotIn('מוצגים כהסבר קופץ', he)
+        self.assertNotIn('appear only as a hover tooltip', en)
+        # the PDF tagging limitation was removed on the owner's word after a manual check in three browsers; the statement
+        # keeps only the Chrome check in the export paragraph above and must not claim more or less than that
+        self.assertNotIn('יצא מתויג', he)
+        self.assertNotIn('came out tagged', en)
+        self.assertNotIn('לא אומת, ובדפדפנים אחרים לא נבדק', he)
+        self.assertNotIn('other browsers were not tested', en)
         # the rent tool patches its tables in place (verified in a browser with real key presses: focus, scroll and
         # the click that follows an edit survive) and names each table with a caption
         self.assertIn('כיתוב לכל טבלת תקופה בכלי הצמדת הסכם שכירות, ועדכון הטבלה במקומה בעריכת סכום ששולם או בסימון "שולם", כך שהמיקוד ומקום הגלילה נשמרים', he)
@@ -1218,7 +1254,7 @@ process.stdout.write(JSON.stringify({before, after, fallback: target.textContent
                      'השם הנגיש של כל שדה "שולם בפועל"', 'כולל את חודש השורה', 'כולל את שם התקופה',
                      'שדות החודש בכלי הצמדת הסכם שכירות', 'YYYY-MM', 'MM/YYYY', 'גם עם חודש בספרה אחת',
                      'הנחיית פורמט גלויה המקושרת לשדה', 'הודעת שגיאה מוכרזת במקום טבלה ריקה',
-                     'נבדקה רק בהדמיה', 'ולא בדפדפן כזה עצמו', 'מדריך פתוח', 'בדיקת עץ הנגישות',
+                     'מדריך פתוח', 'בדיקת עץ הנגישות',
                      'לאיתור רכיבים ללא שם ורכיבים בעלי שם זהה באותו הקשר'):
             self.assertIn(text, he)
         for text in ("Each guide has its own address", "browser's Back button", 'moves focus to the page heading',
@@ -1231,21 +1267,21 @@ process.stdout.write(JSON.stringify({before, after, fallback: target.textContent
                      'accessible name of every "Actually paid" field and every "Settled" box',
                      "includes the row's month", "includes the period's name", 'Month fields in the rental-agreement tool',
                      'YYYY-MM', 'MM/YYYY', 'single-digit month', 'visible format hint is linked to the field',
-                     'announced error instead of an empty table', 'tested only by simulation',
-                     'not in such a browser itself', 'an open guide', 'accessibility tree for unnamed controls',
+                     'announced error instead of an empty table',
+                     'an open guide', 'accessibility tree for unnamed controls',
                      'controls sharing a name in the same context'):
             self.assertIn(text, en)
         self.assertNotRegex(en, r'[֐-׿]')
         # round 5: each new claim is backed by a class-level test (tests/test_a11y_round5_source.py) or a browser check
         for text in ('ואינו נחתך בקצה אזורי הגלילה', 'במצב צבעים כפויים, כפתורי הפעולה', 'מוצגים עם מסגרת',
                      'סמלי הכרטיסים בעמוד הכלים', 'מוצגת ומוכרזת הודעה מעל כל עמוד שמציינת איזה מהם חסר', 'מסומן במסגרת מקווקוות ובטקסט ולא בעמעום',
-                     'מוצגים כהסבר קופץ', 'סריקת שמות הרכיבים בכל הנתיבים והמצבים', 'הדמיית מצב צבעים כפויים',
+                     'סריקת שמות הרכיבים בכל הנתיבים והמצבים', 'הדמיית מצב צבעים כפויים',
                      'חסימת טעינת קובצי הנתונים', 'כשמדד תשומות הבנייה חסר, הסדרה שלו חסרה בתרשים', 'רשימת הבדיקות חלקית', 'אין לראות בה אישור שכל הליקויים אותרו'):
             self.assertIn(text, he)
         for text in ('is not cut off at the edge of the scroll areas', 'in forced colors mode, the action buttons',
                      'drawn with a border', 'The symbols on the cards on the tools page',
                      'a notice above every page says which of them is missing', 'dashed border and with text rather than by dimming',
-                     'appear only as a hover tooltip', 'scan of component names on every route and state',
+                     'scan of component names on every route and state',
                      'A simulation of forced colors mode', 'Blocking the data files from loading', 'when the construction-inputs index is missing, its series is left out of the chart',
                      'This list of tests is partial', 'should not be read as confirmation that every defect has been found'):
             self.assertIn(text, en)
@@ -1273,11 +1309,11 @@ process.stdout.write(JSON.stringify({before, after, fallback: target.textContent
         self.assertIn('no overlapping components', en)
         for text in ('מחוון לבחירת חודש', 'סיכום נתונים', 'שורת כותרות שנשארת גלויה', 'מסנן אוטומטי', 'ללא תאים ממוזגים',
                      'כיתוב (<span lang="en" dir="ltr">caption</span>)', 'כל האתר דורש <span lang="en" dir="ltr">JavaScript</span>',
-                     'ולא אומת', 'בודק הנגישות של <span lang="en" dir="ltr">Excel</span> לא הורץ'):
+                     'בודק הנגישות של <span lang="en" dir="ltr">Excel</span> לא הורץ'):
             self.assertIn(text, he)
         for text in ('month slider', 'data summary', 'header row that stays visible', 'AutoFilter', 'no merged cells',
                      'tables with a caption', 'whole site requires <span dir="ltr">JavaScript</span>',
-                     'has not been verified', "Excel's accessibility checker has not been run"):
+                     "Excel's accessibility checker has not been run"):
             self.assertIn(text, en)
         for text in ('החלק העליון של הטבלה עשוי להיות מחוץ לתצוגה', 'the top of the table may sit out of view',
                      'מעבר בין השפות דורש', 'switching languages requires', 'לא נבדקה נגישותם של קובצי',

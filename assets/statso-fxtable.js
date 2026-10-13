@@ -19,21 +19,20 @@
     });
   }
 
-  function cell(value, title, groupStart) {
-    const attribute = title ? ' title="' + Statso.core.escapeHtml(title) + '"' : '';
+  function cell(value, groupStart) {
     const groupClass = groupStart ? ' class="col-group-start"' : '';
-    return '<td dir="ltr"' + groupClass + attribute + '>' + (value === null ? '—' : Statso.core.formatRate(value)) + '</td>';
+    return '<td dir="ltr"' + groupClass + '>' + (value === null ? '—' : Statso.core.formatRate(value)) + '</td>';
   }
 
   function buildRow(row, yearCount) {
     const name = Statso.core.escapeHtml(Statso.core.CURRENCY_NAMES[row.code] || row.code);
     const unit = row.unit && row.unit !== 1 ? ' <span class="currency-code">×' + Statso.core.escapeHtml(row.unit) + '</span>' : '';
     let html = '<tr><th scope="row">' + name + ' <span class="currency-code">' + Statso.core.escapeHtml(row.code) + '</span>' + unit + '</th>';
-    html += cell(row.latest ? row.latest.rate : null, row.latest ? row.latest.date : '');
+    html += cell(row.latest ? row.latest.rate : null);
     for (let position = 0; position < yearCount; position += 1) {
       const entry = row.years && row.years[position];
-      html += cell(entry && entry.year_end ? entry.year_end.rate : null, entry && entry.year_end ? entry.year_end.date : '', true);
-      html += cell(entry ? entry.average : null, entry ? entry.count + ' שערים שפורסמו' : '');
+      html += cell(entry && entry.year_end ? entry.year_end.rate : null, true);
+      html += cell(entry ? entry.average : null);
     }
     return html + '</tr>';
   }

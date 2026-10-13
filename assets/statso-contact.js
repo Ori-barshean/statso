@@ -2,6 +2,7 @@ const WEB3FORMS_ACCESS_KEY = '3524f864-d933-41b9-862c-79f6b1d5b281';  // public 
 
 (function (root) {
   'use strict';
+  const Statso = root.Statso = root.Statso || {};
   const MAX_MESSAGE_LENGTH = 300;
   const SUCCESS_MESSAGE = 'ההודעה נשלחה ותענה בהקדם האפשרי לתיבת המייל שציינת לחזרה.';
   const LIMIT_NEAR = 'נותרו 20 תווים או פחות.';
@@ -116,5 +117,6 @@ const WEB3FORMS_ACCESS_KEY = '3524f864-d933-41b9-862c-79f6b1d5b281';  // public 
     updateCount();
   }
 
+  Statso.contact = {init: init};
   document.addEventListener('DOMContentLoaded', init);
 })(window);
