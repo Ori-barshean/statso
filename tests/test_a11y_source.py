@@ -233,6 +233,9 @@ process.stdout.write(JSON.stringify(seen));
         self.assertNotIn("el('tr-periods').innerHTML", rent)
         patch = rent[rent.index("  function patchPeriods(host) {"):rent.index("  function render() {")]
         self.assertNotIn("innerHTML", patch)
+        self.assertIn("'<div class=\"table-wrap rent-scroll\" tabindex=\"0\" role=\"region\" aria-labelledby=\"tr-p' + period.index + '-title\">'", rent)
+        self.assertNotIn('rent-scroll', patch)
+        self.assertNotIn('table-wrap', patch)
         for cell in ("cells[1]", "cells[4]", "cells[6]", "cells[7]", "foot[7]"):
             self.assertIn(cell, patch)
         self.assertIn("input.value = String(row.actual)", patch)
@@ -807,21 +810,43 @@ process.stdout.write(JSON.stringify(seen));
         self.assertNotIn('outline', rule)
 
     def test_tall_tables_scroll_in_a_bounded_box_with_a_sticky_header(self):
-        wrap = re.search(r'^\.table-wrap\[role="region"\] \{([^}]+)\}', self.css, re.M).group(1)
-        # the rent tool rebuilds its (unlabelled) tables on every edit, so they must stay unbounded
-        self.assertIn('overflow-x: auto', re.search(r'^\.table-wrap \{([^}]+)\}', self.css, re.M).group(1))
-        self.assertNotIn('max-height', re.search(r'^\.table-wrap \{([^}]+)\}', self.css, re.M).group(1))
+        bounded = '.table-wrap[role="region"]:not(.rent-scroll)'
+        wrap = re.search(r'^' + re.escape(bounded) + r' \{([^}]+)\}', self.css, re.M).group(1)
+        # the rent tool's period tables are regions too (.rent-scroll) but stay unbounded, with a normal header
+        base = re.search(r'^\.table-wrap \{([^}]+)\}', self.css, re.M).group(1)
+        self.assertIn('overflow-x: auto', base)
+        self.assertIn('scroll-padding-inline: 12px', base)
+        self.assertNotIn('max-height', base)
         for declaration in ('max-height: min(70vh, 640px)', 'overflow: auto', 'scroll-padding-top: 3rem'):
             self.assertIn(declaration, wrap)
-        header = re.search(r'^\.table-wrap\[role="region"\] thead th \{([^}]+)\}', self.css, re.M).group(1)
+        header = re.search(r'^' + re.escape(bounded) + r' thead th \{([^}]+)\}', self.css, re.M).group(1)
         for declaration in ('position: sticky', 'top: 0', 'background: var(--wash)', 'z-index: 1'):
             self.assertIn(declaration, header)
         global_header = re.search(r'^th \{([^}]+)\}', self.css, re.M).group(1)
         self.assertNotIn('sticky', global_header)
         self.assertNotIn('z-index', global_header)
         printing = re.search(r'^@media print \{.*$', self.css, re.M).group(0)
-        self.assertIn('.table-wrap[role="region"] { max-height: none; overflow: visible; }', printing)
-        self.assertIn('.table-wrap[role="region"] thead th { position: static; box-shadow: none; }', printing)
+        self.assertIn(bounded + ' { max-height: none; overflow: visible; }', printing)
+        self.assertIn(bounded + ' thead th { position: static; box-shadow: none; }', printing)
+
+    def test_rent_period_regions_keep_full_height_and_a_normal_header(self):
+        plain = re.sub(r'/\*.*?\*/', '', self.css, flags=re.S)
+        selectors = re.findall(r'([^{}]+)\{[^{}]*\}', plain)
+        regions = [selector for selector in selectors if '.table-wrap[role="region"]' in selector]
+        self.assertEqual(len(regions), 4)
+        for selector in regions:
+            self.assertIn('.table-wrap[role="region"]:not(.rent-scroll)', selector)
+        self.assertEqual(plain.count('rent-scroll'), plain.count(':not(.rent-scroll)'))
+        for selector, body in re.findall(r'([^{}]+)\{([^{}]*)\}', plain):
+            if 'rent-' in selector.replace(':not(.rent-scroll)', ''):
+                self.assertNotIn('max-height', body)
+                self.assertNotIn('sticky', body)
+        for selector in ('.data-table thead th', '.rent-table td, .rent-table th'):
+            body = re.search(r'^' + re.escape(selector) + r' \{([^}]+)\}', plain, re.M).group(1)
+            self.assertNotIn('sticky', body)
+        for selector in ('.rent-period', '.tool-page', '.kpi-card, .panel', '.panel'):
+            for body in re.findall(r'^' + re.escape(selector) + r' \{([^}]+)\}', plain, re.M):
+                self.assertNotIn('overflow', body)
 
     def test_noscript_notice_is_bilingual_and_first(self):
         self.assertLess(self.html.index('<body>'), self.html.index('<noscript>'))
@@ -1236,9 +1261,14 @@ process.stdout.write(JSON.stringify({before, after, fallback: target.textContent
         self.assertIn('A caption on each period table in the rental-agreement tool, and the table updating in place when a paid amount is edited or "paid" is ticked, so keyboard focus and scroll position are kept', en)
         self.assertIn('של טבלאות הנתונים ההיסטוריות וטבלת שערי המטבע, איורי המדריכים', he)
         self.assertIn('for the historical data tables, the exchange-rate table, guide illustrations', en)
-        # what is still open in that tool: the scroll area has no tab stop of its own (the fields inside are focusable)
-        self.assertIn('לאזור הגלילה האופקי של הטבלאות אין עצירת מקלדת משלו', he)
-        self.assertIn("horizontal scroll area has no keyboard stop of its own", en)
+        # each period table now scrolls inside its own named region with a keyboard stop (statso-rent.js periodHtml,
+        # runtime-tested in tests/test_a11y_controls_source.py, checked in a browser at 320px),
+        # so the limitation is gone and must not come back
+        self.assertNotIn('אין עצירת מקלדת משלו', he)
+        self.assertNotIn('לאזור הגלילה האופקי של הטבלאות', he)
+        self.assertNotIn('no keyboard stop of its own', en)
+        self.assertNotIn('horizontal scroll area has no keyboard stop', en)
+        self.assertNotIn('אין עצירת מקלדת משלו', (ROOT / 'README.md').read_text(encoding='utf-8'))
         for stale in ('בונה אותן מחדש', 'מעבירה את המיקוד לראש הדף', 'אינן כוללות כיתוב',
                       'כותרות משנה ורשימות של ממש בדפי המידע', 'סוגר את המדריך הפתוח'):
             self.assertNotIn(stale, he)

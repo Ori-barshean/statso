@@ -31,6 +31,8 @@ def node(body, modules=('statso-core.js',)):
 
 # Enough DOM to exercise the public rent API, including patching existing cells.
 # Fields keep the month attribute independently of their reported input type.
+# Each section's region object is created only when the periods' markup is written,
+# so object identity shows whether an edit rewrote the markup.
 RENT_DOM = r'''
 const elements = {}, optionRows = [], downloads = [];
 function element(id = '') {
@@ -54,8 +56,9 @@ function element(id = '') {
           children: [...row[1].matchAll(/<t[dh]\b[^>]*>(.*?)<\/t[dh]>/gs)].map(cell)
         }));
         const foot = {children: Array.from({length: 9}, cell)}, markall = element();
+        const wrap = /<div class="table-wrap rent-scroll"/.test(match[1]) ? element() : null;
         return {querySelectorAll: selector => selector === 'tbody tr' ? bodyRows : [],
-          querySelector: selector => selector === 'tfoot tr' ? foot : markall};
+          querySelector: selector => selector === 'tfoot tr' ? foot : selector === '.rent-scroll' ? wrap : markall};
       });
     },
     querySelectorAll(selector) {
@@ -110,6 +113,58 @@ S.rent.init({first_month: '2023-01', last_month: '2025-12'}, S.core.buildIndexMa
 
 
 class MonthInputTests(unittest.TestCase):
+    def test_each_period_table_scrolls_in_its_own_region_named_by_the_period_heading(self):
+        seen = rent('''
+addOption('9/2024','10/2024'); addOption('1/2026','2/2026'); S.rent.compute();
+process.stdout.write(JSON.stringify({html: el('tr-periods').innerHTML, labels: S.rent.state().periods.map(p => p.label)}));
+''')
+        html, labels = seen['html'], seen['labels']
+        self.assertEqual(labels, ['תקופת השכירות הבסיסית', 'תקופת אופציה 1', 'תקופת אופציה 2'])
+        tree = Tree(html)
+        wraps = [n for n in tree.nodes if 'table-wrap' in n.attrs.get('class', '').split()]
+        self.assertEqual(len(wraps), 3)
+        headings = []
+        for i, wrap in enumerate(wraps):
+            self.assertEqual(wrap.tag, 'div')
+            self.assertEqual(wrap.attrs['class'], 'table-wrap rent-scroll')
+            self.assertEqual(wrap.attrs.get('tabindex'), '0')
+            self.assertEqual(wrap.attrs.get('role'), 'region')
+            self.assertNotIn('aria-label', wrap.attrs)
+            ref = wrap.attrs.get('aria-labelledby')
+            self.assertEqual(ref, f'tr-p{i}-title')
+            heading = tree.by_id(ref)
+            self.assertEqual(heading.tag, 'h3')
+            self.assertEqual(heading.text(), labels[i])
+            self.assertTrue(heading.text())
+            headings.append(heading.text())
+            self.assertEqual(wrap.parent.tag, 'section')
+            self.assertIn('rent-period', wrap.parent.attrs.get('class', '').split())
+            self.assertIn(heading, wrap.parent.descendants())
+            self.assertEqual([child.tag for child in wrap.children if isinstance(child, Element)], ['table'])
+        self.assertEqual(len(set(headings)), 3)
+        self.assertEqual(len(re.findall(
+            r'<div class="table-wrap rent-scroll" tabindex="0" role="region" aria-labelledby="tr-p\d+-title">', html)), 3)
+
+    def test_editing_a_row_keeps_every_period_region_node(self):
+        # Node identity in the stub means "host markup not rewritten"; real-node identity
+        # and scroll retention are checked in a real browser.
+        seen = rent('''
+addOption('9/2024', '10/2024'); addOption('1/2026', '2/2026'); S.rent.compute();
+const host = el('tr-periods'), regions = () => host.sections.map(s => s.querySelector('.rent-scroll'));
+const before = regions(), writes = host.writes, month = S.rent.state().periods[1].rows[0].month;
+const change = target => host.listeners.change[0]({target});
+change({classList: {contains: n => n === 'tr-actual'}, value: '4000', dataset: {key: '1:' + month}});
+change({classList: {contains: n => n === 'tr-paid'}, checked: true, dataset: {key: '1:' + month}});
+const after = regions(), row = S.rent.state().periods[1].rows[0];
+const patched = {count: before.length, present: before.every(Boolean), same: before.every((n, i) => n === after[i]),
+  writes: host.writes - writes, actual: row.actual, paid: row.paid};
+el('tr-base-end').value = '2024-11'; S.rent.compute();
+process.stdout.write(JSON.stringify({patched, rebuilt: {same: regions()[0] === before[0], writes: host.writes - writes}}));
+''')
+        self.assertEqual(seen['patched'], {'count': 3, 'present': True, 'same': True,
+                                          'writes': 0, 'actual': 4000, 'paid': True})
+        self.assertEqual(seen['rebuilt'], {'same': False, 'writes': 1})
+
     def test_parse_month_input_rejects_year_zero(self):
         values = ['0000-05', '05/0000', '0000-5', '5/0000', '0001-05', '5/0001']
         seen = node('process.stdout.write(JSON.stringify(' + json.dumps(values)

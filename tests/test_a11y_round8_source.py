@@ -26,7 +26,7 @@ GUARD_TEXTS = [
     'Part of the site did not load, so some pages and tools may not work. You can refresh the page and try again.',
 ]
 STATEMENT_DATE = '2026-10-13'
-STATEMENT_FINGERPRINT = 'b1f6d056d3db047e5e171d72112b52e14310e9db515d84b59e432fff143a731e'
+STATEMENT_FINGERPRINT = '733e0c433df0573096d25c6973376b673ff07209cc156ee888da535e2d6873cc'
 
 
 def statement_blocks():

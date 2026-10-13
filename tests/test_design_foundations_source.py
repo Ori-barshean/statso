@@ -110,7 +110,7 @@ def text_pairs():
             if foreground is not None and background is not None:
                 yield selector, foreground, background
     cross = [
-        (".data-table thead th", '.table-wrap[role="region"] thead th'),
+        (".data-table thead th", '.table-wrap[role="region"]:not(.rent-scroll) thead th'),
         (".data-table thead th", "th"),
         *((selector, ".calc-output") for selector in (
             ".calc-result span", ".calc-result small", ".calc-note",

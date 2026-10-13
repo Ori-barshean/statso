@@ -267,6 +267,9 @@
       + ' aria-labelledby="tr-p' + periodIndex + '-c8 tr-p' + periodIndex + '-m' + row.month + '"></td></tr>';
   }
 
+  // Each table scrolls sideways inside its own keyboard stop: a region named by the period's visible heading
+  // (README: a focusable scroll area is a region with a unique name). Editing a row writes into the existing cells
+  // only, so this node, the focus on it and its scroll position survive the edit.
   function periodHtml(period) {
     const totals = totalsText(totalsOf(period.rows));
     return '<section class="rent-period"><header class="rent-period-head">'
@@ -276,7 +279,8 @@
       + '<label class="rent-mark-all"><input type="checkbox" class="tr-period-paid" data-period="' + period.index
       + '" aria-labelledby="tr-p' + period.index + '-markall tr-p' + period.index + '-title"'
       + (allPaid(period) ? ' checked' : '') + '> <span id="tr-p' + period.index + '-markall">סימון כל התקופה כשולמה</span></label></header>'
-      + '<div class="table-wrap"><table class="data-table rent-table"><caption class="sr-only">' + period.label
+      + '<div class="table-wrap rent-scroll" tabindex="0" role="region" aria-labelledby="tr-p' + period.index + '-title">'
+      + '<table class="data-table rent-table"><caption class="sr-only">' + period.label
       + '</caption><thead><tr>'
       + ['חודש', 'נומינלי', 'מדד בבסיס ההסכם', 'מקדם', 'ממודד', 'שולם בפועל', 'הפרש', 'הפרש לתשלום', 'שולם']
         .map(function (text, column) { return '<th scope="col" id="tr-p' + period.index + '-c' + column + '">' + text + '</th>'; }).join('')
