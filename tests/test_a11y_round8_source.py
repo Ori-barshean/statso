@@ -25,8 +25,8 @@ GUARD_TEXTS = [
     'חלק מהאתר לא נטען, ולכן ייתכן שחלק מהעמודים והכלים לא יפעלו. אפשר לרענן את הדף ולנסות שוב.',
     'Part of the site did not load, so some pages and tools may not work. You can refresh the page and try again.',
 ]
-STATEMENT_DATE = '2026-10-13'
-STATEMENT_FINGERPRINT = 'bdf2da3d5500fc1afbc1e7ddf92c8c95ae6353f6b3f19f604a0bef47a3469d57'
+STATEMENT_DATE = '2026-10-14'
+STATEMENT_FINGERPRINT = 'b28ba15c7150238a052c7f987b83ecefc9a4923771c3ec77e0feeffc4314ca30'
 
 
 def statement_blocks():
@@ -239,7 +239,7 @@ global.document = {title: siteTitle, addEventListener() {}, getElementById(id) {
  querySelectorAll(selector) { return selector === '.site-nav a' ? links : []; }};
 global.window = {location: {hash: '#/'}, addEventListener() {}, scrollTo() { scrolls++; },
  requestAnimationFrame(fn) { fn(); }, setTimeout(fn) { fn(); },
- Statso: {guides: {guides: [{id: 'excel'}, {id: 'cpi-terms'}, {id: 'live-pull', soon: true}],
+ Statso: {guides: {guides: [{id: 'excel'}, {id: 'cpi-terms'}, {id: 'live-pull'}, {id: 'future-guide', soon: true}],
  showGuide() { return true; }, showIndex() {}}, mcode: {render() {}}, chart: {resize() { resizes++; }},
  i18n: {t: text => text, onChange(fn) { languageChanged = fn; }}}};
 function go(hash) { window.location.hash = hash; window.Statso.nav.route(); }
@@ -275,7 +275,7 @@ class BrandLinkTests(unittest.TestCase):
 class NotFoundRouteTests(unittest.TestCase):
     def test_unknown_hashes_show_only_not_found_and_never_throw(self):
         hashes = ['#/nonexistent', '#/tools/xyz', '#/guides/xyz', '#/Guides', '#/tools/', '#/tools/index/extra',
-                  '#/%E0%A4%A', '#/guides/live-pull', '#/guides/', '#/__proto__', '#/guides/constructor']
+                  '#/%E0%A4%A', '#/guides/future-guide', '#/guides/', '#/__proto__', '#/guides/constructor']
         seen = nav_run(r"""
 const results = %s.map(hash => {
  go('#/about'); const before = {scrolls, resizes, focuses: focuses.length}; let error = null;
@@ -302,7 +302,7 @@ process.stdout.write(JSON.stringify(results));
         routes = [(hash_, 'dashboard-view', None) for hash_ in ('', '#', '#/')]
         routes += [('#/tools', 'tools-view', None), ('#/guides', 'guides-view', None),
                    ('#/guides/excel', 'guides-view', None), ('#/guides/cpi-terms', 'guides-view', None),
-                   ('#/mcode', 'mcode-view', None)]
+                   ('#/guides/live-pull', 'guides-view', None), ('#/mcode', 'mcode-view', None)]
         routes += [('#/tools/' + slug, 'tools-view', 'tool-' + slug + '-page')
                    for slug in ('index', 'fx', 'history', 'rate-history', 'fx-history', 'rent')]
         routes += [('#/' + slug, 'info-view', slug + '-page')

@@ -263,11 +263,11 @@ html[lang="he"] .guide-hero h1, html[lang="he"] .guide-header h1 { letter-spacin
 .radio-options { display: grid; gap: 9px; }
 .radio-options label { display: flex; align-items: flex-start; gap: 7px; cursor: pointer; max-width: 100%; overflow-wrap: anywhere; }
 .radio-options input { flex: 0 0 auto; margin-top: 3px; }
-.guide-note, .guide-notice { margin: 20px 0; padding: 18px 20px; border: 1px solid #bae6fd; border-inline-start: 4px solid var(--cyan); border-radius: var(--r-group); background: #ecfeff; }
+.guide-note, .guide-notice { overflow-wrap: anywhere; margin: 20px 0; padding: 18px 20px; border: 1px solid #bae6fd; border-inline-start: 4px solid var(--cyan); border-radius: var(--r-group); background: #ecfeff; }
 .guide-notice { border-color: #fed7aa; border-inline-start-color: var(--orange); background: #fff7ed; }
 .guide-notice h2 { margin: 0 0 5px; font-size: 1.2rem; }
 .guide-notice p { margin: 0 0 14px; }
-.guide-notice button, .copy-url { border: 0; border-radius: var(--r-control); color: white; background: var(--blue); padding: 8px 13px; cursor: pointer; font-weight: 750; }
+.guide-notice button, .guide-note button, .copy-url { border: 0; border-radius: var(--r-control); color: white; background: var(--blue); padding: 8px 13px; cursor: pointer; font-weight: 750; }
 .guide-mcode-cta { margin: 16px 0 22px; }
 .guide-mcode-button { display: inline-block; border-radius: var(--r-control); color: white; background: var(--blue); padding: 11px 18px; font-weight: 750; text-decoration: none; }
 @media (hover: hover) and (pointer: fine) { .guide-mcode-button:hover { background: var(--navy); } }
@@ -280,6 +280,9 @@ html[lang="he"] .guide-hero h1, html[lang="he"] .guide-header h1 { letter-spacin
 .guide-steps > li { margin: 18px 0; padding: clamp(18px,3vw,28px); border: 1px solid var(--line); border-radius: var(--r-card); background: var(--surface); box-shadow: var(--shadow-card); }
 .step-copy h2 { margin: 0; color: var(--link); font-size: 1.1rem; }
 .step-copy p { margin: 7px 0 15px; }
+.guide-list { max-width: 78ch; margin: 7px 0 15px; padding-inline-start: 24px; line-height: 1.75; overflow-wrap: anywhere; }
+.guide-list li { margin: 6px 0; }
+.guide-list:last-child { margin-bottom: 0; }
 .url-block { display: flex; align-items: stretch; max-width: 100%; margin: 12px 0 18px; direction: ltr; }
 .url-block code { min-width: 0; flex: 1; padding: 10px 12px; overflow-wrap: anywhere; border: 1px solid #c7c7cc; border-radius: var(--r-control) 0 0 var(--r-control); color: #333336; background: #fafafc; font-size: .78rem; }
 .url-block .copy-url { flex: 0 0 auto; border-radius: 0 var(--r-control) var(--r-control) 0; }
@@ -413,5 +416,5 @@ footer .footer-legal { display: block; min-height: 0; padding-block: 14px; borde
   .nav-item[aria-current="page"] { border-block-end: 3px solid CanvasText; }
   .nav-item[aria-current="page"]::after { display: none; }
   /* these buttons are a coloured fill with no border; without the fill they would read as plain text */
-  .contact-submit, #mc-copy, .guide-notice button, .copy-url, .skip-link { border: 1px solid ButtonText; }
+  .contact-submit, #mc-copy, .guide-notice button, .guide-note button, .copy-url, .skip-link { border: 1px solid ButtonText; }
 }

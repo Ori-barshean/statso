@@ -9,7 +9,7 @@
   const guides = [
     {id: 'excel', title: 'שאיבת נתונים מ-statso לתוך Excel', description: 'כך מייבאים ריבית או מדד לאקסל, עם הוראות מותאמות למחשב ולשיטת העבודה.'},
     {id: 'cpi-terms', title: 'מדד בגין מול מדד ידוע — ומה המדד בכלל מודד', description: 'ההבדל בין שני המדדים, מתי הלמ״ס מפרסמת, ומה נכלל בסל.'},
-    {id: 'live-pull', soon: true, title: 'שליפת נתונים חיה — בקרוב', description: 'מדריך לשליפה אוטומטית של נתוני statso לכלים נוספים. בהכנה.'}
+    {id: 'live-pull', title: 'רענון אוטומטי של הנתונים ב-Excel', description: 'אחרי שאיבת הנתונים עם Power Query: כך מגדירים שהקובץ יתרענן בפתיחה או כל כמה דקות, וימשיך להוסיף ריבית ומדד חדשים.'}
   ];
   const state = {platform: 'mac', method: 'power', dataset: 'boi'};
 
@@ -167,20 +167,13 @@
     else { visual = Statso.guideArt.render(source.art, {lang: lang, platform: state.platform, url: source.url || URLS.boi.csv, dataset: 'boi', step: stepNumber}); }
     return oneArtSlot(visual, lang, place);
   }
-  // A Hebrew reader may be running Excel in either language, so both screenshots
-  // earn their place, except in the real-screenshot Power Query guides (Mac and
-  // Windows) where the Hebrew photos stand alone. An English reader has no use
-  // for the Hebrew Excel UI.
+  // Each site shows Excel in its own language only. The Hebrew site shows Hebrew Excel in every guide: the real
+  // photos where a step has them (one figure per photo), otherwise the drawn Hebrew illustration. The English site
+  // shows the English illustration.
   function artSlots(step, number) {
     const site = Statso.i18n ? Statso.i18n.current() : 'he';
     if (site === 'en') { return artSlot(step, 'en', number); }
-    if (realShotGuide()) { return artSlot(step, 'he', number); }
-    return artSlot(step, 'he', number) + artSlot(step, 'en', number);
-  }
-
-  function realShotGuide() {
-    const site = Statso.i18n ? Statso.i18n.current() : 'he';
-    return site === 'he' && state.method === 'power' && (state.platform === 'mac' || state.platform === 'win');
+    return artSlot(step, 'he', number);
   }
   function stepHasArt(step) {
     if (step.art) { return true; }
@@ -206,25 +199,61 @@
     return '<div class="guide-mcode-cta"><p>' + stepProse(explanation) + '</p></div>';
   }
 
+  function guideTitle(id) { return guides.find(function (guide) { return guide.id === id; }).title; }
+  function inlineParts(parts) {
+    return parts.map(function (part, i) {
+      let html;
+      if (typeof part === 'string') { html = stepProse(part); }
+      else if (part.code) { html = '<code dir="ltr" lang="en">' + Statso.core.escapeHtml(part.code) + '</code>'; }
+      else if (part.mcode) { html = mcodeLink(); }
+      else { html = '<a href="#/guides/' + part.guide + '">' + guideTitle(part.guide) + '</a>'; }
+      const glued = i === 0 || (typeof part === 'string' && /^[.,]/.test(part));
+      return (glued ? '' : ' ') + html;
+    }).join('');
+  }
+  function powerNote() {
+    return '<div class="guide-note"><p><strong>' + stepProse('למה Power Query?') + '</strong></p><p>' +
+      stepProse('Power Query היא השיטה היחידה כאן שאפשר להגדיר בה רענון אוטומטי: הקובץ יכול להתרענן בכל פתיחה או כל כמה דקות, וריבית או מדד חדשים נכנסים לטבלה בלי להוריד שוב כלום. זה עובד כשההרשאות מאפשרות זאת — אקסל צריך חיבור לאינטרנט, וחיבורי נתונים חיצוניים לא יכולים להיות חסומים (למשל במדיניות ארגונית או בקובץ שנפתח בתצוגה מוגנת).') + '</p><p>' +
+      inlineParts(['בהורדה ידנית של CSV ובנוסחת WEBSERVICE אין הגדרה כזו. להגדרת הרענון האוטומטי:', {guide: 'live-pull'}, '.']) + '</p></div>';
+  }
+  const POWER_HINTS = {
+    manual: 'בהורדה ידנית הנתונים קפואים ברגע ההורדה ואינם מתעדכנים. ב-Power Query אפשר להגדיר שאקסל ישאב אותם מחדש לבד, בכל פתיחה של הקובץ או כל כמה דקות, אם ההרשאות מאפשרות זאת.',
+    webservice: 'נוסחת WEBSERVICE אינה כוללת הגדרת רענון אוטומטי, ומתאימה רק לערך בודד. ב-Power Query אפשר לשאוב טבלה שלמה ולהגדיר שאקסל ירענן אותה לבד, בכל פתיחה של הקובץ או כל כמה דקות, אם ההרשאות מאפשרות זאת.'
+  };
+  function powerHint() {
+    const text = POWER_HINTS[state.method];
+    return text ? '<div class="guide-note"><p>' + stepProse(text) + '</p><button type="button" class="choose-power">מעבר ל-Power Query</button></div>' : '';
+  }
+  function attachChoosePower() {
+    const button = document.querySelector('.choose-power');
+    if (!button) { return; }
+    button.addEventListener('click', function () {
+      state.method = 'power'; renderGuide(currentGuide);
+      // the engine's observer translates only after this task ends: translate the rebuilt steps now, so the heading that takes focus is read in the site's language
+      const detail = document.getElementById('guide-detail');
+      if (detail && Statso.i18n && Statso.i18n.apply) { Statso.i18n.apply(detail); }
+      // the button that held focus is gone after the rebuild: hand focus to the first step
+      const first = document.querySelector('.guide-steps-host h2');
+      if (first) { first.setAttribute('tabindex', '-1'); first.focus({preventScroll: true}); }
+    });
+  }
+
   function renderSteps() {
     const target = document.querySelector('.guide-steps-host');
     if (state.platform === 'mac' && state.method === 'webservice') {
       target.innerHTML = '<div class="guide-notice" role="status"><h2>WEBSERVICE אינה זמינה ב-Excel for Mac</h2><p>אין צעדים להצגה עבור שילוב זה. אפשר לייבא את הנתונים באמצעות Power Query.</p><button type="button" class="choose-power">מעבר ל-Power Query</button></div>';
-      document.querySelector('.choose-power').addEventListener('click', function () {
-        state.method = 'power'; renderGuide(currentGuide);
-        // the button that held focus is gone after the rebuild: hand focus to the first step
-        const first = document.querySelector('.guide-steps-host h2');
-        if (first) { first.setAttribute('tabindex', '-1'); first.focus({preventScroll: true}); }
-      });
+      attachChoosePower();
       return;
     }
     const steps = getSteps(state.platform, state.method);
-    const artClass = realShotGuide() ? 'step-art step-art-single' : 'step-art';
-    target.innerHTML = '<ol class="guide-steps">' + steps.map(function (step, index) {
+    // The Hebrew site shows one column of illustrations (Windows Power Query step 5 stacks two photos), so it uses the single 560px column; English keeps its grid.
+    const site = Statso.i18n ? Statso.i18n.current() : 'he';
+    const artClass = site === 'en' ? 'step-art' : 'step-art step-art-single';
+    target.innerHTML = powerHint() + '<ol class="guide-steps">' + steps.map(function (step, index) {
       const number = index + 1;
       return '<li><div class="step-copy"><h2>שלב ' + number + '</h2><p>' + stepProse(step.text) + (step.mcodeLink ? ' ' + mcodeLink() + stepProse(step.textAfterLink) : '') + '</p>' + (step.formula ? '<p><code dir="ltr">=WEBSERVICE(&quot;&lt;JSON URL&gt;&quot;)</code></p>' : '') + (step.url ? urlBlock(step.url) : '') + (step.code ? (step.mcodeCta ? mcodeExample() : '') + codeBlock(step.code) + (step.mcodeCta ? mcodeCta() : '') : '') + '</div>' + (stepHasArt(step) ? '<div class="' + artClass + '">' + artSlots(step, number) + '</div>' : '') + '</li>';
     }).join('') + '</ol>';
-    attachCopyButtons();
+    attachChoosePower(); attachCopyButtons();
   }
   // The steps change below the choice the visitor just made, away from the screen reader's cursor.
   function announceSteps() {
@@ -234,11 +263,60 @@
   }
   function renderExcelGuide() {
     document.getElementById('guide-detail').setAttribute('aria-labelledby', 'excel-guide-title');
-    document.getElementById('guide-content').innerHTML = '<header class="guide-header"><p class="eyebrow">מדריך אינטראקטיבי</p><h1 id="excel-guide-title">שאיבת נתונים מ-statso לתוך Excel</h1><p>בחרו את סביבת העבודה ושיטת הייבוא, והשלבים יתעדכנו מיד.</p></header><form class="guide-selectors">' +
+    document.getElementById('guide-content').innerHTML = '<header class="guide-header"><p class="eyebrow">מדריך אינטראקטיבי</p><h1 id="excel-guide-title">שאיבת נתונים מ-statso לתוך Excel</h1><p>בחרו את סביבת העבודה ושיטת הייבוא, והשלבים יתעדכנו מיד.</p></header>' + powerNote() + '<form class="guide-selectors">' +
       selector('platform', 'מערכת הפעלה', [['mac','מק (macOS)'],['win','ווינדוס (Windows)']]) +
       selector('method', 'שיטה', [['power','Power Query (מומלץ)'],['manual','הורדה ידנית של CSV'],['webservice','נוסחת WEBSERVICE']]) + '</form><div class="guide-steps-host"></div>';
     document.querySelectorAll('.guide-selectors input').forEach(function (radio) { radio.addEventListener('change', function () { state[radio.name.replace('guide-', '')] = radio.value; renderSteps(); announceSteps(); }); });
     renderSteps();
+  }
+  const LIVE_PULL = {
+    eyebrow: 'מדריך המשך',
+    lead: 'אחרי ששאבתם נתונים עם Power Query, אפשר להגדיר שהקובץ יתעדכן לבד וימשיך להוסיף ריבית ומדד חדשים.',
+    before: ['זה המשך של המדריך', {guide: 'excel'}, '. קודם שואבים את הנתונים עם Power Query כמתואר שם, ורק אחר כך מגדירים כאן רענון. ההגדרות כאן אינן חלות על הורדה ידנית של CSV או על נוסחת WEBSERVICE.'],
+    steps: [
+      {title: 'שלב 1: בוחרים תאריך סיום רחוק', blocks: [
+        {p: ['בעמוד', {mcode: true}, 'בוחרים תאריך סיום, והקוד שהעמוד מפיק מסנן את הנתונים עד התאריך הזה. ברירת המחדל היא היום, ולכן נתון חדש שהתאריך שלו (במדד: החודש שלו) מאוחר מתאריך הסיום לא ייכנס לטבלה, גם אחרי רענון.']},
+        {p: ['כדי שהטבלה תמשיך לגדול, בוחרים תאריך סיום רחוק, למשל 31.12.2099, ומעתיקים את הקוד. לא מסמנים ״להוסיף שורת ממוצע בסוף הטבלה״, כדי שהשורה האחרונה בטבלה תהיה תמיד הנתון האחרון.']},
+        {p: ['אם כבר הדבקתם קוד בקובץ: בעורך Power Query פותחים ״עורך מתקדם״ (Advanced Editor) ומחליפים את תאריך הסיום בשורות הראשונות של הקוד, מתחת ל-let:']},
+        {ul: [['בקוד של המדד: השורה', {code: 'ToMonth'}, ', למשל', {code: 'ToMonth = "2099-12"'}], ['בקוד של הריבית ושל שערי החליפין: השורה', {code: 'To'}, ', למשל', {code: 'To = #date(2099, 12, 31)'}]]}
+      ]},
+      {title: 'שלב 2: פותחים את מאפייני השאילתה', blocks: [
+        {ol: ['בלשונית ״נתונים״ (Data) לוחצים על ״שאילתות & חיבורים״ (Queries & Connections). חלונית נפתחת בצד הגיליון.', 'לוחצים לחיצה ימנית על שם השאילתה ובוחרים ״מאפיינים״ (Properties).', 'נפתח החלון ״מאפייני שאילתה״ (Query Properties). בלשונית ״שימוש״ (Usage), בקבוצה ״בקרת רענון״ (Refresh control), נמצאות האפשרויות של השלב הבא.']},
+        {p: ['ב-Excel למק לא בדקנו את החלון הזה: ייתכן שחלק מהאפשרויות חסרות בו או נראות אחרת. אם אינן מופיעות אצלכם, ממשיכים לרענן ידנית באמצעות ״רענן את הכל״ (Refresh All).']}
+      ]},
+      {title: 'שלב 3: בוחרים מתי להתרענן', blocks: [
+        {p: ['בקבוצה ״בקרת רענון״ מסמנים את מה שמתאים לכם:']},
+        {ul: ['״רענון נתונים בעת פתיחת הקובץ״ (Refresh data when opening the file): אקסל שואב נתונים חדשים בכל פעם שפותחים את הקובץ. זו הבחירה הנוחה לרוב המשתמשים.', '״רענן כל n דקות״ (Refresh every n minutes): אקסל שואב מחדש כל כמה דקות, אבל רק כל עוד הקובץ פתוח. מתאים לקובץ שנשאר פתוח כל היום. הנתונים באתר מתעדכנים פעם בלילה, ולכן אין צורך במרווח קצר; 60 דקות ומעלה מספיקים.', '״הפיכת רענון רקע לזמין״ (Enable background refresh): מאפשר להמשיך לעבוד באקסל בזמן הרענון. אפשר להשאיר מסומן.']},
+        {p: ['לוחצים ״אישור״ (OK) ושומרים את הקובץ.']}
+      ]},
+      {title: 'שלב 4: מאשרים לאקסל להתחבר כשהקובץ נפתח', blocks: [
+        {p: ['אקסל חוסם חיבורי נתונים חיצוניים בקבצים שאינו סומך עליהם, למשל קבצים שהורדו מהאינטרנט או נשלחו במייל, ובלי אישור הרענון בפתיחה לא יתבצע.']},
+        {ul: ['אם מופיע פס ״תצוגה מוגנת״ (Protected View), לוחצים ״אפשר עריכה״ (Enable Editing).', 'אם מופיע פס אזהרה על חיבורי נתונים חיצוניים, לוחצים ״הפעל תוכן״ (Enable Content).', 'אם הארגון שלכם חוסם חיבורי נתונים חיצוניים, ההגדרה לא תעבוד, ויש לפנות למנהל המערכת.']}
+      ]},
+      {title: 'שלב 5: בודקים שהרענון עובד', blocks: [
+        {ol: ['סוגרים את הקובץ ופותחים אותו שוב (אם בחרתם רענון בפתיחה).', 'ממתינים כמה שניות עד שהרענון מסתיים.', 'בודקים את השורה האחרונה בטבלה: בריבית זה השינוי האחרון בריבית, ובמדד זה החודש האחרון שפורסם.']}
+      ]},
+      {title: 'שלב 6: מה קורה כשמתווסף נתון חדש', blocks: [
+        {p: ['כשהאתר מוסיף נתון חדש, הרענון הבא מוסיף אותו בסוף הטבלה, והטבלה מתארכת מעצמה. הנתונים באתר מתעדכנים כל לילה ב-02:00 שעון ישראל, אבל נתון חדש מגיע אליהם רק אחרי שהלמ״ס או בנק ישראל פרסמו אותו, ולכן אין טעם לרענן בתדירות גבוהה מפעם ביום.']},
+        {ul: ['נוסחאות שמפנות לטבלה לפי שם העמודה (Structured References), ותרשימים שמבוססים על הטבלה, כוללים את השורות החדשות אוטומטית. טווח תאים קבוע לא יכלול אותן.', 'לא שמים נתונים או חישובים ישירות מתחת לטבלה: שם היא תמשיך להתארך.', 'אקסל מרענן רק כשהקובץ פתוח. אם הוא סגור, הנתונים החדשים ייכנסו בפעם הבאה שתפתחו אותו (אם בחרתם רענון בפתיחה).']}
+      ]}
+    ],
+    trouble: {title: 'אם משהו לא מתעדכן', items: ['הטבלה לא התארכה: בדקו שתאריך הסיום בקוד רחוק (שלב 1).', 'הרענון לא התחיל: ודאו שיש חיבור לאינטרנט ושאישרתם את הפסים בראש החוברת (שלב 4).', 'מופיעה הודעה על אישורים: בוחרים ״אנונימי״ (Anonymous), כמו בשלב החיבור במדריך הראשון.', 'הנתון החדש עדיין לא הגיע: ייתכן שהוא טרם פורסם, או שהאתר טרם התעדכן בלילה. נסו שוב למחרת.']}
+  };
+  function liveBlock(block) {
+    if (block.p) { return '<p>' + inlineParts(block.p) + '</p>'; }
+    const tag = block.ul ? 'ul' : 'ol';
+    return '<' + tag + ' class="guide-list">' + block[tag].map(function (item) {
+      return '<li>' + inlineParts([].concat(item)) + '</li>';
+    }).join('') + '</' + tag + '>';
+  }
+  function renderLivePullGuide() {
+    document.getElementById('guide-detail').setAttribute('aria-labelledby', 'live-pull-guide-title');
+    document.getElementById('guide-content').innerHTML = '<header class="guide-header"><p class="eyebrow">' + LIVE_PULL.eyebrow + '</p><h1 id="live-pull-guide-title">' + guideTitle('live-pull') + '</h1><p>' + stepProse(LIVE_PULL.lead) + '</p></header>' +
+      '<div class="guide-note"><p>' + inlineParts(LIVE_PULL.before) + '</p></div>' +
+      '<ol class="guide-steps">' + LIVE_PULL.steps.map(function (step) {
+        return '<li><div class="step-copy"><h2>' + step.title + '</h2>' + step.blocks.map(liveBlock).join('') + '</div></li>';
+      }).join('') + '</ol><div class="prose-guide"><section><h2>' + LIVE_PULL.trouble.title + '</h2>' + liveBlock({ul: LIVE_PULL.trouble.items}) + '</section></div>';
   }
   function formatCpiExample(doc) {
     if (!doc || !Array.isArray(doc.observations) || doc.observations.length < 2) { throw new Error('missing observations'); }
@@ -272,7 +350,7 @@
   let currentGuide = null;
   function renderGuide(guideId) {
     currentGuide = guideId;
-    if (guideId === 'cpi-terms') { renderCpiGuide(); } else { renderExcelGuide(); }
+    if (guideId === 'cpi-terms') { renderCpiGuide(); } else if (guideId === 'live-pull') { renderLivePullGuide(); } else { renderExcelGuide(); }
   }
   function showGuide(guideId, fromRoute) {
     const guide = guides.find(function (item) { return item.id === guideId; });
@@ -327,5 +405,5 @@
     });
   }
 
-  Statso.guides = {URLS: URLS, guides: guides, state: state, getSteps: getSteps, renderGuide: renderGuide, renderExcelGuide: renderExcelGuide, renderCpiGuide: renderCpiGuide, showGuide: showGuide, showIndex: showIndex};
+  Statso.guides = {URLS: URLS, guides: guides, state: state, getSteps: getSteps, renderGuide: renderGuide, renderExcelGuide: renderExcelGuide, renderCpiGuide: renderCpiGuide, renderLivePullGuide: renderLivePullGuide, showGuide: showGuide, showIndex: showIndex};
 })(window);

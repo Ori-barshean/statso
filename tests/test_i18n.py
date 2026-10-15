@@ -62,7 +62,7 @@ class DictionaryCoverageTests(unittest.TestCase):
                 texts = re.findall(r"error = '([^']+)'", source)
             for text in texts:
                 self.assertIn(text, keys)
-        for text in ('בחר מקור נתונים', 'שאילתה ריקה', 'טקסט/CSV', 'עורך מתקדם', 'קבע תצורה של חיבור', 'אישורים לא חוקיים או חסרים', 'סגור וטען', 'שליפת נתונים חיה — בקרוב'):
+        for text in ('בחר מקור נתונים', 'שאילתה ריקה', 'טקסט/CSV', 'עורך מתקדם', 'קבע תצורה של חיבור', 'אישורים לא חוקיים או חסרים', 'סגור וטען', 'רענון אוטומטי של הנתונים ב-Excel'):
             self.assertIn(text, keys)
         self.assertFalse(any('בוחרים Data ← Get Data ← From Web' in key or '״From Web״ קיים' in key for key in keys))
 
@@ -79,6 +79,58 @@ class DictionaryCoverageTests(unittest.TestCase):
         self.assertEqual(len(literals), 2)
         for text in literals:
             self.assertIn(text, keys)
+
+    def test_guides_render_without_hebrew_in_english(self):
+        import json
+        import subprocess
+        script = r'''
+global.window = {scrollTo() {}};
+const els = {}, callbacks = [];
+function element() { return {nodeType: 9, hidden: false, innerHTML: '', setAttribute() {}, addEventListener() {}}; }
+const host = element();
+global.document = {documentElement: {setAttribute() {}}, body: {nodeType: 9},
+  addEventListener(event, fn) { callbacks.push(fn); },
+  getElementById: id => els[id] || (els[id] = element()),
+  querySelector: selector => selector === '.guide-steps-host' ? host : null,
+  querySelectorAll: () => []};
+'''
+        script += '\n'.join('require(' + json.dumps(str(ROOT / 'assets' / name)) + ');' for name in
+                            ('statso-lang-en.js', 'statso-i18n.js', 'statso-core.js',
+                             'statso-guide-art.js', 'statso-mcode.js', 'statso-guides.js'))
+        script += r'''
+const S = window.Statso;
+S.i18n.set('en');
+callbacks[callbacks.length - 1]();
+const pages = {cards: els['guide-cards'].innerHTML};
+for (const platform of ['mac', 'win']) for (const method of ['power', 'manual', 'webservice']) {
+  Object.assign(S.guides.state, {platform, method}); S.guides.renderExcelGuide();
+  pages[platform + '/' + method] = els['guide-content'].innerHTML + host.innerHTML;
+}
+S.guides.showGuide('live-pull', true); pages.live = els['guide-content'].innerHTML;
+const entities = {amp: '&', quot: '"', apos: "'", lt: '<', gt: '>', nbsp: '\u00a0'};
+function decode(text) {
+  return text.replace(/&(#x[0-9a-f]+|#\d+|amp|quot|apos|lt|gt|nbsp);/gi, (all, value) =>
+    value[0] === '#' ? String.fromCodePoint(value[1].toLowerCase() === 'x' ?
+      parseInt(value.slice(2), 16) : parseInt(value.slice(1), 10)) : entities[value]);
+}
+const chunks = {};
+for (const [name, markup] of Object.entries(pages)) {
+  const text = markup.split(/<[^>]+>/);
+  const attrs = Array.from(markup.matchAll(/\b(?:aria-label|alt|title|placeholder)="([^"]*)"/g), m => m[1]);
+  chunks[name] = text.concat(attrs).map(decode).filter(s => /[֐-׿]/.test(s)).map(s => [s, S.i18n.t(s)]);
+}
+const title = /<h1 id="live-pull-guide-title">([^<]+)<\/h1>/.exec(pages.live)[1];
+process.stdout.write(JSON.stringify({chunks, title: S.i18n.t(decode(title))}));
+'''
+        out = json.loads(subprocess.run(['node', '-e', script], check=True,
+                                        capture_output=True, text=True).stdout)
+        self.assertEqual(len(out['chunks']), 8)
+        for page, chunks in out['chunks'].items():
+            self.assertTrue(chunks, page)
+            for source, translated in chunks:
+                with self.subTest(page=page, source=source):
+                    self.assertNotRegex(translated, HEBREW)
+        self.assertEqual(out['title'], 'Automatic data refresh in Excel')
 
 
 class EngineTests(unittest.TestCase):
@@ -123,16 +175,20 @@ class EngineTests(unittest.TestCase):
         export = (ROOT / "assets/statso-export.js").read_text(encoding="utf-8")
         self.assertLess(export.index("Statso.i18n.apply(container)"), export.index("root.print();"))
 
-    def test_guides_show_one_screenshot_in_english(self):
+    def test_guides_show_only_the_site_language_excel(self):
         guides = (ROOT / "assets/statso-guides.js").read_text(encoding="utf-8")
         self.assertIn("function artSlots(step, number)", guides)
         block = guides.split("function artSlots(step, number)")[1].split("function renderSteps()")[0]
         self.assertIn("if (site === 'en') { return artSlot(step, 'en', number); }", block)
-        self.assertIn("artSlot(step, 'he', number) + artSlot(step, 'en', number)", block)
-        # the step markup must go through the chooser, never call both directly
+        self.assertIn("return artSlot(step, 'he', number);", block)
+        # neither site draws the other language's Excel: no he+en pair, no per-guide exception
+        self.assertNotIn("artSlot(step, 'he', number) + artSlot(step, 'en', number)", guides)
+        self.assertNotIn("realShotGuide", guides)
+        # the step markup must go through the chooser, never call either language directly
         steps = guides.split("function renderSteps()")[1]
         self.assertIn("artSlots(step, number)", steps)
         self.assertNotIn("artSlot(step, 'he'", steps)
+        self.assertNotIn("artSlot(step, 'en'", steps)
 
     def test_an_open_guide_is_rebuilt_when_the_language_changes(self):
         guides = (ROOT / "assets/statso-guides.js").read_text(encoding="utf-8")

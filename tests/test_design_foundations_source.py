@@ -22,7 +22,7 @@ PALETTE = {
 TIERS = {
     "control": (
         ".nav-item", "input, select, textarea", ".nav-submenu a", ".lang-button",
-        ".lang-choice", ".btn-ghost", ".guide-notice button, .copy-url",
+        ".lang-choice", ".btn-ghost", ".guide-notice button, .guide-note button, .copy-url",
         ".guide-mcode-button", ".contact-submit", ".skip-link", ".code-block pre", "#mc-copy",
     ),
     "group": (
@@ -224,7 +224,7 @@ class DesignFoundationsSourceTests(unittest.TestCase):
             (".lang-menu", ".lang-choice"),
             (".guide-selectors fieldset", "input, select, textarea"),
             (".mcode-form fieldset", "input, select, textarea"),
-            (".guide-note, .guide-notice", ".guide-notice button, .copy-url"),
+            (".guide-note, .guide-notice", ".guide-notice button, .guide-note button, .copy-url"),
             (".guide-steps > li", ".step-art figure"),
             (".guide-steps > li", ".url-block code"),
             (".guide-steps > li", ".url-block .copy-url"),

@@ -210,15 +210,21 @@ global.document = {addEventListener() {},
         self.assertTrue(out['fallback'])
 
     def test_placeholder_is_noninteractive(self):
-        html = node('''
+        seen = node('''
 callbacks[0]();
-process.stdout.write(JSON.stringify(els['guide-cards'].innerHTML));
+const real = els['guide-cards'].innerHTML;
+S.guides.guides.push({id: 'future-guide', soon: true, title: 'מדריך עתידי — בקרוב', description: 'בהכנה.'});
+callbacks[0]();
+process.stdout.write(JSON.stringify({real, stub: els['guide-cards'].innerHTML}));
 ''', setup='''
 const callbacks = [], els = {};
 global.document = {addEventListener(event, fn) { callbacks.push(fn); },
  getElementById(id) { return els[id] || (els[id] = {innerHTML: '', addEventListener() {}}); }, querySelectorAll() { return []; }};
 ''', modules=MODULES[:3])
-        card = re.search(r'<div class="guide-card guide-card-soon".*?</div>', html).group()
+        self.assertNotIn('guide-card-soon', seen['real'])
+        self.assertIn('<a class="guide-card" href="#/guides/live-pull">', seen['real'])
+        self.assertNotIn('href="#/guides/future-guide"', seen['stub'])
+        card = re.search(r'<div class="guide-card guide-card-soon".*?</div>', seen['stub']).group()
         # plain content that says "soon" in words, not a control dressed as disabled (axe skips aria-disabled)
         self.assertNotIn('aria-disabled', card)
         self.assertNotIn('<a', card)

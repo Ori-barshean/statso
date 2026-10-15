@@ -31,8 +31,6 @@
     'אקסל למק בעברית: חלון ״בחר מקור נתונים״ (Choose data source) והכרטיס הנבחר ״שאילתה ריקה״ (Blank Query).': 'Excel for Mac in Hebrew: Choose data source and the selected Blank Query card.',
     'אקסל למק בעברית: הודעת האישורים והכפתור ״קבע תצורה של חיבור״.': 'Excel for Mac in Hebrew: the credentials warning and Configure connection button.',
     'אקסל למק בעברית: הטבלה בעורך Power Query והכפתור ״סגור וטען״.': 'Excel for Mac in Hebrew: the table in Power Query and the Close & Load button.',
-    'שליפת נתונים חיה — בקרוב': 'Live data pull — coming soon',
-    'מדריך לשליפה אוטומטית של נתוני statso לכלים נוספים. בהכנה.': 'A guide to automatically pulling statso data into other tools. In preparation.',
     'בחר מקור נתונים': 'Choose data source',
     'שאילתה ריקה': 'Blank Query',
     'טקסט/CSV': 'Text/CSV',
@@ -565,6 +563,16 @@
     'דוגמה מהנתונים העדכניים': 'An example from the current data',
     'לא ניתן להציג דוגמה מהנתונים כרגע': 'No example can be shown from the data right now',
     'מעבר ל-Power Query': 'Switch to Power Query',
+    'למה Power Query?':
+      'Why Power Query?',
+    'Power Query היא השיטה היחידה כאן שאפשר להגדיר בה רענון אוטומטי: הקובץ יכול להתרענן בכל פתיחה או כל כמה דקות, וריבית או מדד חדשים נכנסים לטבלה בלי להוריד שוב כלום. זה עובד כשההרשאות מאפשרות זאת — אקסל צריך חיבור לאינטרנט, וחיבורי נתונים חיצוניים לא יכולים להיות חסומים (למשל במדיניות ארגונית או בקובץ שנפתח בתצוגה מוגנת).':
+      'Power Query is the only method here where you can set up automatic refresh: the file can refresh every time it opens or every few minutes, and a new rate or index reading enters the table without downloading anything again. This works when the permissions allow it — Excel needs an internet connection, and external data connections must not be blocked (for example by an organization\'s policy, or in a file opened in Protected View).',
+    'בהורדה ידנית הנתונים קפואים ברגע ההורדה ואינם מתעדכנים. ב-Power Query אפשר להגדיר שאקסל ישאב אותם מחדש לבד, בכל פתיחה של הקובץ או כל כמה דקות, אם ההרשאות מאפשרות זאת.':
+      'A manual download freezes the data at the moment you download it, and it never updates. With Power Query you can set Excel to pull it again on its own, every time the file opens or every few minutes, if the permissions allow it.',
+    'נוסחת WEBSERVICE אינה כוללת הגדרת רענון אוטומטי, ומתאימה רק לערך בודד. ב-Power Query אפשר לשאוב טבלה שלמה ולהגדיר שאקסל ירענן אותה לבד, בכל פתיחה של הקובץ או כל כמה דקות, אם ההרשאות מאפשרות זאת.':
+      'The WEBSERVICE formula has no automatic-refresh setting and suits a single value only. With Power Query you can pull a whole table and set Excel to refresh it on its own, every time the file opens or every few minutes, if the permissions allow it.',
+    'בהורדה ידנית של CSV ובנוסחת WEBSERVICE אין הגדרה כזו. להגדרת הרענון האוטומטי:':
+      'A manual CSV download and the WEBSERVICE formula have no such setting. To set up automatic refresh:',
     // spoken descriptions of the drawn Excel pictures in the guides
     'ציר זמן: במהלך חודש X המדד הידוע הוא מדד X-1, ומדד בגין חודש X מתפרסם ב-15 בחודש X+1.':
       'Timeline: during month X the known index is the index of month X-1, and the index for month X is published on the 15th of month X+1.',
@@ -602,7 +610,98 @@
     'העתק — קובץ ה-JSON של ריבית בנק ישראל': 'Copy — the Bank of Israel interest rate JSON file',
     'העתק — קובץ ה-CSV של מדד המחירים לצרכן': 'Copy — the Consumer Price Index CSV file',
     'העתק — קובץ ה-JSON של מדד המחירים לצרכן': 'Copy — the Consumer Price Index JSON file',
-    'העתק — קובץ ה-JSON של מועד החלטת הריבית הבאה': 'Copy — the JSON file with the date of the next interest rate decision'
+    'העתק — קובץ ה-JSON של מועד החלטת הריבית הבאה': 'Copy — the JSON file with the date of the next interest rate decision',
+
+    // --- follow-up guide: automatic refresh ---
+    'רענון אוטומטי של הנתונים ב-Excel':
+      'Automatic data refresh in Excel',
+    'אחרי שאיבת הנתונים עם Power Query: כך מגדירים שהקובץ יתרענן בפתיחה או כל כמה דקות, וימשיך להוסיף ריבית ומדד חדשים.':
+      'After pulling data with Power Query: how to set the file to refresh on opening or every few minutes and keep adding new rate and index readings.',
+    'מדריך המשך':
+      'Follow-up guide',
+    'אחרי ששאבתם נתונים עם Power Query, אפשר להגדיר שהקובץ יתעדכן לבד וימשיך להוסיף ריבית ומדד חדשים.':
+      'Once you have pulled data with Power Query, you can set the file to update itself and keep adding new rate and index readings.',
+    'שלב 1: בוחרים תאריך סיום רחוק':
+      'Step 1: Choose a far-off end date',
+    'כדי שהטבלה תמשיך לגדול, בוחרים תאריך סיום רחוק, למשל 31.12.2099, ומעתיקים את הקוד. לא מסמנים ״להוסיף שורת ממוצע בסוף הטבלה״, כדי שהשורה האחרונה בטבלה תהיה תמיד הנתון האחרון.':
+      'To keep the table growing, choose a far-off end date, for example 31.12.2099, and copy the code. Leave "Add an average row at the end of the table" unchecked, so the last row of the table is always the latest reading.',
+    'אם כבר הדבקתם קוד בקובץ: בעורך Power Query פותחים ״עורך מתקדם״ (Advanced Editor) ומחליפים את תאריך הסיום בשורות הראשונות של הקוד, מתחת ל-let:':
+      'If you already pasted code into the file: in the Power Query editor open "Advanced Editor" and replace the end date in the first lines of the code, below let:',
+    'שלב 2: פותחים את מאפייני השאילתה':
+      'Step 2: Open the query properties',
+    'בלשונית ״נתונים״ (Data) לוחצים על ״שאילתות & חיבורים״ (Queries & Connections). חלונית נפתחת בצד הגיליון.':
+      'In the "Data" tab, click "Queries & Connections". A pane opens beside the sheet.',
+    'לוחצים לחיצה ימנית על שם השאילתה ובוחרים ״מאפיינים״ (Properties).':
+      'Right-click the query name and choose "Properties".',
+    'נפתח החלון ״מאפייני שאילתה״ (Query Properties). בלשונית ״שימוש״ (Usage), בקבוצה ״בקרת רענון״ (Refresh control), נמצאות האפשרויות של השלב הבא.':
+      'The "Query Properties" window opens. In the "Usage" tab, in the "Refresh control" group, you will find the options for the next step.',
+    'ב-Excel למק לא בדקנו את החלון הזה: ייתכן שחלק מהאפשרויות חסרות בו או נראות אחרת. אם אינן מופיעות אצלכם, ממשיכים לרענן ידנית באמצעות ״רענן את הכל״ (Refresh All).':
+      'We have not tested this window in Excel for Mac: some options may be missing or look different. If they do not appear for you, keep refreshing manually with "Refresh All".',
+    'שלב 3: בוחרים מתי להתרענן':
+      'Step 3: Choose when to refresh',
+    'בקבוצה ״בקרת רענון״ מסמנים את מה שמתאים לכם:':
+      'In the "Refresh control" group, tick what suits you:',
+    '״רענון נתונים בעת פתיחת הקובץ״ (Refresh data when opening the file): אקסל שואב נתונים חדשים בכל פעם שפותחים את הקובץ. זו הבחירה הנוחה לרוב המשתמשים.':
+      '"Refresh data when opening the file": Excel pulls new data every time the file is opened. This is the convenient choice for most people.',
+    '״רענן כל n דקות״ (Refresh every n minutes): אקסל שואב מחדש כל כמה דקות, אבל רק כל עוד הקובץ פתוח. מתאים לקובץ שנשאר פתוח כל היום. הנתונים באתר מתעדכנים פעם בלילה, ולכן אין צורך במרווח קצר; 60 דקות ומעלה מספיקים.':
+      '"Refresh every n minutes": Excel pulls again every few minutes, but only while the file is open. It suits a file that stays open all day. The data on the site updates once a night, so a short interval is not needed; 60 minutes or more is enough.',
+    '״הפיכת רענון רקע לזמין״ (Enable background refresh): מאפשר להמשיך לעבוד באקסל בזמן הרענון. אפשר להשאיר מסומן.':
+      '"Enable background refresh": lets you keep working in Excel while it refreshes. You can leave it ticked.',
+    'לוחצים ״אישור״ (OK) ושומרים את הקובץ.':
+      'Click "OK" and save the file.',
+    'שלב 4: מאשרים לאקסל להתחבר כשהקובץ נפתח':
+      'Step 4: Let Excel connect when the file opens',
+    'אקסל חוסם חיבורי נתונים חיצוניים בקבצים שאינו סומך עליהם, למשל קבצים שהורדו מהאינטרנט או נשלחו במייל, ובלי אישור הרענון בפתיחה לא יתבצע.':
+      'Excel blocks external data connections in files it does not trust, for example files downloaded from the internet or received by email, and without your approval the refresh on opening will not happen.',
+    'אם מופיע פס ״תצוגה מוגנת״ (Protected View), לוחצים ״אפשר עריכה״ (Enable Editing).':
+      'If a "Protected View" bar appears, click "Enable Editing".',
+    'אם מופיע פס אזהרה על חיבורי נתונים חיצוניים, לוחצים ״הפעל תוכן״ (Enable Content).':
+      'If a warning bar about external data connections appears, click "Enable Content".',
+    'אם הארגון שלכם חוסם חיבורי נתונים חיצוניים, ההגדרה לא תעבוד, ויש לפנות למנהל המערכת.':
+      'If your organization blocks external data connections, the setting will not work, and you need to contact your system administrator.',
+    'שלב 5: בודקים שהרענון עובד':
+      'Step 5: Check that the refresh works',
+    'סוגרים את הקובץ ופותחים אותו שוב (אם בחרתם רענון בפתיחה).':
+      'Close the file and open it again (if you chose refresh on opening).',
+    'ממתינים כמה שניות עד שהרענון מסתיים.':
+      'Wait a few seconds for the refresh to finish.',
+    'בודקים את השורה האחרונה בטבלה: בריבית זה השינוי האחרון בריבית, ובמדד זה החודש האחרון שפורסם.':
+      'Check the last row of the table: for the interest rate it is the latest change in the rate, and for the index it is the latest month published.',
+    'שלב 6: מה קורה כשמתווסף נתון חדש':
+      'Step 6: What happens when a new reading is added',
+    'כשהאתר מוסיף נתון חדש, הרענון הבא מוסיף אותו בסוף הטבלה, והטבלה מתארכת מעצמה. הנתונים באתר מתעדכנים כל לילה ב-02:00 שעון ישראל, אבל נתון חדש מגיע אליהם רק אחרי שהלמ״ס או בנק ישראל פרסמו אותו, ולכן אין טעם לרענן בתדירות גבוהה מפעם ביום.':
+      'When the site adds a new reading, the next refresh adds it at the end of the table, and the table grows by itself. The data on the site updates every night at 02:00 Israel time, but a new reading reaches it only after the CBS or the Bank of Israel has published it, so there is no point refreshing more than once a day.',
+    'נוסחאות שמפנות לטבלה לפי שם העמודה (Structured References), ותרשימים שמבוססים על הטבלה, כוללים את השורות החדשות אוטומטית. טווח תאים קבוע לא יכלול אותן.':
+      'Formulas that refer to the table by column name (Structured References), and charts based on the table, include the new rows automatically. A fixed cell range will not include them.',
+    'לא שמים נתונים או חישובים ישירות מתחת לטבלה: שם היא תמשיך להתארך.':
+      'Do not put data or calculations directly below the table: it keeps growing there.',
+    'אקסל מרענן רק כשהקובץ פתוח. אם הוא סגור, הנתונים החדשים ייכנסו בפעם הבאה שתפתחו אותו (אם בחרתם רענון בפתיחה).':
+      'Excel refreshes only while the file is open. If it is closed, the new data enters the next time you open it (if you chose refresh on opening).',
+    'אם משהו לא מתעדכן':
+      'If something does not update',
+    'הטבלה לא התארכה: בדקו שתאריך הסיום בקוד רחוק (שלב 1).':
+      'The table did not grow: check that the end date in the code is far off (step 1).',
+    'הרענון לא התחיל: ודאו שיש חיבור לאינטרנט ושאישרתם את הפסים בראש החוברת (שלב 4).':
+      'The refresh did not start: make sure you have an internet connection and that you approved the bars at the top of the workbook (step 4).',
+    'מופיעה הודעה על אישורים: בוחרים ״אנונימי״ (Anonymous), כמו בשלב החיבור במדריך הראשון.':
+      'A message about credentials appears: choose "Anonymous", as in the connection step of the first guide.',
+    'הנתון החדש עדיין לא הגיע: ייתכן שהוא טרם פורסם, או שהאתר טרם התעדכן בלילה. נסו שוב למחרת.':
+      'The new reading has not arrived yet: it may not have been published yet, or the site may not have updated overnight yet. Try again the next day.',
+    'זה המשך של המדריך':
+      'This continues the guide',
+    '. קודם שואבים את הנתונים עם Power Query כמתואר שם, ורק אחר כך מגדירים כאן רענון. ההגדרות כאן אינן חלות על הורדה ידנית של CSV או על נוסחת WEBSERVICE.':
+      '. First pull the data with Power Query as described there, then set up refresh here. These settings do not apply to a manual CSV download or to the WEBSERVICE formula.',
+    'בעמוד':
+      'On the',
+    'בוחרים תאריך סיום, והקוד שהעמוד מפיק מסנן את הנתונים עד התאריך הזה. ברירת המחדל היא היום, ולכן נתון חדש שהתאריך שלו (במדד: החודש שלו) מאוחר מתאריך הסיום לא ייכנס לטבלה, גם אחרי רענון.':
+      'page you choose an end date, and the code the page produces filters the data up to that date. The default is today, so a new reading whose date (for the index: its month) is later than the end date does not enter the table, even after a refresh.',
+    'בקוד של המדד: השורה':
+      'In the index code: the line',
+    ', למשל':
+      ', for example',
+    'בקוד של הריבית ושל שערי החליפין: השורה':
+      'In the interest-rate and exchange-rate code: the line',
+
   };
 
   function currencyName(name) { return en[name] !== undefined ? en[name] : name; }

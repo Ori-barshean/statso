@@ -48,14 +48,14 @@ window.location = {hash: '#/guides'};
 window.scrollTo = () => {};
 window.requestAnimationFrame = fn => fn();
 window.Statso = {guides: {
- guides: [{id: 'excel'}, {id: 'cpi-terms'}, {id: 'live-pull', soon: true}],
+ guides: [{id: 'excel'}, {id: 'cpi-terms'}, {id: 'live-pull'}, {id: 'future-guide', soon: true}],
  showIndex(fromRoute) { calls.push(['index', fromRoute]); headingText = 'Guides'; },
  showGuide(id, fromRoute) { calls.push(['guide', id, fromRoute]);
   if (id !== 'excel') { return false; } headingText = 'Excel'; return true; }
 }};
 ''', ['statso-nav.js'], '''
 const views = [];
-for (const hash of ['#/guides', '#/guides/excel', '#/guides', '#/guides/nope', '#/guides/live-pull']) {
+for (const hash of ['#/guides', '#/guides/excel', '#/guides', '#/guides/nope', '#/guides/future-guide']) {
  window.location.hash = hash; window.Statso.nav.route();
  views.push({dashboardHidden: els['dashboard-view'].hidden, guidesHidden: els['guides-view'].hidden,
   infoHidden: els['info-view'].hidden,
@@ -91,12 +91,13 @@ global.document = {addEventListener(event, fn) { callbacks.push(fn); },
 window.scrollTo = () => { scrolls++; };
 ''', ['statso-core.js', 'statso-guide-art.js', 'statso-guides.js'], '''
 const G = window.Statso.guides;
+G.guides.push({id: 'future-guide', soon: true, title: 'מדריך עתידי — בקרוב', description: 'בהכנה.'});
 window.Statso.nav = {focusView() { focuses++; }};
 callbacks[0]();
 document.getElementById('guides-index').hidden = false;
 document.getElementById('guide-detail').hidden = true;
 const before = JSON.stringify(els);
-const invalid = [G.showGuide('nope', true), G.showGuide('live-pull', true)];
+const invalid = [G.showGuide('nope', true), G.showGuide('future-guide', true)];
 const unchanged = before === JSON.stringify(els), invalidScrolls = scrolls;
 const opened = G.showGuide('excel', true);
 const detail = {indexHidden: els['guides-index'].hidden, hidden: els['guide-detail'].hidden,
@@ -104,12 +105,15 @@ const detail = {indexHidden: els['guides-index'].hidden, hidden: els['guide-deta
 G.showIndex(true);
 const returned = {indexHidden: els['guides-index'].hidden, hidden: els['guide-detail'].hidden, focuses};
 G.showGuide('cpi-terms');
+const live = G.showGuide('live-pull', true), liveContent = els['guide-content'].innerHTML;
 process.stdout.write(JSON.stringify({cards: els['guide-cards'].innerHTML,
- invalid, unchanged, invalidScrolls, opened, detail, returned, focuses}));
+ invalid, unchanged, invalidScrolls, opened, detail, returned, focuses, live, liveContent}));
 ''')
-        for guide in ('excel', 'cpi-terms'):
+        for guide in ('excel', 'cpi-terms', 'live-pull'):
             self.assertIn('<a class="guide-card" href="#/guides/' + guide + '">', seen['cards'])
-        self.assertNotIn('href="#/guides/live-pull"', seen['cards'])
+        self.assertNotIn('href="#/guides/future-guide"', seen['cards'])
+        self.assertTrue(seen['live'])
+        self.assertIn('id="live-pull-guide-title"', seen['liveContent'])
         self.assertEqual(seen['invalid'], [False, False])
         self.assertTrue(seen['unchanged'])
         self.assertEqual(seen['invalidScrolls'], 0)
@@ -133,14 +137,16 @@ global.document = {addEventListener(event, fn) { callbacks.push(fn); },
 window.scrollTo = () => { scrolls++; };
 ''', ['statso-core.js', 'statso-guide-art.js', 'statso-guides.js'], '''
 const G = window.Statso.guides, calls = [];
+G.guides.push({id: 'future-guide', soon: true});
 window.Statso.i18n = {current: () => 'en', onChange() {}, apply(target) {
   calls.push(['apply', target === els['guide-detail'], !target.hidden,
     els['guide-content'].innerHTML.indexOf('-guide-title"') > 0]); }};
 window.Statso.nav = {focusView() { calls.push(['focus']); }};
-G.showGuide('excel'); G.showGuide('cpi-terms', true); G.showGuide('live-pull');
+G.showGuide('excel'); G.showGuide('cpi-terms', true); G.showGuide('live-pull'); G.showGuide('future-guide');
 process.stdout.write(JSON.stringify(calls));
 ''')
-        self.assertEqual(seen, [['apply', True, True, True], ['focus'], ['apply', True, True, True]])
+        self.assertEqual(seen, [['apply', True, True, True], ['focus'], ['apply', True, True, True],
+                                ['apply', True, True, True], ['focus']])
 
     def test_information_pages_have_parallel_semantic_structure(self):
         for page in ('about', 'privacy', 'terms', 'accessibility'):

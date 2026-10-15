@@ -1381,15 +1381,17 @@ process.stdout.write(JSON.stringify({before, after, fallback: target.textContent
                      'controls sharing a name in the same context'):
             self.assertIn(text, en)
         self.assertNotRegex(en, r'[֐-׿]')
+        self.assertNotIn('כרטיס המדריך ״בקרוב״', he)
+        self.assertNotIn('"coming soon" guide card', en)
         # round 5: each new claim is backed by a class-level test (tests/test_a11y_round5_source.py) or a browser check
         for text in ('ואינו נחתך בקצה אזורי הגלילה', 'במצב צבעים כפויים, כפתורי הפעולה', 'מוצגים עם מסגרת',
-                     'סמלי הכרטיסים בעמוד הכלים', 'מוצגת ומוכרזת הודעה מעל כל עמוד שמציינת איזה מהם חסר', 'מסומן במסגרת מקווקוות ובטקסט ולא בעמעום',
+                     'סמלי הכרטיסים בעמוד הכלים', 'מוצגת ומוכרזת הודעה מעל כל עמוד שמציינת איזה מהם חסר',
                      'סריקת שמות הרכיבים בכל הנתיבים והמצבים', 'הדמיית מצב צבעים כפויים',
                      'חסימת טעינת קובצי הנתונים', 'כשמדד תשומות הבנייה חסר, הסדרה שלו חסרה בתרשים', 'רשימת הבדיקות חלקית', 'אין לראות בה אישור שכל הליקויים אותרו'):
             self.assertIn(text, he)
         for text in ('is not cut off at the edge of the scroll areas', 'in forced colors mode, the action buttons',
                      'drawn with a border', 'The symbols on the cards on the tools page',
-                     'a notice above every page says which of them is missing', 'dashed border and with text rather than by dimming',
+                     'a notice above every page says which of them is missing',
                      'scan of component names on every route and state',
                      'A simulation of forced colors mode', 'Blocking the data files from loading', 'when the construction-inputs index is missing, its series is left out of the chart',
                      'This list of tests is partial', 'should not be read as confirmation that every defect has been found'):
