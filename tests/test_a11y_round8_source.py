@@ -25,7 +25,7 @@ GUARD_TEXTS = [
     'חלק מהאתר לא נטען, ולכן ייתכן שחלק מהעמודים והכלים לא יפעלו. אפשר לרענן את הדף ולנסות שוב.',
     'Part of the site did not load, so some pages and tools may not work. You can refresh the page and try again.',
 ]
-STATEMENT_DATE = '2026-10-14'
+STATEMENT_DATE = '2026-10-15'
 STATEMENT_FINGERPRINT = 'b28ba15c7150238a052c7f987b83ecefc9a4923771c3ec77e0feeffc4314ca30'
 
 

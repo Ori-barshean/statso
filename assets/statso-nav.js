@@ -63,6 +63,36 @@
     trigger.setAttribute('aria-expanded', 'false');
   }
 
+  // The tools submenu hangs from the end edge of its trigger, so near a window edge it ran out of the page: at 320px the
+  // Hebrew menu crossed the right edge and the English one the left. Pure: the horizontal shift (px) that brings the menu's
+  // [left, right] inside [start + margin, end - margin]; when the menu is wider than that room (CSS caps it, so by a pixel
+  // or so at most) the left edge wins.
+  const SUBMENU_MARGIN = 8;
+  function submenuShift(left, right, start, end, margin) {
+    if (![left, right, start, end, margin].every(Number.isFinite) || right <= left || end <= start) { return 0; }
+    let shift = 0;
+    // rounded away from the edge being cleared, so a fractional rect never leaves less than the margin
+    if (right > end - margin) { shift = Math.floor(end - margin - right); }
+    if (left + shift < start + margin) { shift = Math.ceil(start + margin - left); }
+    return shift || 0;
+  }
+  // The page box is measured rather than assumed to start at 0: a scrollbar on the left (an RTL page in Firefox, or in a
+  // frame in Chrome) moves it. The rect is valid while the menu is closed too (visibility: hidden still lays it out); it
+  // already includes the shift last applied, which is taken off before measuring again.
+  let submenuOffset = 0;
+  function fitToolsMenu() {
+    const menu = document.getElementById('tools-submenu');
+    const html = document.documentElement;
+    if (!menu || typeof menu.getBoundingClientRect !== 'function' || !menu.style || typeof menu.style.setProperty !== 'function') { return; }
+    if (!html || typeof html.getBoundingClientRect !== 'function' || !(html.clientWidth > 0)) { return; }
+    const start = html.getBoundingClientRect().left + (Number(root.scrollX) || 0);
+    const rect = menu.getBoundingClientRect();
+    const shift = submenuShift(rect.left - submenuOffset, rect.right - submenuOffset, start, start + html.clientWidth, SUBMENU_MARGIN);
+    if (shift === submenuOffset) { return; }
+    submenuOffset = shift;
+    menu.style.setProperty('--submenu-shift', shift + 'px');
+  }
+
   function knownGuide(id) {
     if (!Statso.guides) { return true; }   // module missing: guides view as before; the script notice explains
     return (Statso.guides.guides || []).some(function (guide) { return guide.id === id && !guide.soon; });
@@ -131,6 +161,7 @@
     let refocusing = false;
     function open() {
       if (refocusing) { return; }
+      fitToolsMenu();
       group.removeAttribute('data-closed');
       group.setAttribute('data-open', 'true');
       trigger.setAttribute('aria-expanded', 'true');
@@ -172,10 +203,20 @@
     group.addEventListener('focusout', function (event) {
       if (!group.contains(event.relatedTarget)) { close(); }
     });
-    group.addEventListener('mouseenter', function () { group.removeAttribute('data-closed'); });
+    group.addEventListener('mouseenter', function () { group.removeAttribute('data-closed'); fitToolsMenu(); });
     document.addEventListener('click', function (event) {
       if (group.getAttribute('data-open') === 'true' && !group.contains(event.target)) { close(); }
     });
+    // Re-placed whenever the menu or the room for it can change: a resized window, the other language (new labels,
+    // the other direction), a new text size (ResizeObserver), and right before it opens (focus, click, hover).
+    if (typeof root.addEventListener === 'function') { root.addEventListener('resize', fitToolsMenu); }
+    if (Statso.i18n && typeof Statso.i18n.onChange === 'function') { Statso.i18n.onChange(fitToolsMenu); }
+    const menu = document.getElementById('tools-submenu');
+    if (typeof root.ResizeObserver === 'function') {
+      const observer = new root.ResizeObserver(fitToolsMenu);
+      [group, menu].forEach(function (node) { if (node && node.nodeType === 1) { observer.observe(node); } });
+    }
+    fitToolsMenu();
   }
 
   function initSkipLink() {
@@ -306,4 +347,5 @@
   }
   document.addEventListener('DOMContentLoaded', init);
   Statso.nav = {route: route, init: init, toolRoutes: toolRoutes, focusView: focusView};
+  Statso.nav.submenuShift = submenuShift;
 })(window);

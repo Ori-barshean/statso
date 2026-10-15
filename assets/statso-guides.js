@@ -212,7 +212,7 @@
     }).join('');
   }
   function powerNote() {
-    return '<div class="guide-note"><p><strong>' + stepProse('למה Power Query?') + '</strong></p><p>' +
+    return '<div class="guide-note"><h2>' + stepProse('למה Power Query?') + '</h2><p>' +
       stepProse('Power Query היא השיטה היחידה כאן שאפשר להגדיר בה רענון אוטומטי: הקובץ יכול להתרענן בכל פתיחה או כל כמה דקות, וריבית או מדד חדשים נכנסים לטבלה בלי להוריד שוב כלום. זה עובד כשההרשאות מאפשרות זאת — אקסל צריך חיבור לאינטרנט, וחיבורי נתונים חיצוניים לא יכולים להיות חסומים (למשל במדיניות ארגונית או בקובץ שנפתח בתצוגה מוגנת).') + '</p><p>' +
       inlineParts(['בהורדה ידנית של CSV ובנוסחת WEBSERVICE אין הגדרה כזו. להגדרת הרענון האוטומטי:', {guide: 'live-pull'}, '.']) + '</p></div>';
   }
@@ -235,6 +235,8 @@
       // the button that held focus is gone after the rebuild: hand focus to the first step
       const first = document.querySelector('.guide-steps-host h2');
       if (first) { first.setAttribute('tabindex', '-1'); first.focus({preventScroll: true}); }
+      // the steps were rebuilt below the button, as after a radio choice: say so once the heading has focus
+      announceSteps();
     });
   }
 

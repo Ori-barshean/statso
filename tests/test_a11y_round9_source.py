@@ -94,6 +94,96 @@ process.stdout.write(JSON.stringify({threw, closed, reopened: menu()}));
         self.assertEqual(seen['reopened']['open'], 'true')
 
 
+
+FIT_SETUP = r"""
+let natural = {left: 153, right: 363}, pageLeft = 0, clientWidth = 305, applied = 0, observerCallback = null;
+const observed = [], resizeListeners = [], languageListeners = [], shifts = [];
+const submenu = {nodeType: 1, style: {setProperty(k, v) { if (k === '--submenu-shift') { shifts.push(v); applied = parseFloat(v); } }},
+  getBoundingClientRect: () => ({left: natural.left + applied, right: natural.right + applied})};
+els['tools-submenu'] = submenu; group.nodeType = 1;
+document.documentElement = {get clientWidth() { return clientWidth; }, getBoundingClientRect: () => ({left: pageLeft})};
+window.addEventListener = (t, fn) => { if (t === 'resize') { resizeListeners.push(fn); } };
+window.Statso.i18n.onChange = fn => languageListeners.push(fn);
+window.ResizeObserver = class { constructor(fn) { observerCallback = fn; } observe(node) { observed.push(node === submenu ? 'menu' : node === group ? 'group' : 'other'); } };
+const last = () => shifts[shifts.length - 1];
+"""
+
+
+class SubmenuPlacementTests(unittest.TestCase):
+    def test_the_shift_keeps_the_menu_inside_the_page_box(self):
+        cases = [
+            ((153, 363, 0, 305, 8), -66),    # Hebrew at 320 (classic scrollbar): past the right edge
+            ((186, 396, 0, 360, 8), -44),    # Hebrew at 375
+            ((544, 754, 0, 753, 8), -9),     # Hebrew at 768: one pixel past
+            ((-65, 179, 0, 305, 8), 73),     # English at 320: past the left edge
+            ((-43, 201, 0, 360, 8), 51),     # English at 375
+            ((-23, 221, 0, 753, 8), 31),     # English at 768
+            ((1030, 1240, 0, 1265, 8), 0),   # Hebrew at 1280: already inside, placement unchanged
+            ((8, 297, 0, 305, 8), 0),        # exactly on both margins
+            ((70, 358, 15, 320, 8), -46),    # RTL page with the scrollbar on the left: the page box starts at 15
+            ((-1, 290, 0, 305, 8), 9),       # a pixel wider than the room: the left edge wins
+            ((153.25, 363.25, 0, 305, 8), -67),  # fractional rect: floored, so the right margin is never below 8px
+            ((-64.5, 179.5, 0, 305, 8), 73),     # fractional rect: ceiled, so the left margin is never below 8px
+            ((float('nan'), 10, 0, 305, 8), 0), ((0, 10, 0, 0, 8), 0), ((10, 10, 0, 305, 8), 0),
+        ]
+        seen = node(r"""
+global.window = {}; global.document = {addEventListener() {}, title: ''};
+""" + module('statso-nav.js') + """
+const f = window.Statso.nav.submenuShift;
+process.stdout.write(JSON.stringify(%s.map(args => f(...args.map(v => v === null ? NaN : v)))));
+""" % json.dumps([list(args) for args, _ in cases]).replace('NaN', 'null'))
+        self.assertEqual(seen, [expected for _, expected in cases])
+
+    def test_the_menu_is_placed_on_load_open_hover_resize_and_language_change(self):
+        seen = node(NAV_SETUP + MENU_SETUP + FIT_SETUP + module('statso-nav.js') + r"""
+window.Statso.nav.init();
+const out = {observed: observed.slice().sort(), load: last()};
+observerCallback(); out.again = last(); out.writes = shifts.length;
+natural = {left: -65, right: 179}; languageListeners.forEach(fn => fn('en')); out.english = last();
+clientWidth = 1265; natural = {left: 1030, right: 1240}; resizeListeners.forEach(fn => fn()); out.wide = last();
+pageLeft = 15; clientWidth = 305; natural = {left: 70, right: 358}; trigger.fire('focus'); out.leftScrollbar = last();
+natural = {left: -43, right: 201}; pageLeft = 0; clientWidth = 360; group.fire('mouseenter'); out.hover = last();
+submenu.getBoundingClientRect = undefined; natural = {left: 0, right: 500}; group.fire('mouseenter'); out.noRect = last();
+out.state = menu();
+process.stdout.write(JSON.stringify(out));
+""")
+        self.assertEqual(seen['observed'], ['group', 'menu'])
+        self.assertEqual(seen['load'], '-66px')
+        # the measured rect already carries the applied shift; measuring again must not move it a second time
+        self.assertEqual((seen['again'], seen['writes']), ('-66px', 1))
+        self.assertEqual(seen['english'], '73px')
+        self.assertEqual(seen['wide'], '0px')
+        self.assertEqual(seen['leftScrollbar'], '-46px')
+        self.assertEqual(seen['hover'], '51px')
+        self.assertEqual(seen['noRect'], '51px')
+        self.assertEqual(seen['state'], dict(open='true', closed=None, expanded='true', focusCalls=0))
+
+    def test_submenu_and_skip_link_css(self):
+        from tests.test_design_foundations_source import rule, FORCED, CSS
+        from tests.test_design_apple_source import values, rules
+        submenu = rule('.nav-submenu')
+        for prop, value in (('width', 'max-content'), ('min-width', '210px'), ('max-width', 'calc(100vw - 40px)'),
+                            ('translate', 'var(--submenu-shift, 0px)'), ('inset-inline-end', '0'),
+                            ('transition', 'opacity .12s, transform .12s, visibility .12s')):
+            self.assertEqual(values(submenu, prop), [value], prop)
+        link = rule('.nav-submenu a')
+        self.assertNotIn('nowrap', link)
+        self.assertEqual(values(link, 'overflow-wrap'), ['anywhere'])
+        for state in ('.nav-group[data-open="true"] .nav-submenu', '.nav-group[data-closed="true"] .nav-submenu'):
+            self.assertEqual(values(rule(state), 'translate'), [], state)
+        skip = rule('.skip-link')
+        for prop, value in (('position', 'fixed'), ('inset-inline', '0'), ('margin-inline', 'auto'), ('width', 'fit-content'),
+                            ('max-width', 'calc(100% - 24px)'), ('transform', 'translateY(-140%)'), ('transition', 'transform .15s ease')):
+            self.assertEqual(values(skip, prop), [value], prop)
+        self.assertEqual(values(skip, 'inset-inline-start'), [])
+        self.assertNotIn('50%', skip)
+        self.assertEqual(values(rule('.skip-link:focus'), 'transform'), ['translateY(0)'])
+        self.assertEqual(CSS.count(FORCED[0]), 1)
+        self.assertEqual(rules(CSS)[-1][2], FORCED)
+        nav = (ROOT / 'assets/statso-nav.js').read_text(encoding='utf-8')
+        self.assertIn("setProperty('--submenu-shift'", nav)
+        self.assertNotIn('.style.transform', nav)
+
 GUIDE_SETUP = r"""
 global.window = {scrollTo() {}}; const els = {}, listeners = []; let site = 'he';
 function element() { return {hidden: false, innerHTML: '', setAttribute() {}, addEventListener() {}}; }

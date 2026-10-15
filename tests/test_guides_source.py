@@ -599,7 +599,7 @@ class LivePullGuideTests(unittest.TestCase):
         cls.source = (ROOT / 'assets/statso-guides.js').read_text()
         script = r'''
 global.window = {scrollTo() {}};
-const els = {}, callbacks = [], listeners = [], clicks = [], order = []; let site = 'he';
+const els = {}, callbacks = [], listeners = [], clicks = [], order = [], spoken = []; let site = 'he';
 function element() { return {hidden: false, innerHTML: '', attrs: {},
   setAttribute(k, v) { this.attrs[k] = v; }, addEventListener() {}}; }
 const host = element(), heading = element();
@@ -611,7 +611,8 @@ global.document = {addEventListener(event, fn) { callbacks.push(fn); },
     s === '.choose-power' && host.innerHTML.includes('class="choose-power"') ? button :
     s === '.guide-steps-host h2' ? heading : null,
   querySelectorAll: () => []};
-window.Statso = {i18n: {current: () => site, onChange: fn => listeners.push(fn), apply: node => order.push(node === els['guide-detail'] ? 'apply' : 'apply-elsewhere')}};
+window.Statso = {i18n: {current: () => site, onChange: fn => listeners.push(fn), apply: node => order.push(node === els['guide-detail'] ? 'apply' : 'apply-elsewhere')},
+  exporter: {announce: text => { order.push('announce'); spoken.push(text); }}};
 '''
         script += '\n'.join('require(' + json.dumps(str(ROOT / 'assets' / name)) + ');' for name in
                             ('statso-core.js', 'statso-guide-art.js', 'statso-mcode.js',
@@ -630,9 +631,9 @@ for (site of ['he', 'en']) {
 }
 for (const [platform, method] of [['mac','manual'], ['win','manual'], ['win','webservice'], ['mac','webservice']]) {
   Object.assign(G.state, {platform, method}); G.showGuide('excel', true);
-  order.length = 0; clicks[clicks.length - 1]();
+  order.length = 0; spoken.length = 0; clicks[clicks.length - 1]();
   out.clicks[platform + '/' + method] = {method: G.state.method, host: host.innerHTML,
-    attrs: {...heading.attrs}, focus: heading.focusOptions, order: order.slice()};
+    attrs: {...heading.attrs}, focus: heading.focusOptions, order: order.slice(), spoken: spoken.slice()};
 }
 site = 'he'; G.showGuide('live-pull', true); out.switches = [els['guide-content'].innerHTML];
 for (site of ['en', 'he']) { listeners.forEach(fn => fn()); out.switches.push(els['guide-content'].innerHTML); }
@@ -670,9 +671,19 @@ process.stdout.write(JSON.stringify(out));
                 self.assertLess(markup.index('</header>'), markup.index('<div class="guide-note">'))
                 self.assertLess(markup.index('<div class="guide-note">'), markup.index('<form class="guide-selectors">'))
                 note = re.search(r'<div class="guide-note">.*?</div>', markup).group()
-                self.assertIn('<strong>', note)
+                # the note's title is a real heading under the page's one h1, at the level of the step headings
+                tree = GuideTree(note)
+                headings = [n for n in tree.nodes() if re.fullmatch(r'h[1-6]', n['tag'])]
+                self.assertEqual([n['tag'] for n in headings], ['h2'])
+                self.assertIs(tree.root['children'][0]['children'][0], headings[0])
+                self.assertEqual(GuideTree.text(headings[0]), 'למה Power Query?')
+                if variant.startswith('en/'):
+                    self.assertEqual(self.translated(headings[0]), 'Why Power Query?')
+                self.assertLess(markup.index('<div class="guide-note"><h2>'), markup.index('<form class="guide-selectors">'))
+                self.assertEqual(len(GuideTree(markup).nodes('h1')), 1)
+                self.assertNotIn('<strong>', note)
                 self.assertEqual(note.count('href="#/guides/live-pull"'), 1)
-                self.assertNotRegex(note, r'<(?:h[1-6]|aside)\b')
+                self.assertNotRegex(note, r'<aside\b')
                 if variant.startswith('he/'):
                     self.assert_marked_latin(GuideTree(note))
                 else:
@@ -710,9 +721,12 @@ process.stdout.write(JSON.stringify(out));
                 self.assertEqual(result['attrs'], {'tabindex': '-1'})
                 self.assertEqual(result['focus'], {'preventScroll': True})
                 # the rebuilt steps are translated before the heading takes focus, so a screen reader never reads Hebrew on the English site
-                self.assertEqual(result['order'], ['apply', 'focus'])
+                self.assertEqual(result['order'], ['apply', 'focus', 'announce'])
+                self.assertEqual(result['spoken'], ['השלבים עודכנו לפי הבחירה'])
         handler = self.source.split('function attachChoosePower() {')[1].split('\n  }')[0]
         self.assertEqual(handler.count("addEventListener('click'"), 1)
+        self.assertEqual(handler.count('announceSteps();'), 1)
+        self.assertLess(handler.index('first.focus('), handler.index('announceSteps();'))
         render = self.source.split('function renderSteps() {')[1].split('\n  }')[0]
         self.assertEqual(render.count('attachChoosePower();'), 2)
         self.assertNotIn("querySelector('.choose-power').addEventListener", self.source)
@@ -807,6 +821,10 @@ process.stdout.write(JSON.stringify(out));
         self.assertIn('overflow-wrap: anywhere', rule)
         note = re.search(r'\.guide-note, \.guide-notice \{([^}]+)\}', before).group(1)
         self.assertIn('overflow-wrap: anywhere', note)
+        # drawn exactly as the bold paragraph it replaced: the paragraph's 1em margins, the body size, bold
+        heading = re.search(r'(?m)^\.guide-note h2 \{([^}]+)\}', before).group(1)
+        for declaration in ('margin: 1em 0', 'font-size: 1em', 'font-weight: 700', 'overflow-wrap: anywhere'):
+            self.assertIn(declaration, heading)
 
 if __name__ == "__main__":
     unittest.main()
