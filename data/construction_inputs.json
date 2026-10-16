@@ -5,9 +5,9 @@
   "series_id": "200010",
   "chained_base": "1950 יולי",
   "chained_base_value": 100.0,
-  "count": 320,
+  "count": 321,
   "first_month": "2000-01",
-  "last_month": "2026-08",
+  "last_month": "2026-09",
   "observations": [
     {
       "month": "2000-01",
@@ -2568,6 +2568,14 @@
       "value": 103.9,
       "base_desc": "2025 יולי",
       "chained_1950_07": 97714812.5562859
+    },
+    {
+      "month": "2026-09",
+      "year": 2026,
+      "month_num": 9,
+      "value": 104.0,
+      "base_desc": "2025 יולי",
+      "chained_1950_07": 97808859.5366096
     }
   ]
 }
