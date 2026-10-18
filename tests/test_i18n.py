@@ -203,5 +203,109 @@ class EngineTests(unittest.TestCase):
         self.assertIn("inset-block-start: 0", header)
 
 
+REWRITTEN_TEXT_DOM = r'''
+global.window = {location: {search: SEARCH, href: 'https://example.test/' + SEARCH},
+  history: {replaceState() {}}, localStorage: {getItem() { return null; }, setItem() {}},
+  setTimeout() {}, clearTimeout() {}};
+let observerCallback, observing = false;
+const records = [];
+window.MutationObserver = class {
+  constructor(callback) { observerCallback = callback; }
+  observe() { observing = true; }
+};
+function textNode(initial) {
+  let value = initial;
+  return {nodeType: 3, nextSibling: null,
+    get nodeValue() { return value; },
+    set nodeValue(next) { value = next; if (observing) { records.push({type: 'characterData', target: this}); } },
+    get textContent() { return value; }, set textContent(next) { this.nodeValue = next; }};
+}
+function flush() {
+  let turns = 0;
+  while (records.length) {
+    if (++turns > 20) { throw new Error('Observer writes did not settle'); }
+    observerCallback(records.splice(0));
+  }
+}
+const elements = {}, handlers = [];
+function element(id) {
+  if (id.startsWith('lang-')) { return null; }
+  return elements[id] ||= {nodeType: 1, tagName: 'LABEL', firstChild: null, nextSibling: null,
+    value: '', textContent: '', innerHTML: '', hidden: false,
+    hasAttribute: () => false, setAttribute() {}, removeAttribute() {}, getAttribute: () => null,
+    querySelectorAll: () => [], addEventListener() {}};
+}
+const text = textNode('תאריך השער '), pattern = textNode('שבוע של 30/08/2026');
+const label = element('tf-date-label'); label.firstChild = text; label.nextSibling = pattern;
+let kind = 'convert';
+global.document = {documentElement: {setAttribute() {}},
+  body: {nodeType: 1, tagName: 'BODY', firstChild: label, hasAttribute: () => false, querySelectorAll: () => []},
+  getElementById: element, addEventListener() {},
+  querySelector: selector => selector === 'input[name="tf-kind"]:checked' ? {value: kind} : null,
+  querySelectorAll: selector => selector === 'input[name="tf-kind"]'
+    ? [{addEventListener(event, handler) { handlers.push(handler); }}] : []};
+'''
+REWRITTEN_TEXT_INIT = '''
+const S = window.Statso;
+S.data = {loadFxDaily: () => new Promise(() => {})};
+S.i18n.init();
+S.tools.initFx({rates: [{code: 'USD', first_date: '2026-10-01', latest: {date: '2026-10-09'}}]});
+const switchKind = next => { kind = next; handlers.forEach(fn => fn()); flush(); return text.nodeValue; };
+const language = next => { S.i18n.set(next); flush(); return text.nodeValue; };
+flush();
+'''
+
+
+def rewritten_text(search, body):
+    import json
+    import subprocess
+    script = 'const SEARCH = ' + json.dumps(search) + ';\n' + REWRITTEN_TEXT_DOM
+    script += '\n'.join('require(' + json.dumps(str(ROOT / 'assets' / name)) + ');' for name in
+                        ('statso-lang-en.js', 'statso-i18n.js', 'statso-core.js', 'statso-tools.js'))
+    script += REWRITTEN_TEXT_INIT + body
+    result = subprocess.run(['node', '-e', script], cwd=ROOT, capture_output=True, text=True)
+    if result.returncode:
+        raise AssertionError(result.stderr)
+    return json.loads(result.stdout)
+
+
+class RewrittenTextNodeTests(unittest.TestCase):
+    def test_fx_kind_rewrites_source_through_observer_and_language_switches(self):
+        seen = rewritten_text('', '''
+const out = [text.nodeValue, switchKind('link'), language('en'), language('he')];
+language('en'); out.push(switchKind('convert'), switchKind('link'), language('he'));
+process.stdout.write(JSON.stringify(out));
+''')
+        self.assertEqual(seen, ['תאריך השער ', 'תאריך בסיס ', 'Base date ', 'תאריך בסיס ',
+                                'Rate date ', 'Base date ', 'תאריך בסיס '])
+
+    def test_fx_kind_rewrites_when_initial_language_is_english(self):
+        seen = rewritten_text('?lang=en', '''
+process.stdout.write(JSON.stringify([text.nodeValue, switchKind('link')]));
+''')
+        self.assertEqual(seen, ['Rate date ', 'Base date '])
+
+    def test_pattern_sources_survive_delayed_observer_writes_and_rewrites(self):
+        seen = rewritten_text('', '''
+language('en'); const initial = pattern.nodeValue;
+flush(); const delayed = pattern.nodeValue;
+language('he'); const hebrew = pattern.nodeValue;
+pattern.textContent = 'שבוע של 06/09/2026'; flush();
+language('en'); const rewritten = pattern.nodeValue;
+language('he'); const restored = pattern.nodeValue;
+process.stdout.write(JSON.stringify({initial, delayed, hebrew, rewritten, restored}));
+''')
+        self.assertEqual(seen, {'initial': 'Week of 30/08/2026', 'delayed': 'Week of 30/08/2026',
+                                'hebrew': 'שבוע של 30/08/2026', 'rewritten': 'Week of 06/09/2026',
+                                'restored': 'שבוע של 06/09/2026'})
+
+    def test_code_written_english_is_no_longer_restored_to_hebrew(self):
+        seen = rewritten_text('', '''
+language('en'); text.textContent = 'Custom'; flush();
+process.stdout.write(JSON.stringify([text.nodeValue, language('he'), language('en')]));
+''')
+        self.assertEqual(seen, ['Custom'] * 3)
+
+
 if __name__ == "__main__":
     unittest.main()

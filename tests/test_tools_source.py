@@ -318,5 +318,224 @@ class FxHistoryBulkSelectionTests(unittest.TestCase):
         self.assertEqual(r['loaded']['builds'], 1)
 
 
+def run_export_script(dom, modules, body):
+    script = dom + '\n' + '\n'.join('require(' + json.dumps(str(ROOT / 'assets' / n)) + ');'
+                                     for n in modules) + '\n' + body
+    result = subprocess.run(['node', '-e', script], cwd=ROOT, capture_output=True, text=True)
+    if result.returncode:
+        raise AssertionError(result.stderr)
+    return json.loads(result.stdout)
+
+
+EXPORT_MODULES = ('statso-core.js', 'statso-xlsx.js', 'statso-export.js')
+TOOLS_DOM = FXH_DOM + r'''
+const radios = {'ti-series': 'cpi', 'ti-mode': 'for', 'tf-kind': 'convert'};
+document.querySelector = selector => {
+  const match = /^input\[name="([^"]+)"\]:checked$/.exec(selector);
+  return match ? {value: radios[match[1]]} : null;
+};
+element('ti-amount').value = '1000';
+element('tf-date-label').firstChild = {textContent: ''};
+'''
+CAPTURE_EXPORTS = '''
+const S = window.Statso;
+S.i18n = {t: s => s, onChange() {}};
+let workbook, pdf, copied;
+S.exporter.downloadWorkbook = (name, sheets) => { workbook = sheets; };
+S.exporter.printDocument = (title, html) => { pdf = html; };
+S.exporter.copyText = text => { copied = text; return Promise.resolve(); };
+S.exporter.flash = () => {};
+const fire = (id, event = 'click') => element(id).dispatchEvent(new Event(event));
+'''
+INDEX_DOC = '''
+const doc = {first_month: '2025-07', last_month: '2026-07', observations: [
+  {month: '2025-07', value: 104.2, chained_1951_09: 1000},
+  {month: '2026-07', value: 105.8, chained_1951_09: 1016.4347}]};
+'''
+I18N_BODY = '''
+document.documentElement = {setAttribute() {}};
+document.body = {nodeType: 1, tagName: 'BODY', hasAttribute: () => false,
+  firstChild: null, querySelectorAll: () => []};
+'''
+
+
+def exported_pairs(sheet):
+    return {row[0]['v']: row[1] for row in sheet['rows'] if len(row) == 2}
+
+
+def pdf_pairs(html):
+    return dict(re.findall(r'<tr><td>([^<]*)</td><td[^>]*>([^<]*)</td></tr>', html))
+
+
+class ExportPrecisionTests(unittest.TestCase):
+    def test_table_html_formats_typed_cells_and_preserves_plain_cells(self):
+        html = run_export_script('global.window = {};', EXPORT_MODULES, '''
+process.stdout.write(JSON.stringify(window.Statso.exporter.tableHtml([], [[
+  {v: 1.0164347, f: 'ratio'}, {v: 3.103, f: 'rate'}, {v: 0.4658, f: 'rate'},
+  {v: 0.000025, f: 'rateSmart'}, {v: 0.00006939, f: 'rateSmart'},
+  5137.42, 'unchanged', null, 1.5, {v: 1.5}]])));
+''')
+        cells = re.findall(r'<td([^>]*)>(.*?)</td>', html)
+        self.assertEqual([v for _, v in cells], ['1.0164', '3.103', '0.4658', '0.000025',
+                                               '0.00006939', '5,137.42', 'unchanged', '', '1.50', '1.50'])
+        self.assertEqual([a for a, _ in cells], [' dir="ltr"'] * 6 + ['', ''] + [' dir="ltr"'] * 2)
+
+    def test_index_exports_precise_numeric_ratio_and_rebased_index(self):
+        seen = run_export_script(TOOLS_DOM, EXPORT_MODULES + ('statso-tools.js',),
+                                 CAPTURE_EXPORTS + INDEX_DOC + '''
+const map = S.core.buildIndexMap(doc.observations);
+S.tools.init(doc, map);
+S.tools.exportIndex('xlsx'); S.tools.exportIndex('pdf');
+const ratio = doc.observations[1].chained_1951_09 / doc.observations[0].chained_1951_09;
+const raw = S.core.readingInBase(map, '2025-07', '2026-07');
+process.stdout.write(JSON.stringify({workbook, pdf, ratio, rounded: Number(raw.toFixed(6)),
+  expectedRatio: S.core.formatNumber(ratio, 4), styles: S.xlsx.STYLE}));
+''')
+        pairs = exported_pairs(seen['workbook'][0])
+        self.assertEqual(pdf_pairs(seen['pdf'])['מקדם הצמדה'], seen['expectedRatio'])
+        self.assertEqual(pairs['מקדם הצמדה'], {'v': seen['ratio'], 's': seen['styles']['ratio']})
+        self.assertIsInstance(pairs['מקדם הצמדה']['v'], (int, float))
+        self.assertEqual(pairs['ערך מדד היעד (בבסיס מדד הבסיס)'],
+                         {'v': seen['rounded'], 's': seen['styles']['money']})
+        self.assertNotEqual(seen['rounded'], 105.8)
+        self.assertNotEqual(seen['rounded'], 1016.4347)
+
+    def test_currency_convert_and_link_exports_keep_screen_precision(self):
+        seen = run_export_script(TOOLS_DOM, EXPORT_MODULES + ('statso-tools.js',), CAPTURE_EXPORTS + '''
+const daily = {currencies: {
+  USD: {unit: 1, dates: ['2026-10-01', '2026-10-09'], rates: [3.103, 3.452]},
+  DKK: {unit: 1, dates: ['2026-10-01', '2026-10-09'], rates: [0.4658, 0.5]}}};
+S.data = {loadFxDaily: () => Promise.resolve(daily)};
+S.tools.initFx({rates: ['USD', 'DKK'].map(code => ({code, first_date: '2026-10-01', latest: {date: '2026-10-09'}}))});
+(async () => {
+  await new Promise(resolve => setTimeout(resolve, 0));
+  element('tf-amount').value = '1000'; element('tf-date').value = '2026-10-01';
+  element('tf-from').value = 'DKK'; element('tf-to').value = 'ILS'; S.tools.computeFx();
+  S.tools.exportFx('xlsx'); S.tools.exportFx('pdf'); const convert = {workbook, pdf};
+  radios['tf-kind'] = 'link'; element('tf-currency').value = 'USD';
+  element('tf-date-target').value = '2026-10-09'; S.tools.computeFx();
+  S.tools.exportFx('xlsx'); S.tools.exportFx('pdf');
+  process.stdout.write(JSON.stringify({convert, link: {workbook, pdf}, styles: S.xlsx.STYLE}));
+})();
+''')
+        styles = seen['styles']
+        self.assertEqual(pdf_pairs(seen['convert']['pdf'])['שער'], '0.4658')
+        self.assertEqual(exported_pairs(seen['convert']['workbook'][0])['שער'],
+                         {'v': 0.4658, 's': styles['rate']})
+        pdf = pdf_pairs(seen['link']['pdf'])
+        xlsx = exported_pairs(seen['link']['workbook'][0])
+        for label, text, value, style in (('שער בסיס', '3.103', 3.103, 'rate'),
+                                          ('שער יעד', '3.452', 3.452, 'rate'),
+                                          ('מקדם הצמדה', '1.1125', 3.452 / 3.103, 'ratio')):
+            self.assertEqual(pdf[label], text)
+            self.assertEqual(xlsx[label], {'v': value, 's': styles[style]})
+            self.assertIsInstance(xlsx[label]['v'], (int, float))
+        self.assertEqual(xlsx['סכום מוצמד (₪)']['s'], styles['money'])
+
+    def test_fx_history_rates_averages_and_clipboard_keep_small_digits(self):
+        seen = run_export_script(FXH_DOM, EXPORT_MODULES + ('statso-fxhistory.js',), CAPTURE_EXPORTS + '''
+const daily = {currencies: {
+  USD: {unit: 1, dates: ['2026-10-01', '2026-10-09', '2026-10-12'], rates: [3.103, 3.6, 3.1026499999999997]},
+  DKK: {unit: 1, dates: ['2026-10-01', '2026-10-09', '2026-10-12'], rates: [0.00006939, 0.4658, 0.4653]}}};
+S.data = {loadFxDaily: () => Promise.resolve(daily)};
+element('fxh-resolution').value = 'daily';
+S.fxhistory.init({rates: ['USD', 'DKK'].map(code => ({code, first_date: '2026-10-01', latest: {date: '2026-10-12'}}))});
+(async () => {
+  await new Promise(resolve => setTimeout(resolve, 0));
+  fire('fxh-xlsx'); fire('fxh-pdf'); fire('fxh-copy');
+  const state = S.fxhistory.state();
+  const raw = state.rows.map(r => r.values.map(v => v.rate));
+  raw.push(state.averages.map(a => a.average));
+  process.stdout.write(JSON.stringify({workbook, pdf, copied, styles: S.xlsx.STYLE,
+    rounded: raw.map(row => row.map(v => Number(v.toFixed(10)))),
+    formatted: raw.map(row => row.map(S.core.formatRateSmart))}));
+})();
+''')
+        pdf_rows = re.findall(r'<tr>(.*?)</tr>', seen['pdf'])[1:]
+        self.assertEqual(len(pdf_rows), 4)
+        for row, expected in zip(pdf_rows, seen['formatted']):
+            self.assertEqual(re.findall(r'<td[^>]*>(.*?)</td>', row)[1:], expected)
+        # the PDF formats the unrounded rate: 3.1026499999999997 shows 3.1026 on screen, and its 10-decimal
+        # rounding (3.10265) would print 3.1027
+        self.assertEqual(re.findall(r'<td[^>]*>(.*?)</td>', pdf_rows[2])[1], '3.1026')
+        rows = seen['workbook'][0]['rows'][3:]
+        self.assertEqual(len(rows), 4)
+        for i, (row, values) in enumerate(zip(rows, seen['rounded'])):
+            self.assertEqual(row[0]['s'], seen['styles']['header' if i == 3 else 'boxed'])
+            for cell, value in zip(row[1:], values):
+                self.assertEqual(cell, {'v': value, 's': seen['styles']['rateBold' if i == 3 else 'rate']})
+                self.assertIsInstance(cell['v'], (int, float))
+        self.assertIn('0.00006939', seen['copied'])
+
+
+class EnglishClipboardTests(unittest.TestCase):
+    def test_fx_history_clipboard_translates_all_resolutions(self):
+        seen = run_export_script(FXH_DOM + I18N_BODY,
+                                 EXPORT_MODULES + ('statso-lang-en.js', 'statso-i18n.js', 'statso-fxhistory.js'), '''
+const S = window.Statso;
+let copied;
+S.exporter.copyText = text => { copied = text; return Promise.resolve(); };
+S.exporter.flash = () => {};
+const daily = {currencies: Object.fromEntries(['USD', 'EUR', 'JPY'].map((code, i) => [code,
+  {unit: code === 'JPY' ? 100 : 1, dates: ['2024-05-02', '2024-06-03', '2025-07-02'], rates: [3.1 + i, 3.5 + i, 3.6 + i]}]))};
+S.data = {loadFxDaily: () => Promise.resolve(daily)};
+element('fxh-resolution').value = 'daily';
+S.fxhistory.init({rates: ['USD', 'EUR', 'JPY'].map(code => ({code, first_date: '2024-05-02', latest: {date: '2025-07-02'}}))});
+(async () => {
+  await new Promise(resolve => setTimeout(resolve, 0));
+  boxes.forEach(b => { b.checked = true; }); S.fxhistory.build();
+  element('fxh-copy').dispatchEvent(new Event('click')); const hebrew = copied;
+  S.i18n.set('en'); const english = {};
+  for (const resolution of ['daily', 'weekly', 'monthly', 'yearly']) {
+    element('fxh-resolution').value = resolution;
+    element('fxh-resolution').dispatchEvent(new Event('change'));
+    element('fxh-copy').dispatchEvent(new Event('click')); english[resolution] = copied;
+  }
+  process.stdout.write(JSON.stringify({hebrew, english}));
+})();
+''')
+        self.assertIn('דולר ארה״ב (USD)', seen['hebrew'].splitlines()[0])
+        for resolution, tsv in seen['english'].items():
+            with self.subTest(resolution=resolution):
+                self.assertNotRegex(tsv, r'[֐-׿]')
+                self.assertIn('US dollar (USD)', tsv)
+                self.assertIn('Period average', tsv)
+                self.assertIn('(EUR)', tsv)
+                self.assertIn('(JPY)', tsv)
+                self.assertGreater(len(tsv.splitlines()), 2)
+        self.assertIn('Week of ', seen['english']['weekly'])
+
+    def test_index_and_interest_history_clipboards_remain_english(self):
+        seen = run_export_script(TOOLS_DOM + I18N_BODY,
+                                 EXPORT_MODULES + ('statso-lang-en.js', 'statso-i18n.js',
+                                                   'statso-tools.js', 'statso-ratehistory.js'), INDEX_DOC + '''
+const S = window.Statso;
+let copied;
+S.exporter.copyText = text => { copied = text; return Promise.resolve(); };
+S.exporter.flash = () => {};
+element('th-cpi').checked = true;
+S.tools.init(doc, S.core.buildIndexMap(doc.observations));
+S.i18n.set('en'); element('th-copy').dispatchEvent(new Event('click'));
+const out = {index: copied};
+element('trh-boi').checked = element('trh-prime').checked = true;
+element('trh-mode').value = 'points';
+S.ratehistory.init({first_change_date: '2025-01-01', last_change_date: '2026-07-01',
+  changes: [{date: '2025-01-01', rate: 4.5}, {date: '2026-07-01', rate: 3.25}]});
+for (const mode of ['points', 'monthly']) {
+  element('trh-mode').value = mode; element('trh-mode').dispatchEvent(new Event('change'));
+  element('trh-copy').dispatchEvent(new Event('click')); out[mode] = copied;
+}
+process.stdout.write(JSON.stringify(out));
+''')
+        for tool, tsv in seen.items():
+            with self.subTest(tool=tool):
+                self.assertNotRegex(tsv, r'[֐-׿]')
+                self.assertGreater(len(tsv.splitlines()), 2)
+        self.assertIn('Consumer price index', seen['index'])
+        for mode in ('points', 'monthly'):
+            self.assertIn('Bank of Israel', seen[mode])
+            self.assertIn('Prime', seen[mode])
+
+
 if __name__ == "__main__":
     unittest.main()

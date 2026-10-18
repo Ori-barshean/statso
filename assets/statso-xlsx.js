@@ -3,7 +3,7 @@
   const Statso = root.Statso = root.Statso || {};
 
   // Styles the sheet builder can reference by name. Index order must match cellXfs below.
-  const STYLE = {plain: 0, header: 1, title: 2, money: 3, moneyBold: 4, percent: 5, boxed: 6, muted: 7};
+  const STYLE = {plain: 0, header: 1, title: 2, money: 3, moneyBold: 4, percent: 5, boxed: 6, muted: 7, ratio: 8, rate: 9, rateBold: 10};
 
   const CRC_TABLE = (function () {
     const table = new Int32Array(256);
@@ -166,8 +166,9 @@
   function stylesXml() {
     return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
       + '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
-      + '<numFmts count="2"><numFmt numFmtId="164" formatCode="#,##0.00"/>'
-      + '<numFmt numFmtId="165" formatCode="0.00%"/></numFmts>'
+      + '<numFmts count="4"><numFmt numFmtId="164" formatCode="#,##0.00"/>'
+      + '<numFmt numFmtId="165" formatCode="0.00%"/>'
+      + '<numFmt numFmtId="166" formatCode="0.0000"/><numFmt numFmtId="167" formatCode="#,##0.0000######"/></numFmts>'
       + '<fonts count="4">'
       + '<font><sz val="11"/><name val="Arial"/></font>'
       + '<font><b/><sz val="11"/><name val="Arial"/></font>'
@@ -182,7 +183,7 @@
       + '<border><left/><right/><top/><bottom style="thin">'
       + '<color rgb="FFD7DEE8"/></bottom><diagonal/></border></borders>'
       + '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
-      + '<cellXfs count="8">'
+      + '<cellXfs count="11">'
       + '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
       + '<xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1"/>'
       + '<xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"/>'
@@ -191,6 +192,9 @@
       + '<xf numFmtId="165" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>'
       + '<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1"/>'
       + '<xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1"/>'
+      + '<xf numFmtId="166" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>'
+      + '<xf numFmtId="167" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>'
+      + '<xf numFmtId="167" fontId="1" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyFont="1" applyBorder="1"/>'
       + '</cellXfs><cellStyles count="1">'
       + '<cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>' + '</' + 'styleSheet>';
   }

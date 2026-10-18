@@ -35,11 +35,13 @@ def node(body, modules=('statso-core.js',)):
 # so object identity shows whether an edit rewrote the markup.
 RENT_DOM = r'''
 const elements = {}, optionRows = [], downloads = [];
+let floorMode = 'floor';
 function element(id = '') {
   const attrs = {}, listeners = {};
   return {id, value: '', type: 'month', hidden: true, textContent: '', dataset: {},
     checked: false, options: [], children: [], listeners, writes: 0,
-    classList: {toggle() {}},
+    classList: {names: new Set(), toggle(n, on) { if (on) { this.names.add(n); } else { this.names.delete(n); } },
+      contains(n) { return this.names.has(n); }},
     setAttribute(k, v) { attrs[k] = String(v); },
     getAttribute(k) { return attrs[k] === undefined ? null : attrs[k]; },
     removeAttribute(k) { delete attrs[k]; }, hasAttribute(k) { return k in attrs; },
@@ -79,7 +81,7 @@ function addOption(start, end, type = 'text') {
   return row;
 }
 global.document = {getElementById: el,
-  querySelector: selector => selector === 'input[name="tr-floor"]:checked' ? {value: 'floor'} : null,
+  querySelector: selector => selector === 'input[name="tr-floor"]:checked' ? {value: floorMode} : null,
   querySelectorAll(selector) {
     if (selector === '#tr-option-rows .rent-option') { return optionRows; }
     if (selector === '#tr-option-rows .tr-opt-start, #tr-option-rows .tr-opt-end') {
@@ -110,6 +112,199 @@ def rent(body):
     return node(RENT_DOM + '\nrequire(' + json.dumps(str(ROOT / 'assets/statso-rent.js')) + ''');
 S.rent.init({first_month: '2023-01', last_month: '2025-12'}, S.core.buildIndexMap(observations));
 ''' + body)
+
+
+def rent_with(doc_js, body):
+    return node(RENT_DOM + '\nrequire(' + json.dumps(str(ROOT / 'assets/statso-rent.js')) + ');\n'
+                + 'const DOC = ' + doc_js + ';\n'
+                + 'S.rent.init(DOC, S.core.buildIndexMap(DOC.observations));\n' + body)
+
+
+RENT_BALANCE_DOC = json.dumps({
+    'first_month': '2023-12', 'last_month': '2024-03',
+    'observations': [dict(month=m, value=v, chained_1951_09=c) for m, v, c in (
+        ('2023-12', 105.8, 1000), ('2024-01', 104.7, 990),
+        ('2024-02', 103.7, 980), ('2024-03', 106.9, 1010))]})
+RENT_BALANCE_SETUP = '''
+el('tr-contract-date').value = '2024-01-15';
+el('tr-base-start').value = '2024-01'; el('tr-base-end').value = '2024-05';
+el('tr-base-rent').value = '1000'; floorMode = 'full'; S.rent.compute();
+const host = el('tr-periods');
+const rows = () => S.rent.state().periods[0].rows;
+const total = () => S.rent.totalsOf(rows());
+const settle = (month, checked) => host.listeners.change[0]({target: {
+  classList: {contains: n => n === 'tr-paid'}, checked, dataset: {key: '0:' + month}}});
+'''
+
+
+class RentBalanceTests(unittest.TestCase):
+    def test_full_mode_nets_credits_and_renders_negative_cells(self):
+        seen = rent_with(RENT_BALANCE_DOC, RENT_BALANCE_SETUP + '''
+process.stdout.write(JSON.stringify({payables: rows().map(r => r.payable), total: total(),
+  summary: el('tr-summary').innerHTML, html: host.innerHTML}));
+''')
+        self.assertEqual([None if v is None else round(v, 2) for v in seen['payables']],
+                         [0, -10, -20, 10, None])
+        self.assertAlmostEqual(seen['total']['payable'], -20)
+        self.assertAlmostEqual(seen['total']['payable'], seen['total']['difference'])
+        self.assertIn('class="rent-negative">-20.00', seen['summary'].replace('\u200e', ''))
+        html = seen['html'].replace('\u200e', '')
+        for month, amount in (('2024-02', '-10.00'), ('2024-03', '-20.00')):
+            row = re.search(r'<tr><th[^>]*id="tr-p0-m' + month + r'".*?</tr>', html).group()
+            cells = re.findall(r'<t[dh]\b([^>]*)>(.*?)</t[dh]>', row)
+            self.assertIn('class="rent-negative"', cells[7][0])
+            self.assertEqual(cells[7][1], amount)
+        foot = re.search(r'<tfoot>(.*?)</tfoot>', html).group(1)
+        self.assertIn('<td dir="ltr" class="rent-negative">-20.00</td>', foot)
+
+    def test_settlements_and_mode_switch_patch_values_and_negative_classes(self):
+        seen = rent_with(RENT_BALANCE_DOC, RENT_BALANCE_SETUP + '''
+const writes = host.writes;
+const snap = () => {
+  const section = host.sections[0], foot = section.querySelector('tfoot tr').children;
+  return {writes: host.writes - writes, text: foot[7].textContent,
+    negative: foot[7].classList.contains('rent-negative'), total: total().payable,
+    payables: rows().filter(r => r.available).map(r => r.payable),
+    cells: section.querySelectorAll('tbody tr').slice(0, 4).map(r => r.children[7].classList.contains('rent-negative'))};
+};
+settle('2024-02', true); const feb = snap();
+settle('2024-03', true); const mar = snap();
+floorMode = 'floor'; S.rent.compute(); const floor = snap();
+floorMode = 'full'; S.rent.compute(); const fullAgain = snap();
+process.stdout.write(JSON.stringify({feb, mar, floor, fullAgain}));
+''')
+        for key, amount, negative in (('feb', -10, True), ('mar', 10, False), ('floor', 10, False)):
+            item = seen[key]
+            self.assertEqual(item['writes'], 0)
+            self.assertEqual(item['text'].replace('\u200e', ''), f'{amount:.2f}')
+            self.assertEqual(item['negative'], negative)
+            self.assertAlmostEqual(item['total'], amount)
+        self.assertEqual(seen['floor']['payables'], [0, 0, 0, 10])
+        self.assertEqual(seen['floor']['cells'], [False] * 4)
+        self.assertEqual(seen['fullAgain']['cells'], [False, True, True, False])
+        self.assertEqual(seen['fullAgain']['writes'], 0)
+
+    def test_exports_include_published_base_precise_ratios_and_net_credit(self):
+        modules = ''.join('require(' + json.dumps(str(ROOT / 'assets' / n)) + ');'
+                          for n in ('statso-xlsx.js', 'statso-export.js'))
+        seen = rent_with(RENT_BALANCE_DOC, RENT_BALANCE_SETUP + modules + '''
+let workbook, pdf;
+S.exporter.downloadWorkbook = (name, sheets) => { workbook = sheets; };
+S.exporter.printDocument = (title, html) => { pdf = html; };
+settle('2024-02', true); settle('2024-03', true);
+settle('2024-02', false); settle('2024-03', false);
+S.rent.exportRent('xlsx'); S.rent.exportRent('pdf');
+process.stdout.write(JSON.stringify({workbook, pdf, styles: S.xlsx.STYLE,
+  note: el('tr-base-index-note').textContent, model: S.rent.state()}));
+''')
+        details, sheet = seen['workbook']
+        base = next(row[1] for row in details['rows'] if row and row[0]['v'] == 'ערך מדד הבסיס')
+        self.assertIsInstance(base['v'], (float, int))
+        self.assertEqual(base, {'v': 105.8, 's': seen['styles']['money']})
+        self.assertEqual(seen['model']['baseIndexPublished'], 105.8)
+        self.assertEqual(seen['model']['baseIndexValue'], 1000)
+        body = [row for row in sheet['rows'] if len(row) == 8 and re.fullmatch(r'\d\d/2024', row[0]['v'])]
+        self.assertEqual(len(body), 4)
+        self.assertEqual(body[1][3], {'v': 0.99, 's': seen['styles']['ratio']})
+        for row in body:
+            self.assertEqual(row[3]['s'], seen['styles']['ratio'])
+            self.assertIsInstance(row[3]['v'], (int, float))
+            self.assertEqual(row[2]['v'], round(row[2]['v'], 6))
+        for label in ('סה״כ תקופה', 'סה״כ לתשלום'):
+            cell = next(row[-1] for row in sheet['rows'] if row and row[0]['v'] == label)
+            self.assertAlmostEqual(cell['v'], -20)
+            self.assertEqual(cell['s'], seen['styles']['moneyBold'])
+        pdf = seen['pdf'].replace('\u200e', '')
+        self.assertIn('<td dir="ltr">105.80</td>', pdf)
+        self.assertIn('<td dir="ltr">0.9900</td>', pdf)
+        self.assertRegex(pdf, r'<p class="print-total">[^<]*<strong dir="ltr" class="rent-negative">-20.00 ₪</strong>')
+        self.assertIn('105.8', seen['note'])
+
+    def test_real_data_full_and_floor_balances(self):
+        seen = rent_with("JSON.parse(require('fs').readFileSync('data/cpi.json', 'utf8'))", '''
+el('tr-contract-date').value = '2024-10-01';
+el('tr-base-start').value = '2024-10'; el('tr-base-end').value = '2025-09';
+el('tr-base-rent').value = '5000';
+const snap = () => ({totals: S.rent.totalsOf(S.rent.state().periods.flatMap(p => p.rows)),
+  summary: el('tr-summary').innerHTML});
+floorMode = 'full'; S.rent.compute(); const full = snap();
+floorMode = 'floor'; S.rent.compute(); const floor = snap();
+process.stdout.write(JSON.stringify({full, floor}));
+''')
+        self.assertEqual(round(seen['full']['totals']['payable'], 2), 649.44)
+        self.assertEqual(round(seen['full']['totals']['difference'], 2), 649.44)
+        self.assertIn('649.44', seen['full']['summary'])
+        self.assertEqual(round(seen['floor']['totals']['payable'], 2), 658.65)
+
+    def test_pdf_prints_the_unrounded_values_the_screen_shows(self):
+        # Pre-rounding for the stored cell must not change what the PDF prints: with real CPI data a contract of
+        # 2023-01-01 shows 111.19 for 09/2023 (111.195 reads as 111.1949999... on screen) and a contract of 1987-04-01
+        # shows 1.4188 for 05/1989 (the toFixed(4) value, 1.4187, would print differently).
+        modules = ''.join('require(' + json.dumps(str(ROOT / 'assets' / n)) + ');'
+                          for n in ('statso-xlsx.js', 'statso-export.js'))
+        seen = rent_with("JSON.parse(require('fs').readFileSync('data/cpi.json', 'utf8'))", modules + '''
+let pdf;
+const host = el('tr-periods');
+S.exporter.downloadWorkbook = () => {};
+S.exporter.printDocument = (title, html) => { pdf = html; };
+const out = [];
+for (const [contract, month] of [['2023-01-01', '2023-09'], ['1987-04-01', '1989-05']]) {
+  el('tr-contract-date').value = contract; el('tr-base-start').value = month; el('tr-base-end').value = month;
+  el('tr-base-rent').value = '5000'; S.rent.compute(); S.rent.exportRent('pdf');
+  const tds = [...host.innerHTML.match(/<tbody><tr>(.*?)<\\/tr>/s)[1].matchAll(/<td[^>]*>(.*?)<\\/td>/g)].map(m => m[1]);
+  out.push({contract, month, screen: [tds[1], tds[2]], pdf});
+}
+process.stdout.write(JSON.stringify(out));
+''')
+        for case in seen:
+            rows = [re.findall(r'<td[^>]*>(.*?)</td>', row) for row in re.findall(r'<tr>(.*?)</tr>', case['pdf'])]
+            row = next(cells for cells in rows if len(cells) == 8)
+            self.assertEqual([row[2], row[3]], case['screen'], case['contract'])
+        self.assertEqual(seen[0]['screen'][0], '111.19')
+        self.assertEqual(seen[1]['screen'][1], '1.4188')
+
+    def test_sub_agora_credit_is_zero_on_screen_pdf_and_excel(self):
+        # a tenant who pays the indexed amount rounded to the agora leaves a credit below 0.005: the screen shows
+        # 0.00 (settled), so the PDF must not print -0.00 and Excel must not store -0.0033
+        modules = ''.join('require(' + json.dumps(str(ROOT / 'assets' / n)) + ');'
+                          for n in ('statso-xlsx.js', 'statso-export.js'))
+        seen = rent_with(RENT_BALANCE_DOC, RENT_BALANCE_SETUP + modules + '''
+let workbook, pdf;
+S.exporter.downloadWorkbook = (name, sheets) => { workbook = sheets; };
+S.exporter.printDocument = (title, html) => { pdf = html; };
+el('tr-base-end').value = '2024-01'; S.rent.compute();
+host.listeners.change[0]({target: {classList: {contains: n => n === 'tr-actual'},
+  value: '1000.0033', dataset: {key: '0:2024-01'}}});
+S.rent.exportRent('xlsx'); S.rent.exportRent('pdf');
+const row = host.sections[0].querySelectorAll('tbody tr')[0].children;
+process.stdout.write(JSON.stringify({workbook, pdf, screen: row[7].textContent,
+  negative: row[7].classList.contains('rent-negative')}));
+''')
+        self.assertEqual(seen['screen'], '0.00')
+        self.assertFalse(seen['negative'])
+        sheet = seen['workbook'][1]
+        body = [row for row in sheet['rows'] if len(row) == 8 and re.fullmatch(r'\d\d/2024', row[0]['v'])]
+        self.assertEqual(len(body), 1)
+        self.assertEqual(body[0][-1]['v'], 0)
+        pdf_rows = [re.findall(r'<td[^>]*>(.*?)</td>', row) for row in re.findall(r'<tr>(.*?)</tr>', seen['pdf'])]
+        pdf_row = next(cells for cells in pdf_rows if len(cells) == 8)
+        self.assertEqual(pdf_row[-1].replace('\u200e', ''), '0.00')
+
+    def test_float_noise_displays_as_zero_without_negative_styling(self):
+        seen = rent_with(RENT_BALANCE_DOC, RENT_BALANCE_SETUP + '''
+el('tr-base-end').value = '2024-01'; S.rent.compute();
+host.listeners.change[0]({target: {classList: {contains: n => n === 'tr-actual'},
+  value: '1000.000000001', dataset: {key: '0:2024-01'}}});
+const foot = host.sections[0].querySelector('tfoot tr').children;
+const row = host.sections[0].querySelectorAll('tbody tr')[0].children;
+process.stdout.write(JSON.stringify({summary: el('tr-summary').innerHTML,
+  row: row[7].textContent, foot: foot[7].textContent,
+  negative: [row[7], foot[7]].map(c => c.classList.contains('rent-negative'))}));
+''')
+        self.assertEqual(seen['row'], '0.00')
+        self.assertEqual(seen['foot'], '0.00')
+        self.assertEqual(seen['negative'], [False, False])
+        self.assertNotIn('rent-negative', seen['summary'])
 
 
 class MonthInputTests(unittest.TestCase):

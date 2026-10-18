@@ -86,6 +86,13 @@
     return true;
   }
 
+  function formatCell(value, kind) {
+    if (kind === 'ratio') { return Statso.core.formatNumber(value, 4); }
+    if (kind === 'rate') { return Statso.core.formatRate(value); }
+    if (kind === 'rateSmart') { return Statso.core.formatRateSmart(value); }
+    return Statso.core.formatNumber(value, 2);
+  }
+
   function tableHtml(head, rows, caption) {
     let html = '<table>';
     if (caption) { html += '<caption class="sr-only">' + Statso.xlsx.escapeXml(caption) + '</caption>'; }
@@ -96,9 +103,11 @@
       html += '<tr>';
       row.forEach(function (cell) {
         const value = cell === null || cell === undefined ? '' : (typeof cell === 'object' ? cell.v : cell);
+        const kind = cell && typeof cell === 'object' ? cell.f : undefined;
         const numeric = typeof value === 'number';
+        const shown = cell && typeof cell === 'object' && typeof cell.p === 'number' ? cell.p : value;
         html += '<td' + (numeric ? ' dir="ltr"' : '') + '>'
-          + Statso.xlsx.escapeXml(numeric ? Statso.core.formatNumber(value, 2) : value) + '</td>';
+          + Statso.xlsx.escapeXml(numeric ? formatCell(shown, kind) : value) + '</td>';
       });
       html += '</tr>';
     });

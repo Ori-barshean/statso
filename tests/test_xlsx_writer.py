@@ -25,10 +25,12 @@ const sheets = [
     [{v: '01/2025', s: S.boxed}, {v: 5137.42, s: S.money}],
     [{v: 'סה"כ', s: S.header}, {v: 5137.42, s: S.moneyBold}]
   ]},
-  {name: 'שני', rows: [[{v: 'א', s: S.header}, 'ב']]}
+  {name: 'שני', rows: [[{v: 'א', s: S.header}, 'ב'],
+    [{v: 1.0164347, s: S.ratio}, {v: 3.103, s: S.rate}, {v: 0.000025, s: S.rateBold}]]}
  ];
 const options = {title: 'כותרת החוברת', created: '2026-10-10T08:00:00Z'};
 const write = (suffix, meta) => require('fs').writeFileSync(process.argv[3] + suffix, Buffer.from(X.build(sheets, meta)));
+require('fs').writeFileSync(process.argv[3] + '.style.json', JSON.stringify(S));
 write('', options); write('.again', options); write('.now', {title: options.title});
 window.Statso.i18n = {t: s => s, locale: () => 'en-GB'};
 write('.en', options);
@@ -64,6 +66,53 @@ class XlsxWriterTests(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.temp.cleanup()
+
+    def test_style_table_matches_cellxfs(self):
+        styles = json.loads(Path(str(self.path) + '.style.json').read_text())
+        with zipfile.ZipFile(self.path) as archive:
+            root = ET.fromstring(archive.read('xl/styles.xml'))
+        ns = '{http://schemas.openxmlformats.org/spreadsheetml/2006/main}'
+        xfs = root.find(ns + 'cellXfs')
+        self.assertEqual(int(xfs.attrib['count']), 11)
+        self.assertEqual(len(xfs), 11)
+        self.assertEqual(len(styles), 11)
+        self.assertEqual(sorted(styles.values()), list(range(11)))
+        for index, name in enumerate(('plain', 'header', 'title', 'money', 'moneyBold', 'percent', 'boxed', 'muted')):
+            self.assertEqual(styles[name], index)
+        formats = root.find(ns + 'numFmts')
+        self.assertEqual(int(formats.attrib['count']), 4)
+        self.assertEqual(len(formats), 4)
+        by_id = {f.attrib['numFmtId']: f.attrib['formatCode'] for f in formats}
+        for name, expected in (('money', '#,##0.00'), ('moneyBold', '#,##0.00'),
+                               ('percent', '0.00%'), ('ratio', '0.0000'),
+                               ('rate', '#,##0.0000######'), ('rateBold', '#,##0.0000######')):
+            self.assertEqual(by_id[xfs[styles[name]].attrib['numFmtId']], expected)
+        self.assertEqual(xfs[styles['rateBold']].attrib['fontId'], '1')
+        self.assertEqual(xfs[styles['rateBold']].attrib['borderId'], '1')
+
+    def test_precise_numbers_stay_numeric(self):
+        with zipfile.ZipFile(self.path) as archive:
+            sheet = archive.read('xl/worksheets/sheet2.xml').decode()
+        for cell in ('<c r="A2" s="8"><v>1.0164347</v></c>',
+                     '<c r="B2" s="9"><v>3.103</v></c>',
+                     '<c r="C2" s="10"><v>0.000025</v></c>'):
+            self.assertIn(cell, sheet)
+
+    def test_precise_number_formats_in_spreadsheet_library(self):
+        try:
+            import openpyxl
+        except ImportError:
+            self.skipTest("openpyxl is not installed")
+        book = openpyxl.load_workbook(self.path)
+        try:
+            for ref, value, fmt in (('A2', 1.0164347, '0.0000'), ('B2', 3.103, '#,##0.0000######'),
+                                    ('C2', 0.000025, '#,##0.0000######')):
+                cell = book['שני'][ref]
+                self.assertEqual(cell.value, value)
+                self.assertEqual(cell.data_type, 'n')
+                self.assertEqual(cell.number_format, fmt)
+        finally:
+            book.close()
 
     def test_archive_is_a_readable_zip_with_every_part(self):
         with zipfile.ZipFile(self.path) as archive:

@@ -19,6 +19,10 @@
     }
     return out;
   }
+  function settled(x) { return Math.abs(x) < 0.005 ? 0 : x; }
+  function negative(x) { return settled(x) < 0; }
+  function round6(x) { return typeof x === 'number' && Number.isFinite(x) ? Number(x.toFixed(6)) : x; }
+
   function key(periodIndex, month) { return periodIndex + ':' + month; }
 
   function isTextMonth(input) { return input.type !== 'month'; }
@@ -188,19 +192,20 @@
         const difference = indexed - actual;
         return {month: month, indexMonth: reference.month, available: true, nominal: period.rent,
           actual: actual, indexValue: reference.published, ratio: ratio, indexed: indexed,
-          difference: difference, payable: Math.max(0, difference),
+          difference: difference, payable: form.floor === 'floor' ? Math.max(0, difference) : difference,
           paid: Boolean(paid[key(periodIndex, month)])};
       });
       return {index: periodIndex, label: period.label, start: period.start, end: period.end,
         rent: period.rent, rows: rows};
     });
 
-    model = {form: form, baseIndexMonth: baseIndexMonth, baseIndexValue: baseIndex.value, periods: periods};
-    el('tr-output').hidden = false;
     const baseRow = indexMap.get(baseIndexMonth);
+    const baseIndexPublished = baseRow ? baseRow.value : baseIndex.value;
+    model = {form: form, baseIndexMonth: baseIndexMonth, baseIndexValue: baseIndex.value, baseIndexPublished: baseIndexPublished, periods: periods};
+    el('tr-output').hidden = false;
     el('tr-base-index-note').textContent = (form.customBase ? 'מדד בסיס מוסכם: ' : 'מדד ידוע במועד ההסכם: ')
       + Statso.core.formatMonthHe(baseIndexMonth) + ' = '
-      + Statso.core.formatNumber(baseRow ? baseRow.value : baseIndex.value, 1);
+      + Statso.core.formatNumber(baseIndexPublished, 1);
     render();
     // setText leaves an unchanged message alone, so a pending export error is not re-announced on every recompute
     // (the rent field recomputes on each keystroke).
@@ -221,13 +226,13 @@
   function rowText(row) {
     const n = Statso.core.formatNumber;
     return {nominal: n(row.nominal, 2), index: n(row.indexValue, 2), ratio: n(row.ratio, 4),
-      indexed: n(row.indexed, 2), difference: n(row.difference, 2), payable: n(row.payable, 2)};
+      indexed: n(row.indexed, 2), difference: n(row.difference, 2), payable: n(settled(row.payable), 2)};
   }
 
   function totalsText(totals) {
     const n = Statso.core.formatNumber;
     return {nominal: n(totals.nominal, 2), indexed: n(totals.indexed, 2), actual: n(totals.actual, 2),
-      difference: n(totals.difference, 2), payable: n(totals.payable, 2)};
+      difference: n(totals.difference, 2), payable: n(settled(totals.payable), 2)};
   }
 
   // The period's "mark everything as paid" box mirrors its rows: ticked when every published month is settled.
@@ -262,7 +267,7 @@
       + '<td><input type="number" step="any" min="0" class="tr-actual" data-key="' + id
       + '" value="' + row.actual + '" aria-labelledby="tr-p' + periodIndex + '-c5 tr-p' + periodIndex + '-m' + row.month + '"></td>'
       + '<td dir="ltr" class="' + (row.difference < 0 ? 'rent-negative' : '') + '">' + text.difference + '</td>'
-      + '<td dir="ltr">' + text.payable + '</td>'
+      + '<td dir="ltr"' + (negative(row.payable) ? ' class="rent-negative"' : '') + '>' + text.payable + '</td>'
       + '<td><input type="checkbox" class="tr-paid" data-key="' + id + '"' + (row.paid ? ' checked' : '')
       + ' aria-labelledby="tr-p' + periodIndex + '-c8 tr-p' + periodIndex + '-m' + row.month + '"></td></tr>';
   }
@@ -271,7 +276,8 @@
   // (README: a focusable scroll area is a region with a unique name). Editing a row writes into the existing cells
   // only, so this node, the focus on it and its scroll position survive the edit.
   function periodHtml(period) {
-    const totals = totalsText(totalsOf(period.rows));
+    const sums = totalsOf(period.rows);
+    const totals = totalsText(sums);
     return '<section class="rent-period"><header class="rent-period-head">'
       + '<h3 id="tr-p' + period.index + '-title">' + period.label + '</h3>'
       + '<span>' + Statso.core.formatMonthHe(period.start) + '–' + Statso.core.formatMonthHe(period.end)
@@ -290,7 +296,7 @@
       + '<td dir="ltr">' + totals.indexed + '</td>'
       + '<td dir="ltr">' + totals.actual + '</td>'
       + '<td dir="ltr">' + totals.difference + '</td>'
-      + '<td dir="ltr">' + totals.payable + '</td><td></td></tr></tfoot></table></div>'
+      + '<td dir="ltr"' + (negative(sums.payable) ? ' class="rent-negative"' : '') + '>' + totals.payable + '</td><td></td></tr></tfoot></table></div>'
       + '</section>';
   }
 
@@ -327,12 +333,15 @@
         if (Number(input.value) !== row.actual) { input.value = String(row.actual); }
         cells[6].classList.toggle('rent-negative', row.difference < 0);
         setText(cells[6], text.difference); setText(cells[7], text.payable);
+        cells[7].classList.toggle('rent-negative', negative(row.payable));
         cells[8].firstElementChild.checked = row.paid;
       });
       const foot = section.querySelector('tfoot tr').children;
-      const totals = totalsText(totalsOf(period.rows));
+      const sums = totalsOf(period.rows);
+      const totals = totalsText(sums);
       setText(foot[1], totals.nominal); setText(foot[4], totals.indexed); setText(foot[5], totals.actual);
       setText(foot[6], totals.difference); setText(foot[7], totals.payable);
+      foot[7].classList.toggle('rent-negative', negative(sums.payable));
       syncMarkAll(section.querySelector('.tr-period-paid'), period);
     });
   }
@@ -344,8 +353,8 @@
       + '<div><span>סה״כ נומינלי</span><strong dir="ltr">' + Statso.core.formatNumber(totals.nominal, 2) + ' ₪</strong></div>'
       + '<div><span>סה״כ ממודד</span><strong dir="ltr">' + Statso.core.formatNumber(totals.indexed, 2) + ' ₪</strong></div>'
       + '<div><span>סה״כ שולם בפועל</span><strong dir="ltr">' + Statso.core.formatNumber(totals.actual, 2) + ' ₪</strong></div>'
-      + '<div class="rent-summary-highlight"><span>יתרת הפרשים לתשלום</span><strong dir="ltr">'
-      + Statso.core.formatNumber(totals.payable, 2) + ' ₪</strong></div></div>';
+      + '<div class="rent-summary-highlight"><span>יתרת הפרשים לתשלום</span><strong dir="ltr"' + (negative(totals.payable) ? ' class="rent-negative"' : '') + '>'
+      + Statso.core.formatNumber(settled(totals.payable), 2) + ' ₪</strong></div></div>';
     const host = el('tr-periods');
     const shape = shapeOf(periods);
     if (renderedShape === shape && host.firstElementChild) {
@@ -426,8 +435,9 @@
 
   function matrix(rows) {
     return rows.map(function (row) {
-      return [Statso.core.formatMonthHe(row.month), row.nominal, row.indexValue,
-        Number(row.ratio.toFixed(4)), row.indexed, row.actual, row.difference, row.payable];
+      // v is the tidy stored value; p is the unrounded one the PDF formats, so it prints what the screen shows
+      return [Statso.core.formatMonthHe(row.month), row.nominal, {v: round6(row.indexValue), f: 'money', p: row.indexValue},
+        {v: Number(row.ratio.toFixed(4)), f: 'ratio', p: row.ratio}, row.indexed, row.actual, row.difference, settled(row.payable)];
     });
   }
 
@@ -459,19 +469,19 @@
         sheet.rows.push(HEAD.map(function (text) { return {v: text, s: S().header}; }));
         matrix(period.rows).forEach(function (row) {
           sheet.rows.push([{v: row[0], s: S().boxed}].concat(row.slice(1).map(function (value) {
-            return {v: value, s: S().money};
+            return value !== null && typeof value === 'object' ? {v: value.v, s: value.f === 'ratio' ? S().ratio : S().money} : {v: value, s: S().money};
           })));
         });
         const totals = totalsOf(period.rows);
         sheet.rows.push([{v: 'סה״כ תקופה', s: S().header}, {v: totals.nominal, s: S().moneyBold},
           {v: '', s: S().header}, {v: '', s: S().header}, {v: totals.indexed, s: S().moneyBold},
           {v: totals.actual, s: S().moneyBold}, {v: totals.difference, s: S().moneyBold},
-          {v: totals.payable, s: S().moneyBold}]);
+          {v: settled(totals.payable), s: S().moneyBold}]);
         sheet.rows.push([]);
       });
       sheet.rows.push([{v: 'סה״כ לתשלום', s: S().header}, {v: '', s: S().header}, {v: '', s: S().header},
         {v: '', s: S().header}, {v: '', s: S().header}, {v: '', s: S().header}, {v: '', s: S().header},
-        {v: grand.payable, s: S().moneyBold}]);
+        {v: settled(grand.payable), s: S().moneyBold}]);
       Statso.exporter.downloadWorkbook('statso-' + Statso.i18n.t('הפרשי הצמדה') + '-' + Statso.exporter.stamp() + '.xlsx',
         [details, sheet], {title: say('הצמדת הסכם שכירות למדד')});
       return;
@@ -483,8 +493,8 @@
         + Statso.core.formatMonthHe(period.start) + '–' + Statso.core.formatMonthHe(period.end) + '</h2>'
         + Statso.exporter.tableHtml(HEAD, matrix(period.rows), say(period.label) + ' · ' + Statso.core.formatMonthHe(period.start) + '–' + Statso.core.formatMonthHe(period.end)));
     });
-    blocks.push('<p class="print-total">סך ההפרשים לתשלום: <strong dir="ltr">'
-      + Statso.core.formatNumber(grand.payable, 2) + ' ₪</strong></p>');
+    blocks.push('<p class="print-total">סך ההפרשים לתשלום: <strong dir="ltr"' + (negative(grand.payable) ? ' class="rent-negative"' : '') + '>'
+      + Statso.core.formatNumber(settled(grand.payable), 2) + ' ₪</strong></p>');
     blocks.push('<p class="print-note">' + say('החישוב מבוסס על מדד המחירים לצרכן שמפרסמת הלשכה המרכזית לסטטיסטיקה.') + ' '
       + say('לכל חודש שכירות שימש המדד הידוע לאותו חודש, ביחס למדד הבסיס שנקבע בהסכם.') + '</p>');
     Statso.exporter.printDocument('הפרשי הצמדה — הסכם שכירות',

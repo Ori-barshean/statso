@@ -17,8 +17,7 @@
 
   // Translate one Hebrew string. Falls back to the pattern rules, which cover
   // sentences the modules build by concatenation at run time.
-  function t(text) {
-    if (lang === 'he') { return text; }
+  function translate(text) {
     const trimmed = String(text).trim();
     if (!trimmed) { return text; }
     const exact = dictionary()[trimmed];
@@ -32,13 +31,24 @@
     return text;
   }
 
+  function t(text) { return lang === 'he' ? text : translate(text); }
+
   function hasHebrew(text) { return /[֐-׿]/.test(text); }
 
   function translateTextNode(node) {
-    const source = originalText.has(node) ? originalText.get(node) : node.nodeValue;
+    const current = node.nodeValue;
+    let source = originalText.has(node) ? originalText.get(node) : current;
+    let english = null;
+    if (current !== source) {
+      english = translate(source);
+      if (current !== english) {
+        source = current; english = null;
+        if (hasHebrew(source)) { originalText.set(node, source); } else { originalText.delete(node); }
+      }
+    }
     if (!hasHebrew(source)) { return; }
     if (!originalText.has(node)) { originalText.set(node, source); }
-    const next = lang === 'he' ? source : t(source);
+    const next = lang === 'he' ? source : (english !== null ? english : translate(source));
     if (node.nodeValue !== next) { node.nodeValue = next; }
   }
 

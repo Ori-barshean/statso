@@ -11,6 +11,14 @@ class UiSourceTests(unittest.TestCase):
         cls.html = (ROOT / "index.html").read_text(encoding="utf-8")
         cls.scripts = {p.name: p.read_text(encoding="utf-8") for p in (ROOT / "assets").glob("*.js")}
 
+    def test_no_link_uses_the_dead_boi_sdmx_url(self):
+        hrefs = re.findall(r'href="([^"]+)"', self.html)
+        self.assertNotIn('https://edge.boi.gov.il/FusionEdgeServer/sdmx/v2/', hrefs)
+        self.assertEqual(self.html.count('<a href="https://edge.boi.gov.il/" dir="ltr">edge.boi.gov.il</a>'), 4)
+        for name in ('boi_rate.py', 'fx_rates.py'):
+            self.assertIn('https://edge.boi.gov.il/FusionEdgeServer/sdmx/v2/data/dataflow/',
+                          (ROOT / 'scripts' / name).read_text())
+
     def test_all_javascript_ids_exist(self):
         html_ids = set(re.findall(r'\bid="([^"]+)"', self.html))
         used = set()

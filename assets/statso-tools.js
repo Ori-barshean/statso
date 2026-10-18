@@ -103,6 +103,18 @@
       + Statso.core.formatNumber(target.value / base.value, 4);
   }
 
+  function round6(x) { return typeof x === 'number' && Number.isFinite(x) ? Number(x.toFixed(6)) : x; }
+
+  // v is the tidy stored value; p is the unrounded one the PDF formats, so it prints what the screen shows
+  function tidyCell(x) { return x === null || x === undefined ? x : {v: round6(x), f: 'money', p: x}; }
+
+  function valueCell(value) {
+    if (value !== null && typeof value === 'object') {
+      return {v: value.v, s: value.f === 'ratio' ? S().ratio : (value.f === 'rate' ? S().rate : S().money)};
+    }
+    return {v: value, s: typeof value === 'number' ? S().money : S().boxed};
+  }
+
   function indexRows() {
     const r = indexResult;
     const modeText = r.input.mode === 'known' ? 'מדד ידוע' : 'מדד בגין';
@@ -113,8 +125,8 @@
       ['ערך מדד הבסיס', published(r.series.map(), r.baseMonth)],
       ['חודש יעד', Statso.core.formatMonthHe(r.input.targetMonth)],
       ['מדד היעד בפועל', Statso.core.formatMonthHe(r.targetMonth)],
-      ['ערך מדד היעד (בבסיס מדד הבסיס)', Statso.core.readingInBase(r.series.map(), r.baseMonth, r.targetMonth, r.series.field)],
-      ['מקדם הצמדה', r.ratio],
+      ['ערך מדד היעד (בבסיס מדד הבסיס)', tidyCell(Statso.core.readingInBase(r.series.map(), r.baseMonth, r.targetMonth, r.series.field))],
+      ['מקדם הצמדה', {v: r.ratio, f: 'ratio'}],
       ['סכום מוצמד (₪)', r.indexed],
       ['הפרש (₪)', r.difference]];
   }
@@ -127,8 +139,7 @@
       const sheet = {name: 'הצמדה למדד', columns: [{width: 26}, {width: 20}],
         rows: [[{v: say(title), s: S().title}], []]};
       rows.forEach(function (row) {
-        sheet.rows.push([{v: row[0], s: S().header},
-          typeof row[1] === 'number' ? {v: row[1], s: S().money} : {v: row[1], s: S().boxed}]);
+        sheet.rows.push([{v: row[0], s: S().header}, valueCell(row[1])]);
       });
       Statso.exporter.downloadWorkbook('statso-' + Statso.i18n.t(title) + '-' + Statso.exporter.stamp() + '.xlsx', [sheet], {title: say(title)});
       return;
@@ -230,14 +241,14 @@
     if (r.kind === 'link') {
       return [['מטבע ההצמדה', (Statso.core.CURRENCY_NAMES[r.code] || r.code) + ' (' + r.code + ')'],
         ['סכום מקורי (₪)', r.amount],
-        ['תאריך בסיס', Statso.core.formatIsoDateHe(r.baseDate)], ['שער בסיס', r.baseRate],
-        ['תאריך יעד', Statso.core.formatIsoDateHe(r.targetDate)], ['שער יעד', r.targetRate],
-        ['מקדם הצמדה', r.ratio], ['סכום מוצמד (₪)', r.value], ['הפרש (₪)', r.difference]];
+        ['תאריך בסיס', Statso.core.formatIsoDateHe(r.baseDate)], ['שער בסיס', {v: r.baseRate, f: 'rate'}],
+        ['תאריך יעד', Statso.core.formatIsoDateHe(r.targetDate)], ['שער יעד', {v: r.targetRate, f: 'rate'}],
+        ['מקדם הצמדה', {v: r.ratio, f: 'ratio'}], ['סכום מוצמד (₪)', r.value], ['הפרש (₪)', r.difference]];
     }
     return [['ממטבע', (Statso.core.CURRENCY_NAMES[r.from] || r.from) + ' (' + r.from + ')'],
       ['למטבע', (Statso.core.CURRENCY_NAMES[r.to] || r.to) + ' (' + r.to + ')'],
       ['סכום מקורי', r.amount], ['תאריך השער', Statso.core.formatIsoDateHe(r.date)],
-      ['שער', r.rate], ['סכום ממומר (' + r.unit + ')', r.value]];
+      ['שער', {v: r.rate, f: 'rate'}], ['סכום ממומר (' + r.unit + ')', r.value]];
   }
 
   function exportFx(kind) {
@@ -248,8 +259,7 @@
       const sheet = {name: title, columns: [{width: 26}, {width: 22}],
         rows: [[{v: say(title) + ' — ' + say('שערים יציגים של בנק ישראל'), s: S().title}], []]};
       rows.forEach(function (row) {
-        sheet.rows.push([{v: row[0], s: S().header},
-          typeof row[1] === 'number' ? {v: row[1], s: S().money} : {v: row[1], s: S().boxed}]);
+        sheet.rows.push([{v: row[0], s: S().header}, valueCell(row[1])]);
       });
       Statso.exporter.downloadWorkbook('statso-' + Statso.i18n.t(title) + '-' + Statso.exporter.stamp() + '.xlsx', [sheet], {title: say(title) + ' — ' + say('שערים יציגים של בנק ישראל')});
       return;

@@ -1,3 +1,4 @@
+import csv
 import json
 import unittest
 from pathlib import Path
@@ -41,8 +42,13 @@ class IndexationReferenceTests(unittest.TestCase):
         yoy = (40691566.5993423 / 40072094.6054417 - 1) * 100
         self.assertEqual(yoy, 1.5458937198069123); self.assertEqual(round(yoy, 2), 1.55)
         latest = next(r for r in self.cpi["observations"] if r["month"] == self.cpi["last_month"])
-        self.assertEqual(latest["value"], 105.8)
-        self.assertEqual(self.boi["current_rate"], 3.25)
+        with (ROOT / "data/cpi.csv").open(encoding="utf-8-sig", newline="") as stream:
+            last_row = list(csv.DictReader(stream))[-1]
+        self.assertEqual(last_row["month"], self.cpi["last_month"])
+        self.assertEqual(float(last_row["value"]), latest["value"])
+        self.assertEqual(self.cpi["observations"][-1], latest)
+        self.assertGreater(latest["value"], 0)
+        self.assertGreaterEqual(self.boi["current_rate"], 0)
         self.assertEqual(self.boi["current_rate"], self.boi["changes"][-1]["rate"])
 
 

@@ -130,17 +130,20 @@
 
   // ---------- export --------------------------------------------------------
   function head() {
-    return [t('תקופה')].concat(selected.map(function (code) { return name(code) + ' (' + code + ')'; }));
+    return [t('תקופה')].concat(selected.map(function (code) { return t(name(code) + ' (' + code + ')'); }));
   }
+
+  // v is the tidy stored value; p is the unrounded rate, so the PDF shows exactly what the screen shows (no double rounding)
+  function rateCell(rate) { return {v: Number(rate.toFixed(10)), f: 'rateSmart', p: rate}; }
 
   function matrix() {
     const body = rows.map(function (row) {
-      return [row.label].concat(row.values.map(function (value) {
-        return value ? Number(value.rate.toFixed(6)) : '';
+      return [t(row.label)].concat(row.values.map(function (value) {
+        return value ? rateCell(value.rate) : '';
       }));
     });
     body.push([t('ממוצע לתקופה')].concat(averages.map(function (item) {
-      return item.average === null ? '' : Number(item.average.toFixed(6));
+      return item.average === null ? '' : rateCell(item.average);
     })));
     return body;
   }
@@ -160,9 +163,9 @@
           head().map(function (text) { return {v: text, s: S().header}; })]};
       const body = matrix();
       body.forEach(function (row, index) {
-        const style = index === body.length - 1 ? S().moneyBold : S().money;
-        sheet.rows.push([{v: row[0], s: index === body.length - 1 ? S().header : S().boxed}]
-          .concat(row.slice(1).map(function (value) { return value === '' ? '' : {v: value, s: style}; })));
+        const last = index === body.length - 1;
+        sheet.rows.push([{v: row[0], s: last ? S().header : S().boxed}]
+          .concat(row.slice(1).map(function (cell) { return cell === '' ? '' : {v: cell.v, s: last ? S().rateBold : S().rate}; })));
       });
       Statso.exporter.downloadWorkbook('statso-' + t('שערי חליפין') + '-' + Statso.exporter.stamp() + '.xlsx', [sheet], {title: t('שערי חליפין היסטוריים') + ' — ' + subtitle()});
       return;
