@@ -5,9 +5,9 @@
   "currency": "GBP",
   "counter_currency": "ILS",
   "unit": 1,
-  "count": 12932,
+  "count": 12933,
   "first_date": "1962-02-10",
-  "last_date": "2026-10-28",
+  "last_date": "2026-10-29",
   "observations": [
     {
       "date": "1962-02-10",
@@ -51736,6 +51736,10 @@
     {
       "date": "2026-10-28",
       "rate": 4.1549
+    },
+    {
+      "date": "2026-10-29",
+      "rate": 4.1503
     }
   ]
 }
