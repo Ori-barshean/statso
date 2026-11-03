@@ -5,9 +5,9 @@
   "currency": "CHF",
   "counter_currency": "ILS",
   "unit": 1,
-  "count": 12929,
+  "count": 12930,
   "first_date": "1962-02-10",
-  "last_date": "2026-10-30",
+  "last_date": "2026-11-02",
   "observations": [
     {
       "date": "1962-02-10",
@@ -51724,6 +51724,10 @@
     {
       "date": "2026-10-30",
       "rate": 3.7978
+    },
+    {
+      "date": "2026-11-02",
+      "rate": 3.8269
     }
   ]
 }
