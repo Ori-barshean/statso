@@ -163,14 +163,14 @@
   <main class="shell mcode-view" id="mcode-view" hidden>
     <section class="hero guide-hero">
       <h1>קודים לייצוא (Power Query)</h1>
-      <p>בוחרים סדרת נתונים וטווח תאריכים, ומעתיקים קוד מוכן להדבקה בעורך המתקדם של Power Query באקסל.</p>
+      <p>בוחרים סדרה אחת או יותר וטווח תאריכים, ומעתיקים קוד מוכן להדבקה בעורך המתקדם של Power Query באקסל. כמה סדרות יחד יוצאות בטבלה אחת: שורה לכל חודש אם אחת מהן היא מדד, ושורה לכל תאריך אם לא.</p>
     </section>
     <form class="mcode-form">
-      <fieldset><legend>סדרת נתונים</legend><div class="radio-options">
-        <label><input type="radio" name="mc-series" value="boi" checked> <span>ריבית בנק ישראל</span></label>
-        <label><input type="radio" name="mc-series" value="cpi"> <span>מדד המחירים לצרכן (משורשר)</span></label>
-        <label><input type="radio" name="mc-series" value="construction"> <span>מדד תשומות הבנייה למגורים (משורשר)</span></label>
-        <label><input type="radio" name="mc-series" value="fx"> <span>שערי חליפין יציגים</span></label>
+      <fieldset><legend>סדרות</legend><div class="radio-options">
+        <label><input type="checkbox" name="mc-series" value="boi" checked> <span>ריבית בנק ישראל</span></label>
+        <label><input type="checkbox" name="mc-series" value="cpi"> <span>מדד המחירים לצרכן (משורשר)</span></label>
+        <label><input type="checkbox" name="mc-series" value="construction"> <span>מדד תשומות הבנייה למגורים (משורשר)</span></label>
+        <label><input type="checkbox" name="mc-series" value="fx"> <span>שערי חליפין יציגים</span></label>
       </div></fieldset>
       <fieldset id="mc-currencies-block" hidden><legend>מטבעות</legend><div class="fxh-currencies" id="mc-currencies"></div></fieldset>
       <fieldset><legend>טווח תאריכים</legend>

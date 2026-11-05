@@ -3,6 +3,11 @@
   const Statso = root.Statso = root.Statso || {};
   const CURRENCIES = ['usd','eur','gbp','chf','jpy','cad','aud','dkk','nok','sek'];
 
+  const SERIES = ['boi', 'cpi', 'construction', 'fx'];
+  const INDEXES = {cpi: {file: 'cpi.csv', chained: 'chained_1951_09', column: 'cpi_chained', step: 'Cpi'},
+    construction: {file: 'construction_inputs.csv', chained: 'chained_1950_07', column: 'construction_chained', step: 'Construction'}};
+  const MONTH_OF = 'Date.ToText([date], "yyyy-MM", "en-US")';
+
   function dateLiteral(iso) { return '#date(' + iso.split('-').map(Number).join(', ') + ')'; }
   function source(url) { return 'Csv.Document(Web.Contents("' + url + '"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv])'; }
   function rateSteps(url) {
@@ -10,7 +15,7 @@
       ['Promoted', 'Table.PromoteHeaders(Source, [PromoteAllScalars = true])'],
       ['Typed', 'Table.TransformColumnTypes(Promoted, {{"date", type date}, {"rate", type number}}, "en-US")']];
   }
-  function generate(selection) {
+  function generateOne(selection) {
     // Resolve the shared URLs only when called, after the guides module has loaded.
     const base = Statso.guides.URLS.boi.csv.replace(/[^/]+$/, '');
     const from = selection.from; const to = selection.to;
@@ -89,7 +94,11 @@
         });
       }
     }
-    if (selection.average) {
+    return finish(header, pairs, key, columns, selection.average);
+  }
+
+  function finish(header, pairs, key, columns, average) {
+    if (average) {
       header += '\n// last row: simple arithmetic mean of the rows above; the key cell stays empty';
       const previous = pairs[pairs.length - 1][0];
       const fields = [key + ' = null'].concat(columns.map(function (column) {
@@ -101,23 +110,105 @@
     return header + '\nlet\n' + pairs.map(function (pair) { return '    ' + pair[0] + ' = ' + pair[1]; }).join(',\n') + '\nin\n    Result';
   }
 
+  function indexSteps(url, chained) {
+    return [['Source', source(url)], ['Promoted', 'Table.PromoteHeaders(Source, [PromoteAllScalars = true])'],
+      ['Kept', 'Table.SelectColumns(Promoted, {"month", "' + chained + '"})'],
+      ['Typed', 'Table.TransformColumnTypes(Kept, {{"month", type text}, {"' + chained + '", type number}}, "en-US")'],
+      ['Filtered', 'Table.SelectRows(Typed, each [month] >= FromMonth and [month] <= ToMonth)']];
+  }
+  function nested(inner, tail) {
+    return '\n        let\n' + inner.map(function (pair) { return '            ' + pair[0] + ' = ' + pair[1]; }).join(',\n') +
+      '\n        in\n            ' + tail;
+  }
+  function generateCombined(selection, series) {
+    const base = Statso.guides.URLS.boi.csv.replace(/[^/]+$/, '');
+    const has = function (name) { return series.indexOf(name) !== -1; };
+    const monthly = has('cpi') || has('construction');
+    const key = monthly ? 'month' : 'date';
+    let currencies = [];
+    if (has('fx')) {
+      currencies = Array.from(new Set(selection.currencies || [])).filter(function (code) { return CURRENCIES.includes(code); });
+      if (!currencies.length) { throw new Error('Choose at least one supported currency.'); }
+    }
+    const titles = []; const urls = []; const notes = []; const columns = []; const joins = []; const anchors = [];
+    const pairs = monthly
+      ? [['FromMonth', '"' + selection.from.slice(0, 7) + '"'], ['ToMonth', '"' + selection.to.slice(0, 7) + '"']]
+      : [['From', dateLiteral(selection.from)], ['To', dateLiteral(selection.to)]];
+    if (has('boi')) {
+      const url = base + 'boi_interest_rate.csv';
+      titles.push('Bank of Israel interest rate'); urls.push(url); columns.push('boi_rate');
+      const inner = rateSteps(url);
+      if (monthly) { inner.push(['Monthly', 'Table.AddColumn(Typed, "month", each ' + MONTH_OF + ', type text)']); }
+      pairs.push(['Boi', nested(inner, 'Table.Buffer(Table.Sort(' + inner[inner.length - 1][0] + ', {{"date", Order.Ascending}}))')]);
+      notes.push(monthly
+        ? '// boi_rate: the rate in force at the END of the month - the last change dated on or before\n// the month\'s last day, carried forward, including the last change before the range start.'
+        : '// boi_rate: the rate in force on that date. The rate file records CHANGES only, so the last\n// change dated on or before each date is carried forward, including the last change before\n// the range start.');
+    }
+    ['cpi', 'construction'].filter(has).forEach(function (name) {
+      const meta = INDEXES[name]; const url = base + meta.file;
+      titles.push(name === 'cpi' ? 'Israeli consumer price index (CBS)' : 'Israeli residential construction inputs price index (CBS series 200010)');
+      urls.push(url); columns.push(meta.column); anchors.push(meta.step); joins.push([meta.step, name, meta.column]);
+      pairs.push([meta.step, nested(indexSteps(url, meta.chained), 'Table.RenameColumns(Filtered, {{"' + meta.chained + '", "' + meta.column + '"}})')]);
+    });
+    if (has('cpi')) { notes.push('// cpi_chained: the CBS CHAINED index chained_1951_09, chained back to the September 1951 average.'); }
+    if (has('construction')) { notes.push('// construction_chained: the CBS CHAINED index chained_1950_07, chained back to the July 1950\n// average; its published history starts at January 2000.'); }
+    if (monthly) { notes.push('// Only the RATIO between two months of a chained index is meaningful; the absolute level is not.'); }
+    if (currencies.length) {
+      titles.push('Bank of Israel representative exchange rate - ' + currencies.map(function (code) { return code.toUpperCase() + '/ILS'; }).join(', '));
+      currencies.forEach(function (code) {
+        const url = base + 'fx/' + code + '_ils.csv'; const column = code + '_ils'; const step = code[0].toUpperCase() + code.slice(1);
+        urls.push(url); columns.push(column); joins.push([step, code, column]);
+        anchors.push(step);
+        const inner = rateSteps(url).concat(monthly
+          ? [['Monthly', 'Table.AddColumn(Typed, "month", each ' + MONTH_OF + ', type text)'],
+             ['Filtered', 'Table.SelectRows(Monthly, each [month] >= FromMonth and [month] <= ToMonth)']]
+          : [['Filtered', 'Table.SelectRows(Typed, each [date] >= From and [date] <= To)']]);
+        pairs.push([step, nested(inner, monthly
+          ? 'Table.Group(Filtered, {"month"}, {{"' + column + '", each List.Average(List.RemoveNulls([rate])), type number}})'
+          : 'Table.RenameColumns(Filtered, {{"rate", "' + column + '"}})')]);
+      });
+      if (monthly) { notes.push('// ' + currencies.map(function (code) { return code + '_ils'; }).join(', ') + ': simple arithmetic mean of the month\'s daily representative\n// rates (published on business days only). A month still in progress averages the\n// days published so far.'); }
+    }
+    const header = '// statso - combined ' + (monthly ? 'monthly' : 'daily') + ' table: ' + titles.join(', ') + '\n' +
+      urls.map(function (url) { return '// Source: ' + url; }).join('\n') + '\n' +
+      (monthly ? '// One row per month (YYYY-MM) from FromMonth to ToMonth that has a value in at least one\n// chosen index or exchange rate; boi_rate never adds a row of its own. A cell is empty\n// when its series has no value for that month.'
+               : '// One row per date on which at least one chosen exchange rate was published (business days\n// only, so the dates have gaps).') +
+      '\n' + notes.join('\n');
+    pairs.push(['Spine', 'Table.TransformColumnTypes(Table.FromColumns({List.Sort(List.Distinct(' + anchors.map(function (name) { return name + '[' + key + ']'; }).join(' & ') + '), Order.Ascending)}, {"' + key + '"}), {{"' + key + '", type ' + (monthly ? 'text' : 'date') + '}})']);
+    if (has('boi')) { pairs.push(['WithBoi', 'Table.AddColumn(Spine, "boi_rate", (row) => List.Last(Table.SelectRows(Boi, (change) => change[' + key + '] <= row[' + key + '])[rate]), type number)']); }
+    joins.forEach(function (join) {
+      const previous = pairs[pairs.length - 1][0];
+      pairs.push(['With' + join[0], 'Table.ExpandTableColumn(Table.NestedJoin(' + previous + ', {"' + key + '"}, ' + join[0] + ', {"' + key + '"}, "' + join[1] + '", JoinKind.LeftOuter), "' + join[1] + '", {"' + join[2] + '"}, {"' + join[2] + '"})']);
+    });
+    pairs.push(['Sorted', 'Table.Sort(' + pairs[pairs.length - 1][0] + ', {{"' + key + '", Order.Ascending}})']);
+    return finish(header, pairs, key, columns, selection.average);
+  }
+  function generate(selection) {
+    const selected = Array.isArray(selection.series) ? selection.series : [selection.series];
+    const list = SERIES.filter(function (name) { return selected.indexOf(name) !== -1; });
+    if (!list.length) { throw new Error('Choose at least one data series.'); }
+    if (list.length === 1) { return generateOne(Object.assign({}, selection, {series: list[0]})); }
+    return generateCombined(selection, list);
+  }
+
   function el(id) { return document.getElementById(id); }
   function say(text) { return Statso.i18n ? Statso.i18n.t(text) : text; }
   function read() {
-    return {series: document.querySelector('input[name="mc-series"]:checked').value,
+    return {series: Array.from(document.querySelectorAll('input[name="mc-series"]:checked')).map(function (box) { return box.value; }),
       currencies: Array.from(document.querySelectorAll('#mc-currencies input:checked')).map(function (box) { return box.value; }),
       from: el('mc-from').value, to: el('mc-to').value, average: el('mc-average').checked};
   }
   function render() {
     const selection = read();
-    el('mc-currencies-block').hidden = selection.series !== 'fx';
+    el('mc-currencies-block').hidden = selection.series.indexOf('fx') === -1;
     let error = '';
     let fields = [];
     if (!selection.from || !selection.to) {
       error = 'יש לבחור תאריך התחלה ותאריך סיום.';
       fields = ['mc-from', 'mc-to'].filter(function (id) { return !el(id).value; });
     } else if (selection.from > selection.to) { error = 'תאריך ההתחלה חייב להיות לפני תאריך הסיום.'; fields = ['mc-from', 'mc-to']; }
-    else if (selection.series === 'fx' && !selection.currencies.length) {
+    else if (!selection.series.length) { error = 'יש לבחור סדרה אחת לפחות.'; fields = Array.prototype.slice.call(document.querySelectorAll('input[name="mc-series"]')); }
+    else if (selection.series.indexOf('fx') !== -1 && !selection.currencies.length) {
       error = 'יש לבחור מטבע אחד לפחות.';
       fields = Array.prototype.slice.call(document.querySelectorAll('#mc-currencies input'));
     }
@@ -161,5 +252,5 @@
     render();
   }
   document.addEventListener('DOMContentLoaded', init);
-  Statso.mcode = {generate: generate, read: read, render: render, init: init, CURRENCIES: CURRENCIES};
+  Statso.mcode = {generate: generate, read: read, render: render, init: init, CURRENCIES: CURRENCIES, SERIES: SERIES};
 })(window);

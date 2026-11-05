@@ -378,7 +378,8 @@ const element = id => made[id] || (made[id] = {id, value: '', textContent: '', i
 const radio = element('series'); radio.value = 'cpi'; radio.checked = true;
 const inputs = [radio];
 global.document = {addEventListener(type, fn) { if (type === 'DOMContentLoaded') { global.boot = fn; } }, getElementById: element,
-  querySelector() { return radio; }, querySelectorAll(selector) { return selector === '#mcode-view input' ? inputs : []; },
+  querySelector() { return radio; }, querySelectorAll(selector) { return selector === '#mcode-view input' ? inputs :
+    selector === 'input[name="mc-series"]:checked' ? [radio] : []; },
   createElement: () => element('x'), querySelectorAllFlag: null};
 """ + module("statso-core.js") + module("statso-guide-art.js") + module("statso-guides.js") + module("statso-mcode.js") + r"""
 const spoken = [];

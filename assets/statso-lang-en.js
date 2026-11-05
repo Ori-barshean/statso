@@ -8,8 +8,7 @@
   const en = {
     // --- Power Query exports -----------------------------------------------
     'קודים לייצוא (Power Query)': 'Export code (Power Query)',
-    'בוחרים סדרת נתונים וטווח תאריכים, ומעתיקים קוד מוכן להדבקה בעורך המתקדם של Power Query באקסל.': 'Choose a data series and date range, then copy code into the Power Query Advanced Editor in Excel.',
-    'סדרת נתונים': 'Data series',
+    'בוחרים סדרה אחת או יותר וטווח תאריכים, ומעתיקים קוד מוכן להדבקה בעורך המתקדם של Power Query באקסל. כמה סדרות יחד יוצאות בטבלה אחת: שורה לכל חודש אם אחת מהן היא מדד, ושורה לכל תאריך אם לא.': 'Choose one or more series and a date range, then copy code into the Power Query Advanced Editor in Excel. Several series come out as one table: one row per month if one of them is an index, otherwise one row per date.',
     'מדד המחירים לצרכן (משורשר)': 'Consumer price index (chained)',
     'שערי חליפין יציגים': 'Representative exchange rates',
     'טווח תאריכים': 'Date range',
