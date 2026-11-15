@@ -218,6 +218,10 @@ body.is-printing #print-root { display: block; }
 .print-note { color: #475569; font-size: .82rem; line-height: 1.6; }
 .print-foot { margin-top: 22px; padding-top: 10px; border-top: 1px solid #cbd5e1; color: #64748b; font-size: .75rem; }
 @media print { @page { margin: 14mm; } body { background: white; } #print-root { display: block; } .print-head { break-after: avoid; } #print-root tr { break-inside: avoid; } .table-wrap[role="region"]:not(.rent-scroll) { max-height: none; overflow: visible; } .table-wrap[role="region"]:not(.rent-scroll) thead th { position: static; box-shadow: none; } }
+@page statso-export-he { @top-center { content: ""; } @bottom-center { content: "עמוד " counter(page) " מתוך " counter(pages); direction: rtl; font-size: .75rem; color: #64748b; } }
+@page statso-export-en { @top-center { content: ""; } @bottom-center { content: "Page " counter(page) " of " counter(pages); direction: ltr; font-size: .75rem; color: #64748b; } }
+body.is-printing #print-root { page: statso-export-he; }
+body.is-printing #print-root[lang="en"] { page: statso-export-en; }
 .search-label { display: grid; gap: 5px; min-width: min(290px, 100%); }
 .table-summary { color: var(--muted); font-size: .84rem; }
 .table-scroll { overflow: auto; max-height: 540px; border: 1px solid var(--line); border-radius: var(--r-group); scroll-padding: 12px; }

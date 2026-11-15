@@ -506,6 +506,31 @@ process.stdout.write(JSON.stringify({english, restored, hebrew: seen.title}));
         self.assertEqual(seen, {"english": "Linkage differences — rental agreement", "restored": "page",
                                 "hebrew": "הפרשי הצמדה — הסכם שכירות"})
 
+    def test_the_exported_pdf_replaces_the_browser_margins_with_its_own_page_numbers(self):
+        plain = re.sub(r"/\*.*?\*/", "", CSS, flags=re.S)
+        named = {}
+        for name, number, language_direction in (("he", '"עמוד " counter(page) " מתוך " counter(pages)', "rtl"),
+                                                 ("en", '"Page " counter(page) " of " counter(pages)', "ltr")):
+            match = re.search(r"@page statso-export-" + name + r"\s*\{(.*?)\}\s*\}", plain, re.S)
+            self.assertIsNotNone(match, "no named page for the " + name + " export")
+            named[name] = match.group(0)
+            body = match.group(0)
+            self.assertRegex(body, r"@top-center\s*\{\s*content:\s*\"\";?\s*\}")
+            bottom = re.search(r"@bottom-center\s*\{([^{}]*)\}", body)
+            self.assertIsNotNone(bottom)
+            self.assertIn("content: " + number + ";", bottom.group(1))
+            self.assertIn("direction: " + language_direction + ";", bottom.group(1))
+            self.assertNotIn(" / ", bottom.group(1))
+        self.assertIn("body.is-printing #print-root { page: statso-export-he; }", plain)
+        self.assertIn('body.is-printing #print-root[lang="en"] { page: statso-export-en; }', plain)
+        self.assertIn("@page { margin: 14mm; }", plain)
+        outside = plain
+        for block in named.values():
+            outside = outside.replace(block, "")
+        self.assertNotRegex(outside, r"@(top|bottom)-")
+        exporter = (ROOT / "assets/statso-export.js").read_text(encoding="utf-8")
+        self.assertIn("container.setAttribute('lang', lang)", exporter)
+
     def test_the_rent_print_sheet_translates_its_period_headings_and_note(self):
         rent = (ROOT / "assets/statso-rent.js").read_text(encoding="utf-8")
         self.assertIn("Statso.xlsx.escapeXml(say(period.label))", rent)
