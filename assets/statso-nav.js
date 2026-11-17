@@ -7,7 +7,8 @@
     '#/terms': 'terms-page',
     '#/privacy': 'privacy-page',
     '#/accessibility': 'accessibility-page',
-    '#/contact': 'contact-page'
+    '#/contact': 'contact-page',
+    '#/sitemap': 'sitemap-page'
   };
   const toolRoutes = {
     '#/tools/index': 'tool-index-page',

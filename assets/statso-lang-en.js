@@ -367,6 +367,9 @@
     'שערים יציגים של בנק ישראל': 'Bank of Israel representative rates',
 
     // --- info pages ---------------------------------------------------------
+    'מפת אתר': 'Site map',
+    'כלים ומדריכים': 'Tools and guides',
+    'עמודי מידע': 'Information pages',
     'הדף לא נמצא': 'Page not found',
     'הכתובת שנפתחה אינה מובילה לעמוד באתר. ייתכן שהקישור שגוי או ישן.': 'The address you opened does not lead to a page on this site. The link may be wrong or out of date.',
     'לאן אפשר להמשיך': 'Where to go from here',

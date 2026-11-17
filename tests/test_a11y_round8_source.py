@@ -25,8 +25,8 @@ GUARD_TEXTS = [
     'חלק מהאתר לא נטען, ולכן ייתכן שחלק מהעמודים והכלים לא יפעלו. אפשר לרענן את הדף ולנסות שוב.',
     'Part of the site did not load, so some pages and tools may not work. You can refresh the page and try again.',
 ]
-STATEMENT_DATE = '2026-10-15'
-STATEMENT_FINGERPRINT = 'b28ba15c7150238a052c7f987b83ecefc9a4923771c3ec77e0feeffc4314ca30'
+STATEMENT_DATE = '2026-11-17'
+STATEMENT_FINGERPRINT = 'f25b39d80fc6d0816cb5e19e9134c435d4665bfaaf573d5407a317f23811fa1f'
 
 
 def statement_blocks():
@@ -211,11 +211,11 @@ const els = {}, focuses = [], siteTitle = 'statso — site';
 let scrolls = 0, resizes = 0, languageChanged;
 function heading(textContent) { return {textContent, attrs: {}, hasAttribute(k) { return k in this.attrs; },
  setAttribute(k, v) { this.attrs[k] = v; }, focus() { focuses.push(this.textContent); }}; }
-const infoIds = ['about-page', 'method-page', 'terms-page', 'privacy-page', 'accessibility-page', 'contact-page', 'notfound-page'];
+const infoIds = ['about-page', 'method-page', 'terms-page', 'privacy-page', 'accessibility-page', 'contact-page', 'sitemap-page', 'notfound-page'];
 const toolIds = ['tool-index-page', 'tool-fx-page', 'tool-history-page', 'tool-rate-history-page', 'tool-fx-history-page', 'tool-rent-page'];
 const viewIds = ['dashboard-view', 'tools-view', 'guides-view', 'mcode-view', 'info-view'];
 for (const id of infoIds.concat(toolIds)) {
- els[id] = {id, hidden: true, heading: heading(id === 'notfound-page' ? 'הדף לא נמצא' : id)};
+ els[id] = {id, hidden: true, heading: heading(id === 'notfound-page' ? 'הדף לא נמצא' : id === 'sitemap-page' ? 'מפת אתר' : id)};
 }
 for (const id of viewIds) {
  els[id] = {id, hidden: true, heading: heading(id),
@@ -306,7 +306,7 @@ process.stdout.write(JSON.stringify(results));
         routes += [('#/tools/' + slug, 'tools-view', 'tool-' + slug + '-page')
                    for slug in ('index', 'fx', 'history', 'rate-history', 'fx-history', 'rent')]
         routes += [('#/' + slug, 'info-view', slug + '-page')
-                   for slug in ('about', 'method', 'terms', 'privacy', 'accessibility', 'contact')]
+                   for slug in ('about', 'method', 'terms', 'privacy', 'accessibility', 'contact', 'sitemap')]
         seen = nav_run("const results = " + json.dumps(routes) + r""".map(([hash]) => {
  go('#/nonexistent'); go(hash); return snapshot();
 }); process.stdout.write(JSON.stringify(results));
@@ -338,6 +338,99 @@ process.stdout.write(JSON.stringify(snapshot()));
         for text in re.split(r'<[^>]+>', page):
             if re.search(r'[֐-׿]', text):
                 self.assertIn(text.strip(), keys)
+
+
+class SiteMapTests(unittest.TestCase):
+    def setUp(self):
+        self.page = re.search(r'<article[^>]*id="sitemap-page".*?</article>', HTML, re.S).group(0)
+
+    def test_route_restores_only_the_site_map_with_focus_and_title(self):
+        seen = nav_run("go('#/nonexistent'); go('#/sitemap'); process.stdout.write(JSON.stringify(snapshot()));")
+        self.assertEqual(seen['views'], ['info-view'])
+        self.assertEqual(seen['info'], ['sitemap-page'])
+        self.assertEqual(seen['tools'], [])
+        self.assertEqual(seen['active'], [])
+        self.assertEqual(seen['focus'], 'מפת אתר')
+        self.assertEqual(seen['title'], 'מפת אתר — statso')
+
+    def test_title_follows_the_language(self):
+        seen = nav_run("go('#/sitemap'); els['sitemap-page'].heading.textContent = 'Site map'; "
+                       "languageChanged(); process.stdout.write(JSON.stringify(snapshot()));")
+        self.assertEqual(seen['title'], 'Site map — statso')
+
+    def test_structure_and_every_hebrew_text_node_have_translations(self):
+        self.assertIn('hidden aria-labelledby="sitemap-title"', self.page)
+        self.assertEqual(len(re.findall(r'<h1\b', self.page)), 1)
+        self.assertIn('<h1 id="sitemap-title">מפת אתר</h1>', self.page)
+        self.assertEqual(re.findall(r'<h2>(.*?)</h2>', self.page),
+                         ['ניווט ראשי', 'כלים ומדריכים', 'עמודי מידע'])
+        self.assertEqual(re.findall(r'<h3>(.*?)</h3>', self.page), ['כלי חישוב', 'מדריכים'])
+        sections = re.findall(r'<section>(.*?)</section>', self.page, re.S)
+        self.assertEqual(len(sections), 3)
+        self.assertEqual([len(re.findall(r'<li>', section)) for section in sections], [4, 9, 6])
+        self.assertNotIn('<nav', self.page)
+        self.assertNotIn('data-lang', self.page)
+        self.assertEqual(len(re.findall(r'<li><a href="[^"]+">[^<]+</a></li>', self.page)), 19)
+        keys = dictionary_keys()
+        for text in re.split(r'<[^>]+>', self.page):
+            if re.search(r'[֐-׿]', text):
+                self.assertIn(text.strip(), keys)
+
+    def test_links_match_real_routes_and_visible_labels_in_order(self):
+        nav = (ROOT / 'assets/statso-nav.js').read_text(encoding='utf-8')
+
+        def routes(name):
+            block = re.search(r'const ' + name + r' = \{(.*?)\};', nav, re.S).group(1)
+            return re.findall(r"'([^']+)':", block)
+
+        info_routes, tool_routes = routes('infoRoutes'), routes('toolRoutes')
+        self.assertIn('#/sitemap', info_routes)
+        guide_source = (ROOT / 'assets/statso-guides.js').read_text(encoding='utf-8')
+        guides = [(id_, title) for id_, title, rest in re.findall(
+            r"\{id: '([a-z-]+)', title: '([^']+)'([^}]*)\}", guide_source)
+            if not re.search(r'\bsoon\s*:\s*true\b', rest)]
+        self.assertEqual(len(guides), 3)
+        main_routes = ['#/', '#/guides', '#/tools', '#/mcode']
+        guide_routes = ['#/guides/' + id_ for id_, _ in guides]
+        self.assertEqual(re.findall(r'href="([^"]+)"', self.page),
+                         main_routes + tool_routes + guide_routes +
+                         [route for route in info_routes if route != '#/sitemap'])
+        labels = dict(re.findall(r'<a href="([^"]+)">([^<]+)</a>', self.page))
+        site_nav = re.search(r'<nav class="site-nav".*?</nav>', HTML, re.S).group(0)
+        main_links = re.findall(r'<a class="[^"]*\bnav-item\b[^"]*"[^>]*href="([^"]+)"([^>]*)>(.*?)</a>',
+                                site_nav, re.S)
+        self.assertEqual([href for href, _, _ in main_links], main_routes)
+        submenu = re.search(r'<ul class="nav-submenu".*?</ul>', site_nav, re.S).group(0)
+        footer = re.search(r'<footer>.*?</footer>', HTML, re.S).group(0)
+        for source, expected in ((submenu, tool_routes), (footer, info_routes)):
+            links = re.findall(r'<a[^>]*href="([^"]+)"[^>]*>(.*?)</a>', source, re.S)
+            self.assertEqual([href for href, _ in links], expected)
+            for href, title in links:
+                if href != '#/sitemap':
+                    self.assertEqual(labels[href], title)
+        for href, attrs, title in main_links:
+            if href == '#/':
+                # The home link is an icon; its accessible name supplies the label.
+                title = re.search(r'aria-label="([^"]+)"', attrs).group(1)
+            self.assertEqual(labels[href], title)
+        for id_, title in guides:
+            self.assertEqual(labels['#/guides/' + id_], title)
+
+    def test_statement_describes_site_map_legal_context_and_axe_date_in_both_languages(self):
+        blocks = statement_blocks()
+        self.assertEqual(blocks['he'].count('עמוד ״מפת אתר״'), 1)
+        self.assertEqual(blocks['en'].count('A "Site map" page'), 1)
+        for lang, start, markers in (
+            ('he', 'המסגרת הרלוונטית בישראל', ['התשנ"ח-1998', 'התשע"ג-2013', 'ואינו ייעוץ משפטי']),
+            ('en', 'The relevant framework in Israel', ['5758-1998', '5773-2013', 'is not legal advice']),
+        ):
+            paragraph = re.search(r'<p>' + re.escape(start) + r'.*?</p>', blocks[lang], re.S).group(0)
+            for marker in markers:
+                self.assertIn(marker, paragraph)
+            for forbidden in ('עומד בתקן', 'כפוף', 'פטור', 'conforms', 'exempt', 'subject to'):
+                self.assertNotIn(forbidden, paragraph)
+        self.assertIn('אחרי 15 באוקטובר 2026 לא הורצה סריקת', blocks['he'])
+        self.assertIn('No <span dir="ltr">axe-core</span> scan has been run since 15 October 2026', blocks['en'])
 
 
 class StatementDateTests(unittest.TestCase):

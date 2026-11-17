@@ -155,7 +155,8 @@ class UiSourceTests(unittest.TestCase):
         footer = re.search(r'<footer>.*?</footer>', self.html, re.DOTALL).group(0)
         routes_in_order = re.findall(r'href="(#/[a-z-]+)"', footer)
         self.assertEqual(routes_in_order,
-                          ["#/about", "#/method", "#/terms", "#/privacy", "#/accessibility", "#/contact"])
+                          ["#/about", "#/method", "#/terms", "#/privacy", "#/accessibility", "#/contact", "#/sitemap"])
+        self.assertIn('<a href="#/sitemap">מפת אתר</a></nav>', footer)
         self.assertIn("statso הוא אתר אישי וחובבני, שאינו מופעל מטעם הלשכה המרכזית לסטטיסטיקה, "
                       "בנק ישראל או גוף ממשלתי אחר.", footer)
         self.assertIn("© 2026 מפעיל האתר. נתוני המקור שייכים לגופים המפרסמים.", footer)
@@ -164,7 +165,8 @@ class UiSourceTests(unittest.TestCase):
         self.assertIn('autocomplete="name"', self.html)
         self.assertIn('autocomplete="email"', self.html)
         contact = re.search(r'<article class="info-page" id="contact-page".*?</article>', self.html, re.DOTALL).group(0)
-        self.assertIn('name="botcheck"', contact)
+        self.assertIn('<div class="contact-honeypot" aria-hidden="true" inert>', contact)
+        self.assertRegex(contact, r'name="botcheck" tabindex="-1"')
         self.assertNotIn('type="checkbox" name="privacy-consent"', contact)
         self.assertIn('href="#/privacy"', contact)
         text = self.scripts["statso-contact.js"]

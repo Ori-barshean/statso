@@ -65,7 +65,8 @@ class BuildOfflineTests(unittest.TestCase):
             self.assertNotIn("assets/images/", text)
             for route, title in (("about", "אודות"), ("method", "שיטת החישוב"),
                                  ("terms", "תנאי שימוש והבהרות"), ("privacy", "מדיניות פרטיות"),
-                                 ("accessibility", "הצהרת נגישות"), ("contact", "צור קשר")):
+                                 ("accessibility", "הצהרת נגישות"), ("contact", "צור קשר"),
+                                 ("sitemap", "מפת אתר")):
                 self.assertIn(f'href="#/{route}"', text)
                 self.assertIn(f'id="{route}-page"', text)
                 self.assertIn(title, text)

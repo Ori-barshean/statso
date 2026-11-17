@@ -636,6 +636,61 @@ process.stdout.write(JSON.stringify(seen));
         ).stdout)
         self.assertEqual(seen, {"inside": True, "outside": True, "choice": True, "language": "en"})
 
+    def test_contact_validation_focuses_the_first_invalid_field(self):
+        script = """
+global.window = {location: {protocol: 'https:'}};
+let init, fetchCalls = 0;
+function element() { return {attrs: {}, handlers: {}, value: '', validity: {typeMismatch: false},
+ textContent: '', children: [],
+ setAttribute(k, v) { this.attrs[k] = v; }, getAttribute(k) { return this.attrs[k]; },
+ removeAttribute(k) { delete this.attrs[k]; }, addEventListener(type, fn) { this.handlers[type] = fn; },
+ appendChild(el) { this.children.push(el); }, focus() { document.activeElement = this; }}; }
+const els = {};
+global.document = {activeElement: null, addEventListener(type, fn) { init = fn; },
+ getElementById: id => els[id] || (els[id] = element()), createElement: () => element()};
+global.FormData = class { set() {} };
+global.fetch = () => { fetchCalls++; return new Promise(() => {}); };
+require(%s); init();
+const ids = ['contact-name', 'contact-email', 'contact-message'];
+const form = els['contact-form'];
+function submit() {
+ document.activeElement = null;
+ form.handlers.submit({preventDefault() {}, currentTarget: form});
+ return {focus: ids.find(id => els[id] === document.activeElement), fetchCalls,
+  invalid: ids.map(id => els[id].getAttribute('aria-invalid') || null),
+  errors: ids.map(id => els[id + '-error'].textContent)};
+}
+const empty = submit();
+els['contact-name'].value = 'שם מלא';
+els['contact-name'].handlers.input.call(els['contact-name']);
+const corrected = {invalid: els['contact-name'].getAttribute('aria-invalid') || null,
+ error: els['contact-name-error'].textContent};
+const missingEmail = submit();
+els['contact-email'].value = 'invalid';
+els['contact-email'].validity.typeMismatch = true;
+const malformedEmail = submit();
+els['contact-email'].value = 'person@example.test';
+els['contact-email'].validity.typeMismatch = false;
+const missingMessage = submit();
+process.stdout.write(JSON.stringify({empty, corrected, missingEmail, malformedEmail, missingMessage}));
+""" % json.dumps(str(ROOT / 'assets/statso-contact.js'))
+        seen = json.loads(subprocess.run(
+            ['node', '-e', script], check=True, capture_output=True, text=True, encoding='utf-8'
+        ).stdout)
+        for case, field, invalid in (
+            ('empty', 'contact-name', ['true', 'true', 'true']),
+            ('missingEmail', 'contact-email', [None, 'true', 'true']),
+            ('malformedEmail', 'contact-email', [None, 'true', 'true']),
+            ('missingMessage', 'contact-message', [None, None, 'true']),
+        ):
+            with self.subTest(case=case):
+                self.assertEqual(seen[case]['focus'], field)
+                self.assertEqual(seen[case]['invalid'], invalid)
+                self.assertEqual(seen[case]['fetchCalls'], 0)
+        self.assertEqual(seen['missingEmail']['errors'][1], 'יש להזין אימייל לחזרה.')
+        self.assertEqual(seen['malformedEmail']['errors'][1], 'יש להזין כתובת אימייל תקינה.')
+        self.assertEqual(seen['corrected'], {'invalid': None, 'error': ''})
+
     def test_contact_submit_keeps_focus_while_sending_and_focuses_the_confirmation(self):
         script = """
 (async function () {

@@ -612,6 +612,7 @@
           <h2>מחויבות לנגישות</h2>
           <p>מפעיל האתר מחויב לאפשר שימוש נוח ככל האפשר באתר לאנשים עם מוגבלות, וממשיך לעבוד על שיפור הנגישות לאורך זמן.</p>
           <p>האתר נבנה תוך התייחסות לתקן הישראלי הרלוונטי (ת"י 5568) ולהנחיות <span lang="en" dir="ltr">WCAG</span>. כללי הנגישות מתועדים בקובץ <span lang="en" dir="ltr">README</span> של הפרויקט במאגר הציבורי ב־<span lang="en" dir="ltr">GitHub</span>, חלים על כל תכנון ושינוי באתר, וחלקם נאכפים בבדיקות אוטומטיות.</p>
+          <p>המסגרת הרלוונטית בישראל היא חוק שוויון זכויות לאנשים עם מוגבלות, התשנ"ח-1998, תקנות שוויון זכויות לאנשים עם מוגבלות (התאמות נגישות לשירות), התשע"ג-2013, ות"י 5568 המבוסס על <span lang="en" dir="ltr">WCAG 2.0</span> ברמה <span lang="en" dir="ltr">AA</span>. האזכור הוא לצורך מידע ואינו ייעוץ משפטי.</p>
           <p>האתר אינו טוען להתאמה מלאה לתקן הישראלי ת"י 5568 או להנחיות <span lang="en" dir="ltr">WCAG 2.x</span> ברמת <span lang="en" dir="ltr">AA</span>. לא נערכה לאתר ביקורת נגישות מקצועית חיצונית: הבדיקות המתוארות בהצהרה זו נעשו על ידי מפעיל האתר בעצמו, באופן אוטומטי וידני, בדפדפן מבוסס <span lang="en" dir="ltr">Chromium</span>.</p>
         </section>
         <section>
@@ -639,6 +640,7 @@
             <li>מונחים וביטויים באנגלית בתוך הטקסט העברי של עמודי שיטת החישוב, מדיניות הפרטיות ותנאי השימוש, של הצהרה זו ושל שלבי המדריך לייבוא ל־<span lang="en" dir="ltr">Excel</span> מסומנים כטקסט באנגלית (למעט שם האתר)</li>
             <li>כתובת בתוך האתר שאינה מובילה לעמוד קיים (חלק הכתובת שאחרי הסימן <span dir="ltr">#</span>, למשל כלי או מדריך שאינם קיימים) מציגה עמוד ״הדף לא נמצא״ עם כותרת ראשית, כותרת משלו בלשונית הדפדפן, העברת מיקוד לכותרת וקישורים לדף הבית, לכלי החישוב ולמדריכים, במקום להציג בלי הסבר את דף הבית או את רשימת המדריכים</li>
             <li>כתובת שאינה קיימת בשרת של האתר מציגה דף שגיאה עצמאי (404) בעברית ובאנגלית, עם כותרת ראשית אחת, קישור לדף הבית של האתר וסימון מיקוד גלוי</li>
+            <li>עמוד ״מפת אתר״, המקושר מהכותרת התחתונה של כל עמוד, מרכז קישורים לדף הבית, לכלי החישוב, למדריכים, לקודי הייצוא ולעמודי המידע, כדרך נוספת להגיע אליהם מלבד התפריט</li>
           </ul>
           <h3>תרשים המדד ההיסטורי</h3>
           <ul class="info-list">
@@ -705,6 +707,7 @@
             <li>חסימת טעינת קובצי הנתונים לבדיקת ההודעה על כשל בטעינה בכל נתיב</li>
             <li>חסימת הטעינה של כל אחד מקובצי הסקריפט של האתר בתורו, לבדיקת ההודעה על חלק מהאתר שלא נטען, ומעבר מקלדת אמיתי לעמוד ״הדף לא נמצא״ ובתוך דף השגיאה 404</li>
           </ul>
+          <p>אחרי 15 באוקטובר 2026 לא הורצה סריקת <span lang="en" dir="ltr">axe-core</span>, והשינויים מאז, כולל מפת האתר, נבדקו במקלדת, בגלישה ובטסטים של הפרויקט.</p>
           <p>נבדקו גם קובצי הייצוא: קובץ <span lang="en" dir="ltr">PDF</span> שנוצר ב־<span lang="en" dir="ltr">Chrome</span> נבדק לתיוג, לשפה ולכותרת, וקובצי <span lang="en" dir="ltr">XLSX</span> נפתחו בספריית גיליונות לבדיקת מאפייני המסמך, ההקפאה, המסנן והיעדר תאים ממוזגים.</p>
           <p>הבדיקות לא כללו קורא מסך (<span lang="en" dir="ltr">VoiceOver</span>, <span lang="en" dir="ltr">NVDA</span>, <span lang="en" dir="ltr">JAWS</span> או <span lang="en" dir="ltr">TalkBack</span>), דפדפנים נוספים מלבד <span lang="en" dir="ltr">Chromium</span>, מכשירים ניידים אמיתיים או בדיקה עם משתמשים עם מוגבלות, ואינן ביקורת נגישות מקצועית.</p>
           <p>רשימת הבדיקות חלקית: בכל סבב בדיקה נוספו סוגי בדיקה שגילו ליקויים שלא נמצאו קודם, ולכן אין לראות בה אישור שכל הליקויים אותרו. חלק מהסוגים נאכפים עתה בבדיקות אוטומטיות שנכשלות כשמופיע ליקוי חדש מאותו סוג.</p>
@@ -712,7 +715,7 @@
         <section>
           <h2>דיווח על בעיית נגישות</h2>
           <p>נתקלתם בבעיית נגישות? אפשר לדווח למפעיל האתר בכתובת <a href="mailto:ori.cpa.il@gmail.com" dir="ltr">ori.cpa.il@gmail.com</a>.</p>
-          <p>הצהרה זו עודכנה לאחרונה, ובדיקת הנגישות האחרונה נערכה, ב־<time datetime="2026-10-15">15 באוקטובר 2026</time>.</p>
+          <p>הצהרה זו עודכנה לאחרונה, ובדיקת הנגישות האחרונה נערכה, ב־<time datetime="2026-11-17">17 בנובמבר 2026</time>.</p>
         </section>
       </div>
       <div class="prose-guide" data-lang="en" hidden>
@@ -720,6 +723,7 @@
           <h2>Commitment to accessibility</h2>
           <p>The site operator is committed to making the site as usable as reasonably possible for people with disabilities, and continues working to improve its accessibility over time.</p>
           <p>The site was built with attention to the relevant Israeli standard (IS 5568) and to the <span dir="ltr">WCAG</span> guidelines. The accessibility rules are documented in the project's <span dir="ltr">README</span> in the public <span dir="ltr">GitHub</span> repository, apply to every design and change to the site, and some of them are enforced by automated tests.</p>
+          <p>The relevant framework in Israel is the Equal Rights for Persons with Disabilities Law, 5758-1998, the Equal Rights for Persons with Disabilities Regulations (Accessibility Adjustments for Service), 5773-2013, and Israeli Standard 5568 (based on <span dir="ltr">WCAG 2.0</span> level <span dir="ltr">AA</span>). This reference is for information only and is not legal advice.</p>
           <p>The site does not claim full conformance with Israeli Standard IS 5568 or with <span dir="ltr">WCAG 2.x</span> at level <span dir="ltr">AA</span>. No external professional accessibility audit has been carried out: the checks described in this statement were done by the site operator, automatically and manually, in a <span dir="ltr">Chromium</span>-based browser.</p>
         </section>
         <section>
@@ -747,6 +751,7 @@
             <li>English terms and phrases inside the Hebrew text of the method, privacy policy and terms of use pages, of this statement and of the steps of the <span dir="ltr">Excel</span> import guide are marked as English text (except for the site's name)</li>
             <li>An address inside the site that does not lead to an existing page (the part of the address after the <span dir="ltr">#</span> sign, for example a tool or a guide that does not exist) shows a "Page not found" view with a main heading, its own browser-tab title, focus moved to the heading, and links to the home page, the calculation tools and the guides, instead of silently showing the home page or the guide list</li>
             <li>An address that does not exist on the site's server shows a standalone error page (404) in Hebrew and English, with a single main heading, a link to the site's home page and a visible focus indicator</li>
+            <li>A "Site map" page, linked from the footer of every page, gathers links to the home page, the calculation tools, the guides, the export code and the information pages, as another way to reach them besides the menu</li>
           </ul>
           <h3>The historical index chart</h3>
           <ul class="info-list">
@@ -813,6 +818,7 @@
             <li>Blocking the data files from loading to check the notice about a loading failure on every route</li>
             <li>Blocking each of the site's script files from loading in turn, to check the notice about part of the site not loading, and a real keyboard walk to the "Page not found" view and through the 404 error page</li>
           </ul>
+          <p>No <span dir="ltr">axe-core</span> scan has been run since 15 October 2026; the changes made since then, including the site map, were checked with the keyboard, for overflow and with the project's tests.</p>
           <p>The export files were checked too: a <span dir="ltr">PDF</span> produced in <span dir="ltr">Chrome</span> was inspected for tagging, language and title, and <span dir="ltr">XLSX</span> files were opened with a spreadsheet library to check the document properties, the frozen header, the filter and the absence of merged cells.</p>
           <p>The testing did not include a screen reader (<span dir="ltr">VoiceOver</span>, <span dir="ltr">NVDA</span>, <span dir="ltr">JAWS</span> or <span dir="ltr">TalkBack</span>), browsers other than <span dir="ltr">Chromium</span>, real mobile devices, or testing with people with disabilities, and it is not a professional accessibility audit.</p>
           <p>This list of tests is partial: every round of testing added kinds of checks that found defects not found before, so it should not be read as confirmation that every defect has been found. Some of these kinds are now enforced by automated tests that fail when a new defect of the same kind appears.</p>
@@ -820,7 +826,7 @@
         <section>
           <h2>Reporting an accessibility issue</h2>
           <p>Found an accessibility issue? You can report it to the site operator at <a href="mailto:ori.cpa.il@gmail.com" dir="ltr">ori.cpa.il@gmail.com</a>.</p>
-          <p>This statement was last updated, and accessibility was last reviewed, on <time datetime="2026-10-15">15 October 2026</time>.</p>
+          <p>This statement was last updated, and accessibility was last reviewed, on <time datetime="2026-11-17">17 November 2026</time>.</p>
         </section>
       </div>
       <a class="info-back" href="#/"><span class="back-arrow" aria-hidden="true">←</span> חזרה לעמוד הבית</a>
@@ -849,13 +855,57 @@
               <span id="contact-message-count" dir="ltr">0/300</span><span class="sr-only" id="contact-message-limit" role="status" aria-live="polite" aria-atomic="true"></span>
             </div>
           </div>
-          <div class="contact-honeypot" aria-hidden="true"><label>השאירו שדה זה ריק <input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off"></label></div>
+          <div class="contact-honeypot" aria-hidden="true" inert><label>השאירו שדה זה ריק <input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off"></label></div>
           <p class="contact-disclosure">פרטי הפנייה יישלחו אלינו באמצעות Web3Forms וישמשו לצורך טיפול בפנייה ומתן תשובה. מידע נוסף ב<a href="#/privacy">מדיניות הפרטיות</a>.</p>
           <p class="contact-status" id="contact-status" role="alert"></p>
           <button class="contact-submit" id="contact-submit" type="submit">שלח</button>
         </form>
       </section></div>
       <a class="info-back" href="#/"><span class="back-arrow" aria-hidden="true">←</span> חזרה לעמוד הבית</a>
+    </article>
+
+    <article class="info-page" id="sitemap-page" hidden aria-labelledby="sitemap-title">
+      <header class="info-header"><h1 id="sitemap-title">מפת אתר</h1></header>
+      <div class="prose-guide">
+        <section>
+          <h2>ניווט ראשי</h2>
+          <ul class="info-list">
+            <li><a href="#/">דף הבית</a></li>
+            <li><a href="#/guides">מדריכים</a></li>
+            <li><a href="#/tools">כלים</a></li>
+            <li><a href="#/mcode">קודים לייצוא (Power Query)</a></li>
+          </ul>
+        </section>
+        <section>
+          <h2>כלים ומדריכים</h2>
+          <h3>כלי חישוב</h3>
+          <ul class="info-list">
+            <li><a href="#/tools/index">הצמדה למדדים</a></li>
+            <li><a href="#/tools/fx">הצמדה למטבע</a></li>
+            <li><a href="#/tools/history">נתוני מדד היסטוריים</a></li>
+            <li><a href="#/tools/rate-history">נתוני ריבית היסטוריים</a></li>
+            <li><a href="#/tools/fx-history">נתוני שער חליפין היסטוריים</a></li>
+            <li><a href="#/tools/rent">הצמדת הסכם שכירות</a></li>
+          </ul>
+          <h3>מדריכים</h3>
+          <ul class="info-list">
+            <li><a href="#/guides/excel">שאיבת נתונים מ-statso לתוך Excel</a></li>
+            <li><a href="#/guides/cpi-terms">מדד בגין מול מדד ידוע — ומה המדד בכלל מודד</a></li>
+            <li><a href="#/guides/live-pull">רענון אוטומטי של הנתונים ב-Excel</a></li>
+          </ul>
+        </section>
+        <section>
+          <h2>עמודי מידע</h2>
+          <ul class="info-list">
+            <li><a href="#/about">אודות</a></li>
+            <li><a href="#/method">שיטת החישוב</a></li>
+            <li><a href="#/terms">תנאי שימוש והבהרות</a></li>
+            <li><a href="#/privacy">מדיניות פרטיות</a></li>
+            <li><a href="#/accessibility">הצהרת נגישות</a></li>
+            <li><a href="#/contact">צור קשר</a></li>
+          </ul>
+        </section>
+      </div>
     </article>
 
     <article class="info-page" id="notfound-page" hidden aria-labelledby="notfound-title">
@@ -874,7 +924,7 @@
   </main>
 
   <div class="sr-only" id="result-live" role="status" aria-live="polite" aria-atomic="true"></div>
-  <footer><div class="shell footer-inner"><div class="footer-meta"><span class="brand"><span class="brand-mark" aria-hidden="true">s</span><span>statso</span></span><span>נתונים ממקורות רשמיים<span id="app-version-line" hidden> · גרסה <span id="app-version" dir="ltr"></span></span></span></div><nav class="footer-links" aria-label="מידע"><a href="#/about">אודות</a><span aria-hidden="true">·</span><a href="#/method">שיטת החישוב</a><span aria-hidden="true">·</span><a href="#/terms">תנאי שימוש והבהרות</a><span aria-hidden="true">·</span><a href="#/privacy">מדיניות פרטיות</a><span aria-hidden="true">·</span><a href="#/accessibility">הצהרת נגישות</a><span aria-hidden="true">·</span><a href="#/contact">צור קשר</a></nav></div><div class="shell footer-legal"><p>statso הוא אתר אישי וחובבני, שאינו מופעל מטעם הלשכה המרכזית לסטטיסטיקה, בנק ישראל או גוף ממשלתי אחר.</p><p>© 2026 מפעיל האתר. נתוני המקור שייכים לגופים המפרסמים.</p></div></footer>
+  <footer><div class="shell footer-inner"><div class="footer-meta"><span class="brand"><span class="brand-mark" aria-hidden="true">s</span><span>statso</span></span><span>נתונים ממקורות רשמיים<span id="app-version-line" hidden> · גרסה <span id="app-version" dir="ltr"></span></span></span></div><nav class="footer-links" aria-label="מידע"><a href="#/about">אודות</a><span aria-hidden="true">·</span><a href="#/method">שיטת החישוב</a><span aria-hidden="true">·</span><a href="#/terms">תנאי שימוש והבהרות</a><span aria-hidden="true">·</span><a href="#/privacy">מדיניות פרטיות</a><span aria-hidden="true">·</span><a href="#/accessibility">הצהרת נגישות</a><span aria-hidden="true">·</span><a href="#/contact">צור קשר</a><span aria-hidden="true">·</span><a href="#/sitemap">מפת אתר</a></nav></div><div class="shell footer-legal"><p>statso הוא אתר אישי וחובבני, שאינו מופעל מטעם הלשכה המרכזית לסטטיסטיקה, בנק ישראל או גוף ממשלתי אחר.</p><p>© 2026 מפעיל האתר. נתוני המקור שייכים לגופים המפרסמים.</p></div></footer>
 
   <script type="application/json" id="data-cpi" data-inline="json" data-src="data/cpi.json" data-label="מדד המחירים לצרכן"></script>
   <script type="application/json" id="data-construction-inputs" data-inline="json" data-src="data/construction_inputs.json" data-label="מדד תשומות הבנייה למגורים"></script>
