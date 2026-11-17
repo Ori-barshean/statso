@@ -11,6 +11,7 @@ COARSE_QUERY = "@media (pointer: coarse)"
 NO_BLUR = "@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)))"
 LESS_TRANSPARENCY = "@media (prefers-reduced-transparency: reduce)"
 REDUCED_MOTION = "@media (prefers-reduced-motion: reduce)"
+NO_PREFERENCE = "@media (prefers-reduced-motion: no-preference)"
 HOVER_ALLOWED_OUTSIDE = frozenset()
 CARD_TRANSITION = (
     "transition: transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out), "
@@ -105,6 +106,53 @@ class AppleDesignSourceTests(unittest.TestCase):
             with self.subTest(selector=selector):
                 if selector not in HOVER_ALLOWED_OUTSIDE:
                     self.assertIn(HOVER_QUERY, context)
+
+    def test_pressed_controls_shrink_only_when_motion_is_welcome(self):
+        expected = {
+            ".nav-item:active", ".nav-submenu a:active", ".lang-button:active",
+            ".lang-choice:active", ".btn-ghost:not(:disabled):active",
+            ".guide-notice button:active", ".guide-note button:active", ".copy-url:active",
+            ".guide-mcode-button:active", ".guide-pill:active",
+            '.contact-submit:not([aria-disabled="true"]):active',
+            "#mc-copy:not(:disabled):active", ".tool-card:active",
+            ".guide-card:not(.guide-card-soon):active",
+        }
+        pressed = set()
+        for selector, body, context, offset in self.rules:
+            if ":active" not in selector:
+                continue
+            self.assertEqual(context, (NO_PREFERENCE,), selector)
+            self.assertEqual(values(body, "transform"), ["scale(.97)"], selector)
+            self.assertEqual(values(body, "box-shadow"), [], selector)
+            self.assertEqual(values(body, "opacity"), [], selector)
+            pressed.update(parts(selector))
+        self.assertEqual(pressed, expected)
+
+    def test_pressed_controls_use_160ms_and_the_ease_out_curve(self):
+        controls = {
+            ".nav-item", ".nav-submenu a", ".lang-button", ".lang-choice", ".btn-ghost",
+            ".guide-notice button", ".guide-note button", ".copy-url",
+            ".guide-mcode-button", ".guide-pill", ".contact-submit", "#mc-copy",
+        }
+        transitions = [r for r in self.rules if r[2] == (NO_PREFERENCE,)
+                       and values(r[1], "transition") == ["transform 160ms var(--ease-out)"]]
+        self.assertTrue(transitions)
+        self.assertEqual({part for r in transitions for part in parts(r[0])}, controls)
+        for control in controls | {".tool-card", ".guide-card"}:
+            with self.subTest(control=control):
+                self.assertTrue(any(control in parts(r[0]) and r[2] == (REDUCED_MOTION,)
+                                    and values(r[1], "transition") == ["none"]
+                                    for r in self.rules), control)
+
+    def test_controls_drop_double_tap_zoom_without_tap_highlight_changes(self):
+        expected = {"a", "button", "summary", "label", "select", "textarea",
+                    'input:not([type="range"])'}
+        manipulation = [r for r in self.rules if not r[2]
+                        and values(r[1], "touch-action") == ["manipulation"]]
+        self.assertTrue(any(set(parts(r[0])) == expected for r in manipulation))
+        self.assertNotIn("-webkit-tap-highlight-color", self.css)
+        for path in sorted((ROOT / "assets").glob("statso-*.js")):
+            self.assertNotIn("touchstart", path.read_text(encoding="utf-8"), str(path))
 
     def test_the_mouse_only_query_holds_only_hover_rules(self):
         for selector, body, context, offset in self.rules:

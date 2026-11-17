@@ -464,6 +464,23 @@ process.stdout.write(JSON.stringify(seen));
         self.assertIn("(prefers-reduced-motion: reduce)", chart)
         self.assertIn("config.options.animation = false", chart)
 
+    def test_chart_draws_in_over_200ms_unless_motion_is_reduced(self):
+        script = """
+global.window = {};
+window.Statso = {i18n: {onChange() {}, t: text => text}};
+global.document = {getElementById: () => null};
+require(%s); require(%s);
+const rows = [{year: 2020, month: '2020-01', chained_1951_09: 100}, {year: 2020, month: '2020-02', chained_1951_09: 101}];
+const normal = window.Statso.chart.buildConfig(rows, null).options.animation;
+window.matchMedia = q => ({matches: q === '(prefers-reduced-motion: reduce)'});
+const reduced = window.Statso.chart.buildConfig(rows, null).options.animation;
+process.stdout.write(JSON.stringify([normal, reduced]));
+""" % (json.dumps(str(ROOT / "assets/statso-core.js")), json.dumps(str(ROOT / "assets/statso-chart.js")))
+        animations = json.loads(subprocess.run(
+            ["node", "-e", script], check=True, capture_output=True, text=True, encoding="utf-8"
+        ).stdout)
+        self.assertEqual(animations, [{"duration": 200}, False])
+
     def test_focused_controls_clear_the_sticky_header(self):
         rule = re.search(r'\nhtml \{([^}]*)\}', self.css).group(1)
         self.assertIn('scroll-padding-top: calc(var(--header-height, 72px) + 12px)', rule)

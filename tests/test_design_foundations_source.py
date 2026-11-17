@@ -135,6 +135,30 @@ def text_pairs():
 
 
 class DesignFoundationsSourceTests(unittest.TestCase):
+    def test_numbers_use_tabular_figures(self):
+        for selector in (".kpi-value, .kpi-date", ".calc-result strong", ".rent-summary-grid strong"):
+            self.assertEqual(values(rule(selector), "font-variant-numeric"), ["tabular-nums"], selector)
+
+    def test_text_alignment_follows_the_writing_direction(self):
+        for selector in ("th", ".guide-card"):
+            self.assertEqual(values(rule(selector), "text-align"), ["start"], selector)
+        physical_allowed = {
+            'html[dir="rtl"] .data-table td[dir="ltr"]',
+            'html[dir="rtl"] .kpi-value[dir="ltr"], html[dir="rtl"] .kpi-meta[dir="ltr"]',
+            "td.numeric", ".code-block pre",
+        }
+        for selector, body, context, offset in rules(CSS):
+            if any(value in ("right", "left") for value in values(body, "text-align")):
+                self.assertIn(selector, physical_allowed)
+
+    def test_headings_balance_and_paragraphs_avoid_orphans(self):
+        self.assertEqual(values(rule("h1, h2, h3"), "text-wrap"), ["balance"])
+        self.assertEqual(values(rule("p"), "text-wrap"), ["pretty"])
+
+    def test_sideways_scroll_boxes_contain_overscroll(self):
+        for selector in (".table-wrap", ".art-scroll", ".code-block pre", ".table-scroll"):
+            self.assertEqual(values(rule(selector), "overscroll-behavior-x"), ["contain"], selector)
+
     def test_palette_tokens_have_the_approved_values(self):
         actual = tokens()
         for name, value in PALETTE.items():
