@@ -5,9 +5,9 @@
   "currency": "NOK",
   "counter_currency": "ILS",
   "unit": 1,
-  "count": 12942,
+  "count": 12943,
   "first_date": "1962-02-10",
-  "last_date": "2026-11-13",
+  "last_date": "2026-11-16",
   "observations": [
     {
       "date": "1962-02-10",
@@ -51776,6 +51776,10 @@
     {
       "date": "2026-11-13",
       "rate": 0.3351
+    },
+    {
+      "date": "2026-11-16",
+      "rate": 0.3359
     }
   ]
 }
