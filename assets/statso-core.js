@@ -169,6 +169,57 @@
     });
   }
 
+  // A short explanation behind a small round button (.info-tip: .info-tip-button and .info-tip-text). The text opens on
+  // hover (the stylesheet), on keyboard focus (the stylesheet) and on a press or tap (data-open), and it can be
+  // dismissed without moving the pointer or the focus: Escape, or pressing the button again (data-closed). While the
+  // pointer is over the text it stays (WCAG 1.4.13: dismissable, hoverable, persistent). The attributes are only
+  // state; the stylesheet decides what shows. One document-level listener serves every tip.
+  let infoTipsBound = false;
+  function infoTipVisible(tip) {
+    const text = tip.querySelector('.info-tip-text');
+    return !!text && root.getComputedStyle(text).display !== 'none';
+  }
+  function closeInfoTip(tip) { tip.setAttribute('data-closed', 'true'); tip.removeAttribute('data-open'); }
+  function initInfoTips(scope) {
+    if (!scope || typeof scope.querySelectorAll !== 'function') { return; }
+    Array.prototype.slice.call(scope.querySelectorAll('.info-tip')).forEach(function (tip) {
+      if (tip.getAttribute('data-tip-ready') === 'true') { return; }
+      tip.setAttribute('data-tip-ready', 'true');
+      const button = tip.querySelector('.info-tip-button');
+      if (!button) { return; }
+      // A tap focuses the button before the click arrives, which already shows the text: what counts is whether
+      // the text was visible before the press began.
+      let visibleBefore = null;
+      button.addEventListener('pointerdown', function () { visibleBefore = infoTipVisible(tip); });
+      // a press that never became a click (a cancelled scroll) must not leave its value for a later click
+      button.addEventListener('pointercancel', function () { visibleBefore = null; });
+      button.addEventListener('click', function (e) {
+        // a click from the keyboard or from assistive technology has detail 0: it did not come from the pointer press
+        const fromPointer = visibleBefore !== null && !(e && e.detail === 0);
+        const visible = fromPointer ? visibleBefore : infoTipVisible(tip);
+        visibleBefore = null;
+        if (visible) { closeInfoTip(tip); }
+        else { tip.removeAttribute('data-closed'); tip.setAttribute('data-open', 'true'); }
+      });
+      tip.addEventListener('mouseenter', function () { tip.removeAttribute('data-closed'); });
+      tip.addEventListener('focusin', function () { tip.removeAttribute('data-closed'); });
+      tip.addEventListener('focusout', function (e) {
+        if (e.relatedTarget && tip.contains(e.relatedTarget)) { return; }
+        tip.removeAttribute('data-open'); tip.removeAttribute('data-closed');
+      });
+    });
+    if (infoTipsBound || typeof document === 'undefined') { return; }
+    infoTipsBound = true;
+    function tips() { return Array.prototype.slice.call(document.querySelectorAll('.info-tip')); }
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') { return; }
+      tips().forEach(function (tip) { if (infoTipVisible(tip)) { closeInfoTip(tip); } });
+    });
+    document.addEventListener('click', function (e) {
+      tips().forEach(function (tip) { if (!tip.contains(e.target)) { tip.removeAttribute('data-open'); } });
+    });
+  }
+
   Statso.core = {monthToOrdinal: monthToOrdinal, ordinalToMonth: ordinalToMonth, shiftMonth: shiftMonth,
     buildIndexMap: buildIndexMap, resolveIndexMonth: resolveIndexMonth, lookupChained: lookupChained,
     indexAmount: indexAmount, readingInBase: readingInBase, lookupRateAt: lookupRateAt, convertAmount: convertAmount,
@@ -179,5 +230,5 @@
     formatNumber: formatNumber, formatPercent: formatPercent, formatMonthHe: formatMonthHe,
     parseMonthInput: parseMonthInput, formatMonthInput: formatMonthInput,
     formatIsoDateHe: formatIsoDateHe, nextCpiPublicationDate: nextCpiPublicationDate, escapeHtml: escapeHtml,
-    flagFields: flagFields};
+    flagFields: flagFields, initInfoTips: initInfoTips};
 })(window);

@@ -25,8 +25,8 @@ GUARD_TEXTS = [
     'חלק מהאתר לא נטען, ולכן ייתכן שחלק מהעמודים והכלים לא יפעלו. אפשר לרענן את הדף ולנסות שוב.',
     'Part of the site did not load, so some pages and tools may not work. You can refresh the page and try again.',
 ]
-STATEMENT_DATE = '2026-11-22'
-STATEMENT_FINGERPRINT = 'c4e19920c44e4a48f2b03c4ce4f87ef1d6d22e24633a65e0de4a5715447b8418'
+STATEMENT_DATE = '2026-11-23'
+STATEMENT_FINGERPRINT = 'a2e292b30a24ad92d611810e3fc5017e6cd0ab25d15480ebc927fa66a7b52de8'
 
 
 def statement_blocks():

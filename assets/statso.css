@@ -441,6 +441,20 @@ footer .footer-legal { display: block; min-height: 0; padding-block: 14px; borde
 .travel-disclaimer { margin-block: 20px; }
 #tt-travelers .rent-option { grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr)); }
 #tt-travelers .rent-option-title { grid-column: 1 / -1; margin: 0; }
+/* The live cap beside an expense field: a visible label, the figure in red, and the arithmetic under it. */
+.travel-cap, .travel-cap-free { min-width: 0; margin: 0; font-size: .86rem; overflow-wrap: anywhere; }
+.travel-cap-value { margin: 0; color: #b42318; font-weight: 700; }
+.travel-cap-value strong { font-variant-numeric: tabular-nums; }
+.travel-cap-explain { margin: 4px 0 0; color: var(--muted); }
+/* The "!" beside a group title: a round button that shows its sentence on hover, on focus and on a press. */
+.travel-head { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; position: relative; }
+.info-tip { display: flex; align-self: stretch; align-items: center; }
+.info-tip-button { inline-size: 24px; block-size: 24px; min-inline-size: 24px; padding: 0; display: grid; place-items: center; border: 2px solid var(--navy); border-radius: 50%; background: var(--surface); color: var(--navy); font: inherit; font-weight: 800; line-height: 1; cursor: pointer; }
+@media (hover: hover) and (pointer: fine) { .info-tip-button:hover { background: var(--blue-tint-soft); } }
+@media (hover: hover) and (pointer: fine) { .info-tip:hover .info-tip-text { display: block; } }
+.info-tip-text { display: none; position: absolute; inset-inline: 0; top: 100%; z-index: 5; padding: 8px 12px; border: 1px solid var(--field-border); border-radius: var(--r-control); background: var(--surface); color: var(--ink); font-size: .86rem; font-weight: 400; overflow-wrap: anywhere; }
+.info-tip-button:focus + .info-tip-text, .info-tip[data-open="true"] .info-tip-text { display: block; }
+.info-tip[data-closed="true"] .info-tip-text { display: none !important; }
 @media (forced-colors: active) {
   .nav-item[aria-current="page"] { border-block-end: 3px solid CanvasText; }
   .nav-item[aria-current="page"]::after { display: none; }
