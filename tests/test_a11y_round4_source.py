@@ -91,7 +91,7 @@ process.stdout.write(JSON.stringify(box.attrs));
         errors = re.findall(r'id="([a-z-]+-error)"[^>]*role="alert"', HTML)
         self.assertEqual(sorted(errors), sorted([
             "chart-range-error", "calc-error", "mc-error", "ti-error", "tf-error", "th-error",
-            "trh-error", "fxh-error", "tr-error"]))
+            "trh-error", "fxh-error", "tr-error", "tt-error"]))
         sources = {path.name: path.read_text(encoding="utf-8") for path in (ROOT / "assets").glob("statso-*.js")}
         joined = "\n".join(sources.values())
         for error in errors:
@@ -103,7 +103,8 @@ process.stdout.write(JSON.stringify(box.attrs));
     def test_alert_text_is_not_written_around_the_helpers(self):
         # a message written straight to the line would leave the previous message's fields flagged
         for name, ids in {"statso-calculator.js": ["calc-error"], "statso-tools.js": ["ti-error", "tf-error", "th-error"],
-                          "statso-ratehistory.js": ["trh-error"], "statso-rent.js": ["tr-error"]}.items():
+                          "statso-ratehistory.js": ["trh-error"], "statso-rent.js": ["tr-error"],
+                          "statso-travel.js": ["tt-error"]}.items():
             source = (ROOT / "assets" / name).read_text(encoding="utf-8")
             for error in ids:
                 direct = re.findall(r"(?:el|getElementById)\('" + error + r"'\)\)?\.textContent\s*=", source)

@@ -3,6 +3,8 @@
   const Statso = root.Statso = root.Statso || {};
   const XLSX_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
+  const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+
   function stamp() {
     const now = new Date();
     return now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0');
@@ -106,7 +108,7 @@
         const kind = cell && typeof cell === 'object' ? cell.f : undefined;
         const numeric = typeof value === 'number';
         const shown = cell && typeof cell === 'object' && typeof cell.p === 'number' ? cell.p : value;
-        html += '<td' + (numeric ? ' dir="ltr"' : '') + '>'
+        html += '<td' + (cell && cell.raw ? ' dir="auto" data-i18n-skip' : numeric ? ' dir="ltr"' : '') + '>'
           + Statso.xlsx.escapeXml(numeric ? formatCell(shown, kind) : value) + '</td>';
       });
       html += '</tr>';
@@ -114,13 +116,13 @@
     return html + '</tbody></table>';
   }
 
-  function documentHtml(title, subtitle, blocks) {
+  function documentHtml(title, subtitle, blocks, sourceNote) {
     let html = '<header class="print-head"><div class="print-brand">statso</div>'
       + '<h1>' + Statso.xlsx.escapeXml(title) + '</h1>';
     if (subtitle) { html += '<p class="print-subtitle">' + Statso.xlsx.escapeXml(subtitle) + '</p>'; }
     html += '</header>' + blocks.join('');
     return html + '<footer class="print-foot">הופק ב־' + Statso.core.formatIsoDateHe(new Date().toISOString().slice(0, 10))
-      + ' · נתוני מקור: הלשכה המרכזית לסטטיסטיקה ובנק ישראל · statso</footer>';
+      + ' · ' + (sourceNote === undefined ? 'נתוני מקור: הלשכה המרכזית לסטטיסטיקה ובנק ישראל' : Statso.xlsx.escapeXml(sourceNote)) + ' · statso</footer>';
   }
 
   // A copy or export button changing its own label is silent to a screen
@@ -157,5 +159,5 @@
 
   Statso.exporter = {downloadBytes: downloadBytes, downloadWorkbook: downloadWorkbook, toTsv: toTsv,
     copyText: copyText, printDocument: printDocument, tableHtml: tableHtml, documentHtml: documentHtml,
-    flash: flash, announce: announce, stamp: stamp, XLSX_MIME: XLSX_MIME};
+    flash: flash, announce: announce, stamp: stamp, XLSX_MIME: XLSX_MIME, DOCX_MIME: DOCX_MIME};
 })(window);

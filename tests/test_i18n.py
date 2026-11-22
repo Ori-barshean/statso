@@ -171,7 +171,8 @@ class EngineTests(unittest.TestCase):
     def test_exports_follow_the_language(self):
         xlsx = (ROOT / "assets/statso-xlsx.js").read_text(encoding="utf-8")
         self.assertIn("Statso.i18n ? Statso.i18n.t(text) : text", xlsx)
-        self.assertIn("escapeXml(say(value))", xlsx)
+        # user-entered text (a cell flagged raw) is the one thing an export never translates
+        self.assertIn("escapeXml(typeof cell === 'object' && cell.raw ? value : say(value))", xlsx)
         export = (ROOT / "assets/statso-export.js").read_text(encoding="utf-8")
         self.assertLess(export.index("Statso.i18n.apply(container)"), export.index("root.print();"))
 

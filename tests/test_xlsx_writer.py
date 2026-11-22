@@ -34,6 +34,11 @@ require('fs').writeFileSync(process.argv[3] + '.style.json', JSON.stringify(S));
 write('', options); write('.again', options); write('.now', {title: options.title});
 window.Statso.i18n = {t: s => s, locale: () => 'en-GB'};
 write('.en', options);
+// Text the visitor typed is flagged raw and must survive a translating engine untouched; everything else is translated.
+window.Statso.i18n = {t: s => 'EN:' + s, locale: () => 'en-GB'};
+const rawSheets = [{name: 'שם', rows: [[{v: 'שם שהוקלד <&>', raw: true}, 'טקסט מערכת', {v: 'טקסט מותאם', s: S.boxed}, {v: 'ערך משתמש', raw: true, s: S.boxed}]]}];
+require('fs').writeFileSync(process.argv[3] + '.raw', Buffer.from(X.build(rawSheets, {title: 'כותרת'})));
+require('fs').writeFileSync(process.argv[3] + '.exports.json', JSON.stringify({zip: typeof X.zip, utf8: typeof X.utf8}));
 """
 
 EXPECTED_PARTS = {"docProps/core.xml", "[Content_Types].xml", "_rels/.rels", "xl/workbook.xml",
@@ -180,6 +185,25 @@ class XlsxWriterTests(unittest.TestCase):
             self.assertEqual(node.attrib['{http://www.w3.org/2001/XMLSchema-instance}type'], 'dcterms:W3CDTF')
         self.assertIn('<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>', types)
         self.assertIn('<Relationship Id="rId2" Target="docProps/core.xml" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties"/>', rels)
+
+    def test_raw_cells_are_never_translated_and_everything_else_is(self):
+        with zipfile.ZipFile(str(self.path) + '.raw') as archive:
+            sheet = archive.read('xl/worksheets/sheet1.xml').decode('utf-8')
+        self.assertIn('>שם שהוקלד &lt;&amp;&gt;<', sheet)           # user text: Hebrew stays Hebrew, still escaped
+        self.assertIn('>ערך משתמש<', sheet)
+        self.assertNotIn('EN:שם שהוקלד', sheet)
+        self.assertNotIn('EN:ערך משתמש', sheet)
+        self.assertIn('>EN:טקסט מערכת<', sheet)                    # a plain string still goes through the engine
+        self.assertIn('>EN:טקסט מותאם<', sheet)
+
+    def test_the_zip_and_utf8_helpers_are_exported_for_the_docx_writer(self):
+        self.assertEqual(json.loads(Path(str(self.path) + '.exports.json').read_text()), {'zip': 'function', 'utf8': 'function'})
+
+    def test_values_only_no_formulas(self):
+        with zipfile.ZipFile(self.path) as archive:
+            for name in archive.namelist():
+                if name.startswith('xl/worksheets/'):
+                    self.assertNotIn('<f>', archive.read(name).decode('utf-8'))
 
     def test_fixed_created_is_byte_identical(self):
         self.assertEqual(self.path.read_bytes(), Path(str(self.path) + '.again').read_bytes())

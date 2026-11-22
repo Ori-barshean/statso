@@ -25,8 +25,8 @@ GUARD_TEXTS = [
     'חלק מהאתר לא נטען, ולכן ייתכן שחלק מהעמודים והכלים לא יפעלו. אפשר לרענן את הדף ולנסות שוב.',
     'Part of the site did not load, so some pages and tools may not work. You can refresh the page and try again.',
 ]
-STATEMENT_DATE = '2026-11-17'
-STATEMENT_FINGERPRINT = 'f25b39d80fc6d0816cb5e19e9134c435d4665bfaaf573d5407a317f23811fa1f'
+STATEMENT_DATE = '2026-11-22'
+STATEMENT_FINGERPRINT = '416d65145cdfe48f898edcb59a071469eee24f68cc85c7eea93de6e6bbc9d660'
 
 
 def statement_blocks():
@@ -137,6 +137,10 @@ class UserFacingErrorTests(unittest.TestCase):
             for match in re.finditer(r'(\w+)(?:\.reason)?\.message\b', source):
                 if path.name == 'statso-contact.js' and match.group(0) == 'fields.message':
                     continue
+                if path.name == 'statso-travel.js' and match.group(0) == 'error.message':
+                    # a validation result of Statso.travel.calculate (the tool's own sentence), never exception text
+                    self.assertIn('model.errors.map(', source[max(0, match.start() - 80):match.start()])
+                    continue
                 count += 1
                 self.assertEqual(path.name, 'statso-app.js')
                 self.assertIsNotNone(helper)
@@ -213,25 +217,31 @@ function heading(textContent) { return {textContent, attrs: {}, hasAttribute(k) 
  setAttribute(k, v) { this.attrs[k] = v; }, focus() { focuses.push(this.textContent); }}; }
 const infoIds = ['about-page', 'method-page', 'terms-page', 'privacy-page', 'accessibility-page', 'contact-page', 'sitemap-page', 'notfound-page'];
 const toolIds = ['tool-index-page', 'tool-fx-page', 'tool-history-page', 'tool-rate-history-page', 'tool-fx-history-page', 'tool-rent-page'];
-const viewIds = ['dashboard-view', 'tools-view', 'guides-view', 'mcode-view', 'info-view'];
-for (const id of infoIds.concat(toolIds)) {
+const accountingIds = ['tool-travel-page'];
+const viewIds = ['dashboard-view', 'tools-view', 'accounting-view', 'guides-view', 'mcode-view', 'info-view'];
+for (const id of infoIds.concat(toolIds, accountingIds)) {
  els[id] = {id, hidden: true, heading: heading(id === 'notfound-page' ? 'הדף לא נמצא' : id === 'sitemap-page' ? 'מפת אתר' : id)};
 }
 for (const id of viewIds) {
  els[id] = {id, hidden: true, heading: heading(id),
-  querySelectorAll(selector) { return (selector === '.info-page' ? infoIds : selector === '.tool-page' ? toolIds : []).map(id => els[id]); },
+  querySelectorAll(selector) {
+   const own = id === 'tools-view' ? toolIds : id === 'accounting-view' ? accountingIds : [];
+   return (selector === '.info-page' ? infoIds : selector === '.tool-page' ? own : []).map(id => els[id]);
+  },
   querySelector(selector) {
    if (selector === '.info-page:not([hidden]) h1' && id === 'info-view') {
     const page = infoIds.map(id => els[id]).find(p => !p.hidden); return page ? page.heading : null;
    }
-   if (selector === '.tool-page:not([hidden]) h2' && id === 'tools-view') {
-    const page = toolIds.map(id => els[id]).find(p => !p.hidden); return page ? page.heading : null;
+   if (selector === '.tool-page:not([hidden]) h2' && (id === 'tools-view' || id === 'accounting-view')) {
+    const page = (id === 'tools-view' ? toolIds : accountingIds).map(id => els[id]).find(p => !p.hidden);
+    return page ? page.heading : null;
    }
    return selector === 'h1' ? this.heading : null;
   }};
 }
 els['tools-index'] = {hidden: true};
-const links = ['#/', '#/guides', '#/tools', '#/mcode'].map(href => ({href, attrs: {},
+els['accounting-index'] = {hidden: true};
+const links = ['#/', '#/guides', '#/tools', '#/accounting', '#/mcode'].map(href => ({href, attrs: {},
  getAttribute(k) { return k === 'href' ? href : this.attrs[k]; }, setAttribute(k, v) { this.attrs[k] = v; },
  removeAttribute(k) { delete this.attrs[k]; }}));
 global.document = {title: siteTitle, addEventListener() {}, getElementById(id) { return els[id] || null; },
@@ -245,7 +255,8 @@ global.window = {location: {hash: '#/'}, addEventListener() {}, scrollTo() { scr
 function go(hash) { window.location.hash = hash; window.Statso.nav.route(); }
 function snapshot() { return {views: viewIds.filter(id => !els[id].hidden),
  info: infoIds.filter(id => !els[id].hidden), tools: toolIds.filter(id => !els[id].hidden),
- toolsIndex: !els['tools-index'].hidden, focus: focuses[focuses.length - 1], title: document.title,
+ accounting: accountingIds.filter(id => !els[id].hidden),
+ toolsIndex: !els['tools-index'].hidden, accountingIndex: !els['accounting-index'].hidden, focus: focuses[focuses.length - 1], title: document.title,
  active: links.filter(l => l.attrs['aria-current'] === 'page').map(l => l.href), scrolls, resizes}; }
 """
 
@@ -275,7 +286,8 @@ class BrandLinkTests(unittest.TestCase):
 class NotFoundRouteTests(unittest.TestCase):
     def test_unknown_hashes_show_only_not_found_and_never_throw(self):
         hashes = ['#/nonexistent', '#/tools/xyz', '#/guides/xyz', '#/Guides', '#/tools/', '#/tools/index/extra',
-                  '#/%E0%A4%A', '#/guides/future-guide', '#/guides/', '#/__proto__', '#/guides/constructor']
+                  '#/%E0%A4%A', '#/guides/future-guide', '#/guides/', '#/__proto__', '#/guides/constructor',
+                  '#/accounting/', '#/accounting/xyz', '#/accounting/travel/extra', '#/Accounting']
         seen = nav_run(r"""
 const results = %s.map(hash => {
  go('#/about'); const before = {scrolls, resizes, focuses: focuses.length}; let error = null;
@@ -291,6 +303,7 @@ process.stdout.write(JSON.stringify(results));
                 self.assertEqual(after['views'], ['info-view'])
                 self.assertEqual(after['info'], ['notfound-page'])
                 self.assertEqual(after['tools'], [])
+                self.assertEqual(after['accounting'], [])
                 self.assertEqual(after['focus'], 'הדף לא נמצא')
                 self.assertEqual(after['title'], 'הדף לא נמצא — statso')
                 self.assertEqual(after['active'], [])
@@ -300,7 +313,8 @@ process.stdout.write(JSON.stringify(results));
 
     def test_every_valid_route_keeps_its_own_view_and_page(self):
         routes = [(hash_, 'dashboard-view', None) for hash_ in ('', '#', '#/')]
-        routes += [('#/tools', 'tools-view', None), ('#/guides', 'guides-view', None),
+        routes += [('#/tools', 'tools-view', None), ('#/accounting', 'accounting-view', None),
+                   ('#/accounting/travel', 'accounting-view', 'tool-travel-page'), ('#/guides', 'guides-view', None),
                    ('#/guides/excel', 'guides-view', None), ('#/guides/cpi-terms', 'guides-view', None),
                    ('#/guides/live-pull', 'guides-view', None), ('#/mcode', 'mcode-view', None)]
         routes += [('#/tools/' + slug, 'tools-view', 'tool-' + slug + '-page')
@@ -316,8 +330,28 @@ process.stdout.write(JSON.stringify(results));
                 self.assertEqual(result['views'], [view])
                 self.assertEqual(result['info'], [page] if view == 'info-view' else [])
                 self.assertEqual(result['tools'], [page] if view == 'tools-view' and page else [])
+                self.assertEqual(result['accounting'], [page] if view == 'accounting-view' and page else [])
                 if view == 'tools-view':
                     self.assertEqual(result['toolsIndex'], page is None)
+                if view == 'accounting-view':
+                    self.assertEqual(result['accountingIndex'], page is None)
+
+    def test_accounting_routes_mark_only_their_own_nav_item_focus_the_page_heading_and_title_the_tab(self):
+        seen = nav_run(r"""
+const out = {};
+go('#/accounting'); out.landing = snapshot();
+go('#/accounting/travel'); out.travel = snapshot();
+go('#/tools/rent'); out.tools = snapshot();
+process.stdout.write(JSON.stringify(out));
+""")
+        self.assertEqual(seen['landing']['active'], ['#/accounting'])
+        self.assertEqual(seen['landing']['focus'], 'accounting-view')
+        self.assertEqual(seen['travel']['active'], ['#/accounting'])
+        self.assertEqual(seen['travel']['focus'], 'tool-travel-page')
+        self.assertEqual(seen['travel']['title'], 'tool-travel-page \u2014 statso')
+        self.assertEqual(seen['travel']['views'], ['accounting-view'])
+        self.assertEqual(seen['tools']['active'], ['#/tools'])
+        self.assertEqual(seen['tools']['accounting'], [])
 
     def test_not_found_title_follows_the_language(self):
         seen = nav_run(r"""
@@ -364,13 +398,13 @@ class SiteMapTests(unittest.TestCase):
         self.assertIn('<h1 id="sitemap-title">מפת אתר</h1>', self.page)
         self.assertEqual(re.findall(r'<h2>(.*?)</h2>', self.page),
                          ['ניווט ראשי', 'כלים ומדריכים', 'עמודי מידע'])
-        self.assertEqual(re.findall(r'<h3>(.*?)</h3>', self.page), ['כלי חישוב', 'מדריכים'])
+        self.assertEqual(re.findall(r'<h3>(.*?)</h3>', self.page), ['כלי חישוב', 'כלים חשבונאות ומיסוי', 'מדריכים'])
         sections = re.findall(r'<section>(.*?)</section>', self.page, re.S)
         self.assertEqual(len(sections), 3)
-        self.assertEqual([len(re.findall(r'<li>', section)) for section in sections], [4, 9, 6])
+        self.assertEqual([len(re.findall(r'<li>', section)) for section in sections], [5, 10, 6])
         self.assertNotIn('<nav', self.page)
         self.assertNotIn('data-lang', self.page)
-        self.assertEqual(len(re.findall(r'<li><a href="[^"]+">[^<]+</a></li>', self.page)), 19)
+        self.assertEqual(len(re.findall(r'<li><a href="[^"]+">[^<]+</a></li>', self.page)), 21)
         keys = dictionary_keys()
         for text in re.split(r'<[^>]+>', self.page):
             if re.search(r'[֐-׿]', text):
@@ -383,26 +417,30 @@ class SiteMapTests(unittest.TestCase):
             block = re.search(r'const ' + name + r' = \{(.*?)\};', nav, re.S).group(1)
             return re.findall(r"'([^']+)':", block)
 
-        info_routes, tool_routes = routes('infoRoutes'), routes('toolRoutes')
+        info_routes, tool_routes, accounting_routes = routes('infoRoutes'), routes('toolRoutes'), routes('accountingRoutes')
         self.assertIn('#/sitemap', info_routes)
         guide_source = (ROOT / 'assets/statso-guides.js').read_text(encoding='utf-8')
         guides = [(id_, title) for id_, title, rest in re.findall(
             r"\{id: '([a-z-]+)', title: '([^']+)'([^}]*)\}", guide_source)
             if not re.search(r'\bsoon\s*:\s*true\b', rest)]
         self.assertEqual(len(guides), 3)
-        main_routes = ['#/', '#/guides', '#/tools', '#/mcode']
+        main_routes = ['#/', '#/guides', '#/tools', '#/accounting', '#/mcode']
         guide_routes = ['#/guides/' + id_ for id_, _ in guides]
         self.assertEqual(re.findall(r'href="([^"]+)"', self.page),
-                         main_routes + tool_routes + guide_routes +
+                         main_routes + tool_routes + accounting_routes + guide_routes +
                          [route for route in info_routes if route != '#/sitemap'])
         labels = dict(re.findall(r'<a href="([^"]+)">([^<]+)</a>', self.page))
         site_nav = re.search(r'<nav class="site-nav".*?</nav>', HTML, re.S).group(0)
         main_links = re.findall(r'<a class="[^"]*\bnav-item\b[^"]*"[^>]*href="([^"]+)"([^>]*)>(.*?)</a>',
                                 site_nav, re.S)
         self.assertEqual([href for href, _, _ in main_links], main_routes)
-        submenu = re.search(r'<ul class="nav-submenu".*?</ul>', site_nav, re.S).group(0)
+        # every submenu is compared with the route table it is generated from
+        submenus = re.findall(r'<ul class="nav-submenu" id="([a-z-]+)".*?</ul>', site_nav, re.S)
+        self.assertEqual(submenus, ['tools-submenu', 'accounting-submenu'])
+        submenu = re.search(r'<ul class="nav-submenu" id="tools-submenu".*?</ul>', site_nav, re.S).group(0)
+        accounting_menu = re.search(r'<ul class="nav-submenu" id="accounting-submenu".*?</ul>', site_nav, re.S).group(0)
         footer = re.search(r'<footer>.*?</footer>', HTML, re.S).group(0)
-        for source, expected in ((submenu, tool_routes), (footer, info_routes)):
+        for source, expected in ((submenu, tool_routes), (accounting_menu, accounting_routes), (footer, info_routes)):
             links = re.findall(r'<a[^>]*href="([^"]+)"[^>]*>(.*?)</a>', source, re.S)
             self.assertEqual([href for href, _ in links], expected)
             for href, title in links:

@@ -46,6 +46,7 @@ SITE_TESTS = (
     "test_mcode_source.py",          # Power Query generator via node; also reads data/boi_interest_rate.csv
     "test_tooling.py",               # pre-push hook, these groups, statement-date script
     "test_tools_source.py",          # tools pages/JS source checks
+    "test_travel_source.py",         # foreign travel report: calculation, DOM mock, docx/xlsx files, translations (node)
     "test_ui_source.py",             # UI/CSS source checks, README tool table
     "test_xlsx_writer.py",           # assets/statso-xlsx.js via node
 )

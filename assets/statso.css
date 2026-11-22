@@ -183,7 +183,7 @@ html[dir="ltr"] .data-table .col-group-start { border-left: 2px solid var(--line
 .rent-option .tr-opt-remove { justify-self: start; }
 .rent-hint { margin: 10px 0 0; color: var(--muted); font-size: .82rem; }
 #tr-options-month-hint { margin-bottom: 10px; }
-.rent-form input[aria-invalid="true"], #tr-output input[aria-invalid="true"] { border-color: #b42318; }
+.rent-form select[aria-invalid="true"], .rent-form input[aria-invalid="true"], #tr-output input[aria-invalid="true"] { border-color: #b42318; }
 .rent-summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10.5rem), 1fr)); gap: 12px; margin-bottom: 20px; }
 .rent-summary-grid > div { padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--r-group); }
 .rent-summary-grid span { display: block; color: var(--muted); font-size: .8rem; }
@@ -427,6 +427,18 @@ footer .footer-legal { display: block; min-height: 0; padding-block: 14px; borde
 #mc-copy:disabled { opacity: .6; cursor: default; }
 
 /* last in the file on purpose: these overrides must win over the rules above that set border: 0 */
+/* Foreign travel: preserve native fields and wrap at the available width. */
+.travel-expense { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: 14px; align-items: start; padding-block: 16px; border-bottom: 1px solid var(--line); }
+.travel-expense label { display: grid; gap: 6px; min-width: 0; }
+.travel-expense input:not([type="checkbox"]), .travel-expense select { width: 100%; min-width: 0; }
+.travel-expense .tool-checkbox { display: flex; }
+.travel-wide { grid-column: 1 / -1; }
+.travel-expense h3 { grid-column: 1 / -1; margin: 0; font-size: 1.02rem; }
+.accounting-view .tool-back { white-space: normal; }
+.travel-table td.travel-explain { white-space: normal; min-width: 18rem; }
+.travel-disclaimer { margin-block: 20px; }
+#tt-travelers .rent-option { grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr)); }
+#tt-travelers .rent-option-title { grid-column: 1 / -1; margin: 0; }
 @media (forced-colors: active) {
   .nav-item[aria-current="page"] { border-block-end: 3px solid CanvasText; }
   .nav-item[aria-current="page"]::after { display: none; }

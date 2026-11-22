@@ -27,9 +27,60 @@ function key(k) { const e = {key: k, prevented: false, preventDefault() { this.p
 function menu() { return {open: group.getAttribute('data-open'), closed: group.getAttribute('data-closed'), expanded: trigger.getAttribute('aria-expanded'), focusCalls: focusLog.length}; }
 """
 
+# The accounting and tax tools menu, next to the tools menu of MENU_SETUP. Kept apart from it: FIT_SETUP expects the one-menu page.
+SECOND_MENU = r"""
+const group2 = el('group2'), trigger2 = el('trigger2'), link2 = el('link2');
+group2.hovered = false; group2.matches = sel => sel === ':hover' ? group2.hovered : false;
+group2.contains = node => node === group2 || node === trigger2 || node === link2;
+trigger2.closest = sel => sel === '.nav-group' ? group2 : null; trigger2.attrs['aria-expanded'] = 'false';
+trigger2.focus = () => { focusLog.push('trigger2'); if (active !== trigger2) { active = trigger2; trigger2.fire('focus'); } };
+els['accounting-trigger'] = trigger2;
+function docClick(target) { (docListeners.click || []).forEach(fn => fn({target})); }
+function menu2() { return {open: group2.getAttribute('data-open'), closed: group2.getAttribute('data-closed'), expanded: trigger2.getAttribute('aria-expanded')}; }
+"""
+
 
 def nav_run(body):
     return node(NAV_SETUP + MENU_SETUP + module('statso-nav.js') + '\nwindow.Statso.nav.init();\n' + body)
+
+
+def two_menu_run(body):
+    return node(NAV_SETUP + MENU_SETUP + SECOND_MENU + module('statso-nav.js') + '\nwindow.Statso.nav.init();\n' + body)
+
+
+class TwoMenuTests(unittest.TestCase):
+    def test_a_click_outside_one_menu_closes_only_that_menu(self):
+        seen = two_menu_run("""
+trigger.fire('click', {button: 0}); docClick(trigger);
+trigger2.fire('click', {button: 0}); docClick(trigger2);
+process.stdout.write(JSON.stringify({tools: menu(), accounting: menu2()}));
+""")
+        # opening the accounting menu closes the tools menu it was clicked outside of, and nothing else
+        self.assertEqual((seen['tools']['open'], seen['tools']['expanded']), (None, 'false'))
+        self.assertEqual((seen['accounting']['open'], seen['accounting']['expanded']), ('true', 'true'))
+
+    def test_escape_closes_the_open_menu_and_leaves_the_other_alone(self):
+        seen = two_menu_run("""
+trigger2.fire('click', {button: 0});
+const before = {tools: menu(), accounting: menu2()};
+key('Escape');
+process.stdout.write(JSON.stringify({before, after: {tools: menu(), accounting: menu2()}, focus: focusLog.slice()}));
+""")
+        self.assertEqual((seen['before']['accounting']['open'], seen['before']['accounting']['expanded']), ('true', 'true'))
+        self.assertEqual(seen['after']['tools'], dict(open=None, closed=None, expanded='false', focusCalls=1))   # focusCalls counts both triggers
+        self.assertEqual(seen['after']['accounting'], dict(open=None, closed='true', expanded='false'))
+        self.assertEqual(seen['focus'], ['trigger2'])         # focus goes back to the menu that was closed, not the other one
+
+    def test_a_navigation_still_closes_both_menus(self):
+        seen = two_menu_run("""
+trigger.fire('click', {button: 0}); trigger2.fire('click', {button: 0});
+window.location.hash = '#/about'; window.Statso.nav.route();      // the click that opened a menu may keep it open once
+const kept = {tools: menu(), accounting: menu2()};
+window.location.hash = '#/guides'; window.Statso.nav.route();
+process.stdout.write(JSON.stringify({kept, tools: menu(), accounting: menu2()}));
+""")
+        self.assertEqual((seen['tools']['open'], seen['tools']['expanded']), (None, 'false'))
+        self.assertEqual((seen['accounting']['open'], seen['accounting']['expanded']), (None, 'false'))
 
 
 class NavEscapeTests(unittest.TestCase):

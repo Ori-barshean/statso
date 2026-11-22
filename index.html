@@ -33,6 +33,12 @@
             <li><a href="#/tools/rent">הצמדת הסכם שכירות</a></li>
           </ul>
         </div>
+        <div class="nav-group">
+          <a class="nav-item nav-item-stacked" href="#/accounting" aria-expanded="false" aria-controls="accounting-submenu" id="accounting-trigger">כלים חשבונאות ומיסוי</a>
+          <ul class="nav-submenu" id="accounting-submenu" aria-label="כלים חשבונאות ומיסוי">
+            <li><a href="#/accounting/travel">דו״ח נסיעה לחו״ל</a></li>
+          </ul>
+        </div>
         <a class="nav-item nav-item-stacked" href="#/mcode">קודים לייצוא (Power Query)</a>
       </nav>
       <div class="brand-group">
@@ -380,6 +386,111 @@
     </section>
   </main>
 
+  <main class="shell accounting-view" id="accounting-view" hidden>
+    <section class="hero tools-hero">
+      <p class="eyebrow">חשבונאות ומיסוי</p>
+      <h1>כלים חשבונאות ומיסוי</h1>
+      <p>כלים לחישוב הוצאות לפי תקרות שנת המס, עם דוח להורדה באקסל, PDF ו־Word.</p>
+    </section>
+    <div class="tool-cards" id="accounting-index">
+      <a class="tool-card" href="#/accounting/travel"><span class="tool-card-mark" aria-hidden="true">✈</span><strong>דו״ח נסיעה לחו״ל</strong><span>חישוב הוצאות נסיעה לחו״ל לחברה או לעצמאי מול תקרות ההכרה לשנת המס שנבחרה.</span></a>
+    </div>
+    <section class="panel tool-page" id="tool-travel-page" hidden aria-labelledby="tool-travel-title">
+      <div class="section-heading"><div><p class="eyebrow">כלי 1</p><h2 id="tool-travel-title">דו״ח נסיעה לחו״ל</h2></div><a class="tool-back" href="#/accounting"><span class="back-arrow" aria-hidden="true">←</span> לכל כלי החשבונאות והמיסוי</a></div>
+      <form class="rent-form" id="tt-form" onsubmit="return false">
+        <fieldset class="rent-block"><legend>פרטי הדוח</legend><div class="rent-grid">
+          <label class="travel-calc">שנת מס <select id="tt-year"></select></label>
+          <label>שם החברה/העסק (אופציונלי) <input id="tt-company" type="text" autocomplete="organization"></label>
+          <label>כרטיס בהנהלת החשבונות (אופציונלי) <input id="tt-account" type="text"></label>
+          <label>מטרת הנסיעה (אופציונלי) <input id="tt-purpose" type="text"></label>
+        </div></fieldset>
+        <fieldset class="rent-block travel-calc"><legend>יעד ותאריכים</legend>
+          <div class="rent-grid"><label>יעד <select id="tt-country"></select></label><label id="tt-country-other-wrap">שם המדינה (אופציונלי) <input id="tt-country-other" type="text"></label></div>
+          <div role="group" aria-labelledby="tt-dates-title"><p id="tt-dates-title">תאריכי הנסיעה (חובה)</p><div class="rent-grid">
+            <label>תאריך יציאה <input id="tt-depart" type="date" required></label><label>תאריך חזרה <input id="tt-return" type="date" required></label>
+          </div></div>
+          <p id="tt-total-days"></p>
+          <div class="rent-grid"><label>ימים עסקיים <input id="tt-business-days" type="number" min="1" step="1" aria-describedby="tt-business-hint tt-days-note"></label></div>
+          <p class="rent-hint" id="tt-business-hint">מספר שלם בין 1 לסך ימי הנסיעה. לילות הלינה שווים לימים העסקיים, או לימי הלינה במצב אש״ל חלקי.</p>
+          <p id="tt-days-note" role="status"></p><p id="tt-year-note" role="status"></p>
+        </fieldset>
+        <fieldset class="rent-block travel-calc"><legend>נוסעים</legend><div id="tt-travelers"></div><button type="button" class="btn-ghost" id="tt-add-traveler">הוסף נוסע</button><p id="tt-traveler-count"></p></fieldset>
+        <fieldset class="rent-block"><legend>שערי חליפין</legend><div id="tt-rates" role="status">טוען שערי חליפין…</div><p class="rent-hint">השערים נקבעים אוטומטית לפי תאריך היציאה, לפי השער האחרון שפורסם עד לתאריך זה. אין אפשרות לערוך אותם.</p></fieldset>
+        <fieldset class="rent-block travel-calc"><legend>הוצאות</legend>
+          <div class="travel-expense" role="group" aria-labelledby="tt-flight-title">
+            <h3 id="tt-flight-title">טיסה</h3>
+            <label><span id="tt-flight-amount-label">סכום</span><input id="tt-flight-amount" type="number" min="0" step="any" aria-labelledby="tt-flight-title tt-flight-amount-label" aria-describedby="tt-flight-note"></label>
+            <label><span id="tt-flight-currency-label">מטבע</span><select id="tt-flight-currency" aria-labelledby="tt-flight-title tt-flight-currency-label"></select></label>
+            <p class="travel-wide rent-hint" id="tt-flight-note">! שימו לב: במחלקה ראשונה מוכר רק עד מחיר מחלקת עסקים באותה טיסה; הכלי אינו מגביל זאת.</p>
+          </div>
+          <div class="travel-expense" role="group" aria-labelledby="tt-insurance-title">
+            <h3 id="tt-insurance-title">ביטוח</h3>
+            <label><span id="tt-insurance-amount-label">סכום</span><input id="tt-insurance-amount" type="number" min="0" step="any" aria-labelledby="tt-insurance-title tt-insurance-amount-label"></label>
+            <label><span id="tt-insurance-currency-label">מטבע</span><select id="tt-insurance-currency" aria-labelledby="tt-insurance-title tt-insurance-currency-label"></select></label>
+          </div>
+          <div class="travel-expense" role="group" aria-labelledby="tt-lodging7-title">
+            <h3 id="tt-lodging7-title">לינה — 7 הלילות הראשונים</h3>
+            <label><span id="tt-lodging7-amount-label">סכום</span><input id="tt-lodging7-amount" type="number" min="0" step="any" aria-labelledby="tt-lodging7-title tt-lodging7-amount-label"></label>
+            <label><span id="tt-lodging7-currency-label">מטבע</span><select id="tt-lodging7-currency" aria-labelledby="tt-lodging7-title tt-lodging7-currency-label"></select></label>
+          </div>
+          <div class="travel-expense" role="group" aria-labelledby="tt-lodging90-title">
+            <h3 id="tt-lodging90-title">לינה — לילות 8–90</h3>
+            <label><span id="tt-lodging90-amount-label">סכום</span><input id="tt-lodging90-amount" type="number" min="0" step="any" aria-labelledby="tt-lodging90-title tt-lodging90-amount-label"></label>
+            <label><span id="tt-lodging90-currency-label">מטבע</span><select id="tt-lodging90-currency" aria-labelledby="tt-lodging90-title tt-lodging90-currency-label"></select></label>
+          </div>
+          <div class="travel-expense" role="group" aria-labelledby="tt-perDiem-title">
+            <h3 id="tt-perDiem-title">אש״ל</h3>
+            <label><span id="tt-perDiem-amount-label">סכום</span><input id="tt-perDiem-amount" type="number" min="0" step="any" aria-labelledby="tt-perDiem-title tt-perDiem-amount-label"></label>
+            <label><span id="tt-perDiem-currency-label">מטבע</span><select id="tt-perDiem-currency" aria-labelledby="tt-perDiem-title tt-perDiem-currency-label"></select></label>
+            <label class="tool-checkbox travel-wide"><input id="tt-partial" type="checkbox"> חלק מהימים עם לינה בתשלום וחלק לא</label>
+            <label id="tt-lodging-days-wrap" hidden>כמה ימים נדרשת לינה מתוך הימים העסקיים <input id="tt-lodging-days" type="number" min="1" step="1" value="1"></label>
+          </div>
+          <div class="travel-expense" role="group" aria-labelledby="tt-car-title">
+            <h3 id="tt-car-title">השכרת רכב</h3>
+            <label><span id="tt-car-amount-label">סכום</span><input id="tt-car-amount" type="number" min="0" step="any" aria-labelledby="tt-car-title tt-car-amount-label"></label>
+            <label><span id="tt-car-currency-label">מטבע</span><select id="tt-car-currency" aria-labelledby="tt-car-title tt-car-currency-label"></select></label>
+          </div>
+          <div class="travel-expense" role="group" aria-labelledby="tt-transport-title">
+            <h3 id="tt-transport-title">תחבורה ציבורית</h3>
+            <label><span id="tt-transport-amount-label">סכום</span><input id="tt-transport-amount" type="number" min="0" step="any" aria-labelledby="tt-transport-title tt-transport-amount-label"></label>
+            <label><span id="tt-transport-currency-label">מטבע</span><select id="tt-transport-currency" aria-labelledby="tt-transport-title tt-transport-currency-label"></select></label>
+          </div>
+          <div class="travel-expense" role="group" aria-labelledby="tt-phone-title">
+            <h3 id="tt-phone-title">טלפון</h3>
+            <label><span id="tt-phone-amount-label">סכום</span><input id="tt-phone-amount" type="number" min="0" step="any" aria-labelledby="tt-phone-title tt-phone-amount-label"></label>
+            <label><span id="tt-phone-currency-label">מטבע</span><select id="tt-phone-currency" aria-labelledby="tt-phone-title tt-phone-currency-label"></select></label>
+          </div>
+          <div class="travel-expense" role="group" aria-labelledby="tt-gifts-title">
+            <h3 id="tt-gifts-title">מתנות</h3>
+            <label><span id="tt-gifts-amount-label">סכום</span><input id="tt-gifts-amount" type="number" min="0" step="any" aria-labelledby="tt-gifts-title tt-gifts-amount-label"></label>
+            <label><span id="tt-gifts-currency-label">מטבע</span><select id="tt-gifts-currency" aria-labelledby="tt-gifts-title tt-gifts-currency-label"></select></label>
+          </div>
+          <div class="travel-expense" role="group" aria-labelledby="tt-hosting-title">
+            <h3 id="tt-hosting-title">אירוח תושב חוץ</h3>
+            <label><span id="tt-hosting-amount-label">סכום</span><input id="tt-hosting-amount" type="number" min="0" step="any" aria-labelledby="tt-hosting-title tt-hosting-amount-label"></label>
+            <label><span id="tt-hosting-currency-label">מטבע</span><select id="tt-hosting-currency" aria-labelledby="tt-hosting-title tt-hosting-currency-label"></select></label>
+          </div>
+          <div class="travel-expense" role="group" aria-labelledby="tt-other-title">
+            <h3 id="tt-other-title">אחרות</h3>
+            <label><span id="tt-other-amount-label">סכום</span><input id="tt-other-amount" type="number" min="0" step="any" aria-labelledby="tt-other-title tt-other-amount-label"></label>
+            <label><span id="tt-other-currency-label">מטבע</span><select id="tt-other-currency" aria-labelledby="tt-other-title tt-other-currency-label"></select></label>
+            <label class="travel-wide">תיאור הוצאות אחרות (אופציונלי) <input id="tt-other-desc" type="text"></label>
+          </div>
+        </fieldset>
+        <p class="rent-hint">אם הנסיעה הייתה במטבע שאינו אחד מהמטבעות הנתמכים באתר, יש להזין את הסכומים בש״ח לאחר המרה.</p><p class="rent-hint">חינוך ילדים בנסיעה מעל 10 חודשים אינו מחושב: לא צוינה תקרה בחומר המקור.</p>
+      </form>
+      <p class="inline-error" id="tt-error" role="alert"></p>
+      <div id="tt-output" hidden>
+        <div class="rent-summary-grid" id="tt-summary"></div><ul id="tt-notes"></ul>
+        <div class="table-wrap" tabindex="0" role="region" aria-label="חישוב הוצאות הנסיעה">
+          <table class="data-table travel-table"><caption class="sr-only">חישוב הוצאות הנסיעה</caption><thead><tr><th scope="col">הוצאה</th><th scope="col">סכום במט״ח</th><th scope="col">מטבע</th><th scope="col">סכום בש״ח</th><th scope="col">תקרה בש״ח</th><th scope="col">הוצאה מוכרת</th><th scope="col">סכום לתיאום</th><th scope="col">הסבר</th></tr></thead><tbody id="tt-body"></tbody><tfoot id="tt-foot"></tfoot></table>
+        </div>
+        <div class="tool-actions"><button type="button" class="btn-ghost" id="tt-xlsx">ייצוא לאקסל</button><button type="button" class="btn-ghost" id="tt-pdf">ייצוא ל־PDF</button><button type="button" class="btn-ghost" id="tt-docx">ייצוא ל־Word</button></div>
+      </div>
+      <p class="result-disclaimer travel-disclaimer">הכלי מסייע בחישוב משוער של הוצאות נסיעה לחו״ל לפי התקרות והכללים שבטפסי הדיווח לשנות המס, ואינו מהווה ייעוץ מס, חשבונאי או משפטי. בחלק מהשנים תקרה אחת או יותר נגזרה בחישוב ואינה מופיעה במפורש במקור, והדבר מסומן בדוח. לפני מילוי הדוח ואחריו, ובכל מקרה לפני הגשה או הכרה בהוצאה, יש להיוועץ ברואה חשבון או ביועץ מס מוסמך ולאמת מולו את הנתונים, התקרות ותוצאות החישוב. האחריות לנתונים שהוזנו ולשימוש בתוצאות היא של המשתמש.</p>
+    </section>
+  </main>
+
   <main class="shell info-view" id="info-view" hidden>
     <article class="info-page" id="about-page" hidden aria-labelledby="about-title">
       <header class="info-header"><h1 id="about-title">אודות</h1></header>
@@ -388,6 +499,7 @@
           <h2>מה זה statso</h2>
           <p>statso אוסף נתונים כלכליים ישראליים ממקורות רשמיים ומפרסם אותם כקבצים בכתובות קבועות, כדי שכלים אחרים — גיליונות אקסל, אתרים, מחשבונים — יוכלו למשוך מהם נתונים ישירות.</p>
           <p>הנתונים נאספים מהלשכה המרכזית לסטטיסטיקה (מדד המחירים לצרכן ומדד תשומות הבנייה למגורים) ומבנק ישראל (ריבית בנק ישראל, מועד ההחלטה הבאה ושערי החליפין היציגים של המטבעות).</p>
+          <p>כלי החשבונאות והמיסוי כוללים דו״ח נסיעה לחו״ל: התקרות קבועות בקוד לפי טפסי הדיווח לשנות המס, ואינן נתונים שנאספים אוטומטית. שנת המס שנבחרה קובעת את התקרות.</p>
           <p>הנתונים מתרעננים אוטומטית כל לילה ב־<span dir="ltr">02:00</span> שעון ישראל. אם התוכן שנוצר זהה לקיים, לא נשמרת גרסה חדשה.</p>
         </section>
         <section>
@@ -403,6 +515,7 @@
           <h2>What statso is</h2>
           <p>statso collects Israeli economic data from official sources and publishes it as files at stable addresses, so that other tools — spreadsheets, websites, calculators — can pull the numbers directly.</p>
           <p>The data is collected from the Central Bureau of Statistics (the consumer price index and the residential construction inputs price index) and from the Bank of Israel (the Bank of Israel interest rate, the next decision date, and the representative exchange rates of the currencies).</p>
+          <p>Accounting and tax tools include a Foreign Travel Report: caps are fixed in code from the reporting forms for each tax year, rather than collected automatically. The selected tax year determines the caps.</p>
           <p>The data refreshes automatically every night at <span dir="ltr">02:00</span> Israel time. If the generated content is identical to what is already published, no new version is stored.</p>
         </section>
         <section>
@@ -422,6 +535,7 @@
         <section>
           <h2>מקורות הנתונים</h2>
           <ul class="source-list">
+            <li>תקרות דו״ח נסיעה לחו״ל: טפסי הדיווח לשנות המס 2018–2026 שסופקו לפרויקט</li>
             <li>הלמ״ס, מדד המחירים לצרכן (סדרה <span dir="ltr">120010</span>, ״מדד המחירים לצרכן - כללי״): <a href="https://api.cbs.gov.il/index/data/price?id=120010&amp;format=json&amp;download=false&amp;coef=true" dir="ltr">api.cbs.gov.il (120010)</a></li>
             <li>הלמ״ס, מדד תשומות הבנייה למגורים (סדרה <span dir="ltr">200010</span>, ״מדד תשומות הבנייה למגורים - כללי״): <a href="https://api.cbs.gov.il/index/data/price?id=200010&amp;format=json&amp;download=false&amp;coef=true" dir="ltr">api.cbs.gov.il (200010)</a></li>
             <li>הלמ״ס, פורטל המפתחים: <a href="https://www.cbs.gov.il/he/Pages/%D7%9E%D7%9E%D7%A9%D7%A7-API.aspx" dir="ltr">cbs.gov.il</a></li>
@@ -447,6 +561,25 @@
           <p>במצב ״מדד ידוע״ המדד הנלקח לחודש שנבחר הוא זה של החודש שקדם לו; במצב ״מדד בגין״ נלקח המדד של אותו חודש עצמו. <a href="#/guides">המדריך מסביר את ההבחנה</a>.</p>
         </section>
         <section>
+          <h2>דו״ח נסיעה לחו״ל</h2>
+          <ul class="info-list">
+            <li>דוח אחד לנסיעה אחת לחברה או לעצמאי, עם מספר נוסעים לפי מספר שורות הנוסעים (לפחות אחת). הפרטים האישיים אינם נשמרים בדפדפן. שנת המס שנבחרה קובעת את התקרות גם אם תאריכי הנסיעה בשנה אחרת.</li>
+            <li>מספר הימים כולל את תאריך היציאה והחזרה. הימים העסקיים הם מספר שלם בין 1 לסך הימים. לילות הלינה שווים לימים העסקיים; במצב אש״ל חלקי מספר ימי הלינה, <span lang="en" dir="ltr">K</span>, קובע את כל תקרות הלינה, והוא בין 1 למספר הימים העסקיים פחות 1.</li>
+            <li>לינה: תקרת 7 הלילות הראשונים כפול מספר הלילות בפועל, עד 7, כפול הנוסעים. בלילות 8–90 מחשבים ממוצע ללילה לנוסע: עד הסף מוכר הכול; מעליו מוכרים 75% מהממוצע, לא פחות מהסף ולא יותר מהמקסימום. מעל 90 לילות כל הלילות מהראשון מחושבים לפי הסף של אותה שנה, ללא כלל 75%.</li>
+            <li>ב־28 המדינות שברשימה יש תוספת 25% ללינה, לאש״ל ולהשכרת רכב. גם הסף והמקסימום בלילות 8–90 גדלים: <span lang="en" dir="ltr">F′=1.25F, M′=1.25M</span>. ברירת המחדל היא מדינה אחרת, ללא תוספת. למתנות אין תוספת.</li>
+            <li>אש״ל: אם הוזן סכום לינה, כל הימים בתעריף עם לינה; אחרת בתעריף בלי לינה. במצב חלקי: ימי הלינה כפול התעריף הנמוך ושאר הימים כפול הגבוה, כפול הנוסעים והתוספת. רכב: התקרה היומית כפול הימים העסקיים, הנוסעים והתוספת. מתנות: 15 דולר לנוסע.</li>
+            <li>טיסה וביטוח, תחבורה ציבורית, טלפון, אירוח תושב חוץ והוצאות אחרות מוכרים במלואם לפי קבלות. במחלקה ראשונה ההכרה מוגבלת למחיר מחלקת עסקים, אך הכלי אינו אוכף זאת. חינוך ילדים בנסיעה מעל 10 חודשים אינו מחושב, כי לא צוינה תקרה בחומר.</li>
+            <li>לפני השוואה לתקרה ממירים את ההוצאה ואת התקרה הדולרית לשקלים, לפי השער האחרון שפורסם עד תאריך היציאה. שער הין מחולק ב־100. כשאין שער בתוך 7 ימים מוצגת אזהרה עם תאריך השער שנבחר ונעשה שימוש בשער האחרון שפורסם; תאריך שלפני תחילת הנתונים חוסם את החישוב.</li>
+            <li>אין עיגולי ביניים: כל שורה מחושבת בדיוק מלא ומוצגת בשתי ספרות עשרוניות. רק כל סכום בשורת הסה״כ מעוגל לאגורות פעם אחת, בחצי כלפי מעלה. הסכום המוכר הוא הנמוך מההוצאה והתקרה, והסכום לתיאום הוא ההפרש החיובי.</li>
+            <li>הטפסים המילוליים גוברים על תבניות האקסל כשאין החלטה מפורשת אחרת. הערות גזירה מוצגות בשנים 2018, 2020, 2021, 2024 ו־2025, גם בייצוא.</li>
+            <li>בשנת 2018 המקסימום ללילות 8–90 (208.5 דולר) נגזר כ־75% מתקרת 7 הלילות הראשונים, במקום 200 דולר שמופיע בטופס. רשימת המדינות עם תוספת 25% לקוחה מטופס 2019, כי בטופס 2018 אין רשימה.</li>
+            <li>בשנת 2020 המקסימום ללילות 8–90 (216.75 דולר) נגזר כ־75% מתקרת 7 הלילות הראשונים, ואין לשנה זו טופס מילולי.</li>
+            <li>בשנת 2021 התקרות נלקחו מטקסט ההסבר בתבנית האקסל, ואין לשנה זו טופס מילולי.</li>
+            <li>בשנת 2024 המקסימום ללילות 8–90 (259.5 דולר) נגזר כ־75% מתקרת 7 הלילות הראשונים, במקום 346 דולר שמופיע בטופס.</li>
+            <li>בשנת 2025 תקרת 7 הלילות הראשונים למדינה רגילה (355 דולר) נגזרה מהערך 443.75 דולר שבטופס, שהוא הערך הכולל תוספת 25%.</li>
+          </ul>
+        </section>
+        <section>
           <h2>פורמטים</h2>
           <p>הקבצים מתפרסמים ב־<span lang="en" dir="ltr">JSON</span> וב־<span lang="en" dir="ltr">CSV</span>. ה־<span lang="en" dir="ltr">JSON</span> מקודד <span lang="en" dir="ltr">UTF-8</span> בלי <span lang="en" dir="ltr">BOM</span>; ה־<span lang="en" dir="ltr">CSV</span> מקודד <span lang="en" dir="ltr">UTF-8</span> עם <span lang="en" dir="ltr">BOM</span>, כדי שעברית תיפתח נכון באקסל בלי הגדרות מיוחדות.</p>
         </section>
@@ -455,6 +588,7 @@
         <section>
           <h2>Data sources</h2>
           <ul class="source-list">
+            <li>Foreign Travel Report caps: reporting forms for tax years 2018–2026 supplied to the project</li>
             <li>CBS, consumer price index (series <span dir="ltr">120010</span>, “Consumer Price Index — General”): <a href="https://api.cbs.gov.il/index/data/price?id=120010&amp;format=json&amp;download=false&amp;coef=true" dir="ltr">api.cbs.gov.il (120010)</a></li>
             <li>CBS, residential construction inputs price index (series <span dir="ltr">200010</span>, “Residential Construction Inputs Price Index — General”): <a href="https://api.cbs.gov.il/index/data/price?id=200010&amp;format=json&amp;download=false&amp;coef=true" dir="ltr">api.cbs.gov.il (200010)</a></li>
             <li>CBS, developers portal: <a href="https://www.cbs.gov.il/he/Pages/%D7%9E%D7%9E%D7%A9%D7%A7-API.aspx" dir="ltr">cbs.gov.il</a></li>
@@ -478,6 +612,25 @@
           <h2>The linkage calculator</h2>
           <p>Linked amount = amount × (target index ÷ base index).</p>
           <p>In “known index” mode the reading taken for the chosen month is the previous month's; in “index for the month” mode it is that month's own reading. <a href="#/guides">The guide explains the distinction</a>.</p>
+        </section>
+        <section>
+          <h2>Foreign Travel Report</h2>
+          <ul class="info-list">
+            <li>One trip per report, for a company or self-employed business. Traveller count is the number of traveller rows (at least one). Personal details are not stored in the browser. The selected tax year sets the caps even when travel dates fall in another year.</li>
+            <li>Trip days include departure and return. Business days must be an integer from 1 to total days. Lodging nights equal business days; in partial per-diem mode, lodging days K determine all lodging caps and must be from 1 to business days minus 1.</li>
+            <li>Lodging: the first-7-night cap applies to the actual nights, up to 7, multiplied by travellers. For nights 8–90, the average per night per traveller is fully deductible up to the threshold; above it, 75% is deductible within the threshold and maximum. Over 90 nights, all nights from the first use that year's threshold, without the 75% rule.</li>
+            <li>The 28 listed countries receive a 25% uplift for lodging, per diem and car rental, including both the threshold and maximum for nights 8–90: F′=1.25F, M′=1.25M. The default is Other country, without an uplift. Gifts receive no uplift.</li>
+            <li>Per diem: entering any lodging amount applies the with-lodging rate to all business days; otherwise the without-lodging rate applies. Partial mode uses lodging days at the lower rate and remaining days at the higher rate, multiplied by travellers and the uplift. Car rental uses the daily cap, business days, travellers and uplift. Gifts: USD 15 per traveller.</li>
+            <li>Flights, insurance, public transport, telephone, hosting a foreign resident and other expenses are fully deductible against receipts. First-class fares are limited to the business-class fare, but the tool does not enforce this. Children's education for trips over 10 months is not calculated because the material states no cap.</li>
+            <li>Expenses and USD caps are converted to ILS before comparison, using the latest rate published on or before departure. JPY quotes are divided by 100. When no rate falls within 7 days, a warning names the actual date and the last published rate is used. Dates before the data begins block calculation.</li>
+            <li>No intermediate rounding: rows retain full precision and display two decimal places. Each total is rounded once to two decimal places, half up. Deductible expense is the lesser of the expense and cap; the adjustment is the positive difference.</li>
+            <li>Narrative forms take precedence over Excel templates unless a specific decision states otherwise. Derived-cap notes are shown in 2018, 2020, 2021, 2024 and 2025, including in exports.</li>
+            <li>2018: USD 208.5 for nights 8–90 is derived as 75% of USD 278, instead of USD 200 in the form. The country list comes from 2019 because 2018 has none.</li>
+            <li>2020: USD 216.75 for nights 8–90 is derived as 75% of USD 289; no narrative form is available.</li>
+            <li>2021: caps come from the explanatory text in the Excel template; no narrative form is available.</li>
+            <li>2024: USD 259.5 for nights 8–90 is derived as 75% of USD 346, instead of USD 346 in the form.</li>
+            <li>2025: the ordinary-country first-7-night cap of USD 355 is derived from USD 443.75 in the form, which includes the 25% uplift.</li>
+          </ul>
         </section>
         <section>
           <h2>Formats</h2>
@@ -567,7 +720,7 @@
         <section>
           <h2>נתונים ותוצאות המחשבונים</h2>
           <p>אין לראות באתר תחליף לפרסום הרשמי של הלשכה המרכזית לסטטיסטיקה, בנק ישראל, או כל גוף מוסמך אחר. במקרה של סתירה בין הנתונים באתר לבין הפרסום הרשמי — הפרסום הרשמי והדין החל גוברים.</p>
-          <p>תוצאות המחשבונים באתר (הצמדה למדד, המרת מטבע, הצמדת הסכם שכירות וכדומה) הן תוצאות עזר בלבד, ואינן מהוות ייעוץ חשבונאי, משפטי, פיננסי, השקעות, מס או אשראי.</p>
+          <p>תוצאות המחשבונים באתר (הצמדה למדד, המרת מטבע, הצמדת הסכם שכירות, דו״ח נסיעה לחו״ל וכדומה) הן תוצאות עזר בלבד, ואינן מהוות ייעוץ חשבונאי, משפטי, פיננסי, השקעות, מס או אשראי.</p>
           <p>לפני קבלת החלטה, ביצוע תשלום, או חישוב בעל משמעות משפטית או כספית — יש לאמת את הנתונים ואת דרך החישוב מול המקור הרשמי, או להיוועץ באיש מקצוע מתאים.</p>
         </section>
         <section>
@@ -589,7 +742,7 @@
         <section>
           <h2>Data and calculator results</h2>
           <p>The site is not a substitute for the official publications of the Central Bureau of Statistics, the Bank of Israel, or any other authorized body. In case of a contradiction between the data on this site and an official publication, the official publication and applicable law prevail.</p>
-          <p>The site's calculator results (index linkage, currency conversion, rent-agreement linkage, and similar tools) are auxiliary results only, and do not constitute accounting, legal, financial, investment, tax, or credit advice.</p>
+          <p>The site's calculator results (index linkage, currency conversion, rent-agreement linkage, Foreign Travel Report, and similar tools) are auxiliary results only, and do not constitute accounting, legal, financial, investment, tax, or credit advice.</p>
           <p>Before making a decision, making a payment, or performing a calculation with legal or financial significance, verify the data and the calculation method against the official source, or consult an appropriate professional.</p>
         </section>
         <section>
@@ -622,8 +775,8 @@
             <li>כפתור דילוג לתוכן המרכזי בתחילת כל עמוד</li>
             <li>העברת פוקוס לכותרת העמוד החדש בכל מעבר בין עמודים, כך שקורא מסך מכריז עליה</li>
             <li>לכל מדריך כתובת משלו: במדריך שנפתח מרשימת המדריכים, כפתור "חזרה" של הדפדפן סוגר את המדריך, מחזיר לרשימת המדריכים ומעביר את המיקוד לכותרת העמוד (למדריך שנפתח מקישור ישיר אין בהיסטוריה רשומה קודמת של רשימת המדריכים, ולכן "חזרה" מוביל למה שהיה פתוח לפני הקישור)</li>
-            <li>תפריט "כלים" בניווט שפועל גם במקלדת, כולל סגירה במקש <span lang="en" dir="ltr">Escape</span></li>
-            <li>תפריט המשנה של "כלים" בניווט, כשהוא פתוח רק מפני שהעכבר נח עליו, נסגר במקש <span lang="en" dir="ltr">Escape</span> בלי להזיז את העכבר ובלי להזיז את המיקוד, ונפתח שוב כשהעכבר יוצא מאזור התפריט וחוזר אליו</li>
+            <li>תפריטי "כלים" ו"כלים חשבונאות ומיסוי" בניווט שפועלים גם במקלדת, כולל סגירה במקש <span lang="en" dir="ltr">Escape</span></li>
+            <li>כל אחד מתפריטי המשנה של "כלים" ו"כלים חשבונאות ומיסוי" בניווט, כשהוא פתוח רק מפני שהעכבר נח עליו, נסגר במקש <span lang="en" dir="ltr">Escape</span> בלי להזיז את העכבר ובלי להזיז את המיקוד, ונפתח שוב כשהעכבר יוצא מאזור התפריט וחוזר אליו</li>
             <li>חזרת המיקוד לכפתור בחירת השפה אחרי בחירת שפה או סגירת התפריט במקש <span lang="en" dir="ltr">Escape</span></li>
             <li>סימון בולט של מיקוד המקלדת בכל רכיב אינטראקטיבי, שאינו מוסתר מתחת לכותרת הדביקה גם כשהיא גובהת במסכים צרים, ואינו נחתך בקצה אזורי הגלילה של הטבלאות, האיורים וקטעי הקוד</li>
             <li>סימון העמוד הנוכחי בניווט באמצעות קו תחתון שאינו תלוי בצבע, גם במצב צבעים כפויים (<span lang="en" dir="ltr">forced colors</span>), למשל במצב ניגודיות גבוהה של <span lang="en" dir="ltr">Windows</span></li>
@@ -656,13 +809,15 @@
             <li>גיליון ההדפסה שממנו שומרים <span lang="en" dir="ltr">PDF</span> בנוי כ־<span lang="en" dir="ltr">HTML</span> סמנטי — כותרות, טבלאות עם כיתוב (<span lang="en" dir="ltr">caption</span>) וכותרות עמודה מסומנות, ושפה וכיוון של המסמך, וכותרת הקובץ שנשמר היא בשפת הדף</li>
             <li>קובצי ה־<span lang="en" dir="ltr">XLSX</span> נוצרים ללא תאים ממוזגים וכוללים כותרת ושפה במאפייני הקובץ, ובקובצי הייצוא של נתוני המדד, הריבית ושערי החליפין ההיסטוריים שורת הכותרות מוקפאת ועליה מסנן אוטומטי</li>
           </ul>
+          <p>ייצוא <span lang="en" dir="ltr">DOCX</span> כולל כותרת ושפה במאפייני הקובץ, סגנונות כותרת, שורת כותרות טבלה מסומנת וכיוון מימין לשמאל בעברית, ללא תאים ממוזגים.</p>
           <h3>טפסים, כלים והודעות</h3>
           <ul class="info-list">
             <li>הקראת תוצאות המחשבונים, אישורי ההעתקה והודעות שגיאה לקורא מסך, וכן הודעה בשפה החדשה כשמחליפים שפה</li>
             <li>הבחירות הבאות מוכרזות לקורא מסך, משום שהן משנות תוכן במקום אחר בעמוד: בכלי הנתונים ההיסטוריים (מדד, ריבית ושערי חליפין) נאמר שהטבלה עודכנה ומספר השורות שבה, בטווח השנים של התרשים נאמר הטווח החדש, בכלי קודי הייצוא נאמר שהקוד עודכן, ובמדריך הייבוא ל־<span lang="en" dir="ltr">Excel</span> נאמר שהשלבים עודכנו</li>
             <li>כשמדד המחירים לצרכן, מדד תשומות הבנייה, ריבית בנק ישראל או סיכום שערי החליפין אינם נטענים, מוצגת ומוכרזת הודעה מעל כל עמוד שמציינת איזה מהם חסר, כך שגם מי שהגיע ישירות לכלי או למדריך יודע זאת (כשמדד תשומות הבנייה חסר, הסדרה שלו חסרה בתרשים והאפשרויות לבחור בה בכלי ההצמדה למדדים ובנתוני המדד ההיסטוריים מושבתות). כשנכשלת טעינה של מועד ההחלטה הבאה של בנק ישראל או של שערי החליפין היומיים, ההודעה מוצגת רק במקום שבו הם בשימוש</li>
-            <li>במחשבון בדף הבית, בכלי ההצמדה, בכלי הנתונים ההיסטוריים, בכלי קודי הייצוא, בכלי הצמדת הסכם שכירות ובטווח השנים של התרשים, הודעת שגיאה על ערך שגוי (סכום, תאריך, חודש, טווח, בחירת סדרה או מטבע) מסמנת גם את השדה עצמו כלא תקין ומקושרת אליו, כך שקורא מסך שמגיע לשדה מקריא גם את הסיבה</li>
+            <li>במחשבון בדף הבית, בכלי ההצמדה, בכלי הנתונים ההיסטוריים, בכלי קודי הייצוא, בכלי הצמדת הסכם שכירות, בדו״ח נסיעה לחו״ל ובטווח השנים של התרשים, הודעת שגיאה על ערך שגוי (סכום, תאריך, חודש, טווח, בחירת סדרה או מטבע) מסמנת גם את השדה עצמו כלא תקין ומקושרת אליו, כך שקורא מסך שמגיע לשדה מקריא גם את הסיבה</li>
             <li>טופס יצירת הקשר מציג הערה גלויה שכל השדות חובה, המקושרת לכל שדה, שומר על המיקוד בזמן השליחה ומעביר אותו להודעת האישור</li>
+            <li>שורות נוסעים בדו״ח נסיעה לחו״ל מקבלות שם קבוצה ומספור; הוספה והסרה מוכרזות, והמיקוד עובר לשם הנוסע החדש או לשורה הסמוכה לאחר הסרה</li>
             <li>שמות ברורים לתקופות בכלי הצמדת הסכם שכירות והעברת מיקוד תקינה בהוספה ובהסרה שלהן</li>
             <li>כיתוב לכל טבלת תקופה בכלי הצמדת הסכם שכירות, ועדכון הטבלה במקומה בעריכת סכום ששולם או בסימון "שולם", כך שהמיקוד ומקום הגלילה נשמרים; תיבת "סימון כל התקופה כשולמה" מציגה מצב ביניים (<span lang="en" dir="ltr">mixed</span>) כשרק חלק מהחודשים סומנו</li>
             <li>בכלי הצמדת הסכם שכירות, השם הנגיש של כל שדה "שולם בפועל" ושל כל תיבת "שולם" כולל את חודש השורה, והשם של תיבת "סימון כל התקופה כשולמה" כולל את שם התקופה</li>
@@ -682,6 +837,7 @@
         </section>
         <section>
           <h2>מגבלות ידועות</h2>
+          <p>בודק הנגישות של <span lang="en" dir="ltr">Word</span> לא הורץ על קובצי ה־<span lang="en" dir="ltr">DOCX</span>.</p>
           <ul class="info-list">
             <li>הצירים, המקרא וקווי האירועים בתרשים עדיין מצוירים כתמונה; הם מתוארים בטקסט (סיכום הנתונים, שמות הצירים ורשימת האירועים) ונגישים גם דרך מחוון החודשים, תיבות הסימון של הסדרות והטבלה המקושרת</li>
             <li>בקוראי מסך במצב גלישה (<span lang="en" dir="ltr">NVDA/JAWS</span>) ייתכן שיידרש מעבר למצב מיקוד כדי שמקשי החצים יגיעו לתרשים עצמו, ומחוון החודשים — רכיב טופס רגיל — מציע דרך נוספת לעבור בין החודשים</li>
@@ -707,7 +863,7 @@
             <li>חסימת טעינת קובצי הנתונים לבדיקת ההודעה על כשל בטעינה בכל נתיב</li>
             <li>חסימת הטעינה של כל אחד מקובצי הסקריפט של האתר בתורו, לבדיקת ההודעה על חלק מהאתר שלא נטען, ומעבר מקלדת אמיתי לעמוד ״הדף לא נמצא״ ובתוך דף השגיאה 404</li>
           </ul>
-          <p>אחרי 15 באוקטובר 2026 לא הורצה סריקת <span lang="en" dir="ltr">axe-core</span>, והשינויים מאז, כולל מפת האתר, נבדקו במקלדת, בגלישה ובטסטים של הפרויקט.</p>
+          <p>אחרי 15 באוקטובר 2026 לא הורצה סריקת <span lang="en" dir="ltr">axe-core</span>, והשינויים שקדמו לדו״ח הנסיעה, כולל מפת האתר, נבדקו במקלדת, בגלישה ובטסטים של הפרויקט. דו״ח הנסיעה נבדק בבדיקות חישוב, תרגום, מבנה קבצים ובדיקות מיקוד עם ממשק מדומה; הוא טרם נבדק בקורא מסך אמיתי, במעבר מקלדת בדפדפן או בסריקת נגישות.</p>
           <p>נבדקו גם קובצי הייצוא: קובץ <span lang="en" dir="ltr">PDF</span> שנוצר ב־<span lang="en" dir="ltr">Chrome</span> נבדק לתיוג, לשפה ולכותרת, וקובצי <span lang="en" dir="ltr">XLSX</span> נפתחו בספריית גיליונות לבדיקת מאפייני המסמך, ההקפאה, המסנן והיעדר תאים ממוזגים.</p>
           <p>הבדיקות לא כללו קורא מסך (<span lang="en" dir="ltr">VoiceOver</span>, <span lang="en" dir="ltr">NVDA</span>, <span lang="en" dir="ltr">JAWS</span> או <span lang="en" dir="ltr">TalkBack</span>), דפדפנים נוספים מלבד <span lang="en" dir="ltr">Chromium</span>, מכשירים ניידים אמיתיים או בדיקה עם משתמשים עם מוגבלות, ואינן ביקורת נגישות מקצועית.</p>
           <p>רשימת הבדיקות חלקית: בכל סבב בדיקה נוספו סוגי בדיקה שגילו ליקויים שלא נמצאו קודם, ולכן אין לראות בה אישור שכל הליקויים אותרו. חלק מהסוגים נאכפים עתה בבדיקות אוטומטיות שנכשלות כשמופיע ליקוי חדש מאותו סוג.</p>
@@ -715,7 +871,7 @@
         <section>
           <h2>דיווח על בעיית נגישות</h2>
           <p>נתקלתם בבעיית נגישות? אפשר לדווח למפעיל האתר בכתובת <a href="mailto:ori.cpa.il@gmail.com" dir="ltr">ori.cpa.il@gmail.com</a>.</p>
-          <p>הצהרה זו עודכנה לאחרונה, ובדיקת הנגישות האחרונה נערכה, ב־<time datetime="2026-11-17">17 בנובמבר 2026</time>.</p>
+          <p>הצהרה זו עודכנה לאחרונה, ובדיקת הנגישות האחרונה נערכה, ב־<time datetime="2026-11-22">22 בנובמבר 2026</time>.</p>
         </section>
       </div>
       <div class="prose-guide" data-lang="en" hidden>
@@ -733,8 +889,8 @@
             <li>a "skip to main content" button at the start of every page</li>
             <li>moving focus to the new page's heading on every page transition, so screen readers announce it</li>
             <li>Each guide has its own address: for a guide opened from the guide list, the browser's Back button closes it, returns to the guide list and moves focus to the page heading (a guide opened from a direct link has no earlier guide-list entry in the history, so Back goes to whatever was open before the link)</li>
-            <li>a "Tools" navigation menu that is fully keyboard-operable, including closing with the <span dir="ltr">Escape</span> key</li>
-            <li>the "Tools" submenu in the navigation, when it is open only because the mouse rests on it, closes with the <span dir="ltr">Escape</span> key without moving the mouse or the keyboard focus, and opens again when the mouse leaves the menu area and comes back</li>
+            <li>"Tools" and "Accounting &amp; Tax Tools" navigation menus that are fully keyboard-operable, including closing with the <span dir="ltr">Escape</span> key</li>
+            <li>each of the "Tools" and "Accounting &amp; Tax Tools" submenus in the navigation, when it is open only because the mouse rests on it, closes with the <span dir="ltr">Escape</span> key without moving the mouse or the keyboard focus, and opens again when the mouse leaves the menu area and comes back</li>
             <li>focus returning to the language button after a language is chosen or the menu is closed with the <span dir="ltr">Escape</span> key</li>
             <li>a prominent keyboard-focus indicator on every interactive element that is never hidden under the sticky header, including when it grows taller on narrow screens, and is not cut off at the edge of the scroll areas of the tables, illustrations and code blocks</li>
             <li>a non-color indicator (a bottom bar) for the current page in navigation, also in forced colors mode such as Windows High Contrast</li>
@@ -767,13 +923,15 @@
             <li>a print sheet, from which the <span dir="ltr">PDF</span> is saved, built as semantic <span dir="ltr">HTML</span> — headings, tables with a caption and marked-up column headers, and the document's language and direction, with the saved file's title in the page language</li>
             <li><span dir="ltr">XLSX</span> files that contain no merged cells and carry a title and language in their file properties, with the header row frozen and an AutoFilter on it in the historical index, interest-rate and exchange-rate exports</li>
           </ul>
+          <p><span dir="ltr">DOCX</span> exports include a title and language in file properties, heading styles, a marked table header row and right-to-left direction for Hebrew, without merged cells.</p>
           <h3>Forms, tools and messages</h3>
           <ul class="info-list">
             <li>calculator results, copy confirmations and error messages announced to screen readers, and a notice in the new language when the language is changed</li>
             <li>These choices are announced to screen readers, because they rewrite content elsewhere on the page: in the historical-data tools (index, interest rate and exchange rates) the table update and its row count, in the chart's year range the new range, in the export-code tool that the code was updated, and in the Excel import guide that the steps were updated</li>
             <li>When the consumer price index, the construction-inputs index, the Bank of Israel rate or the exchange-rate summary does not load, a notice above every page says which of them is missing and is announced, so someone who arrived directly at a tool or a guide knows too (when the construction-inputs index is missing, its series is left out of the chart and the options to choose it in the index-linkage tool and in the historical index data are disabled). When the next Bank of Israel decision date or the daily exchange rates fail to load, the message appears only where they are used</li>
-            <li>In the home-page calculator, the indexation tools, the historical data tools, the export-code tool, the rental-agreement tool and the chart's year range, an error message about a wrong value (an amount, a date, a month, a range, or a choice of series or currency) also marks the field itself as invalid and is linked to it, so a screen reader that reaches the field reads the reason as well</li>
+            <li>In the home-page calculator, the indexation tools, the historical data tools, the export-code tool, the rental-agreement tool, the Foreign Travel Report and the chart's year range, an error message about a wrong value (an amount, a date, a month, a range, or a choice of series or currency) also marks the field itself as invalid and is linked to it, so a screen reader that reaches the field reads the reason as well</li>
             <li>The contact form shows a visible note that all fields are required, linked to each field, keeps keyboard focus while sending and moves it to the confirmation message</li>
+            <li>Traveller rows in the Foreign Travel Report have numbered group names; adding and removing rows is announced, and focus moves to the new traveller name or the adjacent row after removal</li>
             <li>clear names for the periods in the rental-agreement tool, with focus handled when they are added or removed</li>
             <li>A caption on each period table in the rental-agreement tool, and the table updating in place when a paid amount is edited or "paid" is ticked, so keyboard focus and scroll position are kept; the "Mark the whole period as settled" box shows a mixed state when only some of the months are marked</li>
             <li>In the rental-agreement tool, the accessible name of every "Actually paid" field and every "Settled" box includes the row's month, and each "Mark the whole period as settled" box includes the period's name</li>
@@ -793,6 +951,7 @@
         </section>
         <section>
           <h2>Known limitations</h2>
+          <p>The <span dir="ltr">Word</span> accessibility checker has not been run on the <span dir="ltr">DOCX</span> files.</p>
           <ul class="info-list">
             <li>the chart's axes, legend and event lines are still drawn as an image — they are described in text (the data summary, the axis names and the list of events) and are also reachable through the month slider, the series checkboxes and the linked table</li>
             <li>screen readers in browse mode (NVDA/JAWS) may need focus mode before arrow keys reach the chart itself, and the month slider, a standard form control, offers another way to move through the months</li>
@@ -818,7 +977,7 @@
             <li>Blocking the data files from loading to check the notice about a loading failure on every route</li>
             <li>Blocking each of the site's script files from loading in turn, to check the notice about part of the site not loading, and a real keyboard walk to the "Page not found" view and through the 404 error page</li>
           </ul>
-          <p>No <span dir="ltr">axe-core</span> scan has been run since 15 October 2026; the changes made since then, including the site map, were checked with the keyboard, for overflow and with the project's tests.</p>
+          <p>No <span dir="ltr">axe-core</span> scan has been run since 15 October 2026; the changes made before the travel report, including the site map, were checked with the keyboard, for overflow and with the project's tests. The travel report was checked with calculation, translation, file-structure and focus tests against a mock interface; it has not yet been checked with a real screen reader, a keyboard walk-through in a browser or an accessibility scan.</p>
           <p>The export files were checked too: a <span dir="ltr">PDF</span> produced in <span dir="ltr">Chrome</span> was inspected for tagging, language and title, and <span dir="ltr">XLSX</span> files were opened with a spreadsheet library to check the document properties, the frozen header, the filter and the absence of merged cells.</p>
           <p>The testing did not include a screen reader (<span dir="ltr">VoiceOver</span>, <span dir="ltr">NVDA</span>, <span dir="ltr">JAWS</span> or <span dir="ltr">TalkBack</span>), browsers other than <span dir="ltr">Chromium</span>, real mobile devices, or testing with people with disabilities, and it is not a professional accessibility audit.</p>
           <p>This list of tests is partial: every round of testing added kinds of checks that found defects not found before, so it should not be read as confirmation that every defect has been found. Some of these kinds are now enforced by automated tests that fail when a new defect of the same kind appears.</p>
@@ -826,7 +985,7 @@
         <section>
           <h2>Reporting an accessibility issue</h2>
           <p>Found an accessibility issue? You can report it to the site operator at <a href="mailto:ori.cpa.il@gmail.com" dir="ltr">ori.cpa.il@gmail.com</a>.</p>
-          <p>This statement was last updated, and accessibility was last reviewed, on <time datetime="2026-11-17">17 November 2026</time>.</p>
+          <p>This statement was last updated, and accessibility was last reviewed, on <time datetime="2026-11-22">22 November 2026</time>.</p>
         </section>
       </div>
       <a class="info-back" href="#/"><span class="back-arrow" aria-hidden="true">←</span> חזרה לעמוד הבית</a>
@@ -873,6 +1032,7 @@
             <li><a href="#/">דף הבית</a></li>
             <li><a href="#/guides">מדריכים</a></li>
             <li><a href="#/tools">כלים</a></li>
+            <li><a href="#/accounting">כלים חשבונאות ומיסוי</a></li>
             <li><a href="#/mcode">קודים לייצוא (Power Query)</a></li>
           </ul>
         </section>
@@ -887,6 +1047,8 @@
             <li><a href="#/tools/fx-history">נתוני שער חליפין היסטוריים</a></li>
             <li><a href="#/tools/rent">הצמדת הסכם שכירות</a></li>
           </ul>
+          <h3>כלים חשבונאות ומיסוי</h3>
+          <ul class="info-list"><li><a href="#/accounting/travel">דו״ח נסיעה לחו״ל</a></li></ul>
           <h3>מדריכים</h3>
           <ul class="info-list">
             <li><a href="#/guides/excel">שאיבת נתונים מ-statso לתוך Excel</a></li>
@@ -948,17 +1110,19 @@
   <script src="assets/statso-contact.js" data-inline="script"></script>
   <script src="assets/statso-xlsx.js" data-inline="script"></script>
   <script src="assets/statso-export.js" data-inline="script"></script>
+  <script src="assets/statso-docx.js" data-inline="script"></script>
   <script src="assets/statso-tools.js" data-inline="script"></script>
   <script src="assets/statso-fxhistory.js" data-inline="script"></script>
   <script src="assets/statso-ratehistory.js" data-inline="script"></script>
   <script src="assets/statso-rent.js" data-inline="script"></script>
+  <script src="assets/statso-travel.js" data-inline="script"></script>
   <script src="assets/statso-nav.js" data-inline="script"></script>
   <script src="assets/statso-app.js" data-inline="script"></script>
   <script src="assets/statso-visits.js" data-inline="script"></script>
   <script id="script-guard">
   (function (root) {
     'use strict';
-    var REQUIRED = ['lang', 'i18n', 'core', 'data', 'collapse', 'chart', 'fxtable', 'calculator', 'guideArt', 'mcode',
+    var REQUIRED = ['docx', 'travel', 'lang', 'i18n', 'core', 'data', 'collapse', 'chart', 'fxtable', 'calculator', 'guideArt', 'mcode',
       'guides', 'contact', 'xlsx', 'exporter', 'tools', 'fxhistory', 'ratehistory', 'rent', 'nav', 'app'];
     var S = root.Statso || {};
     var missing = [];

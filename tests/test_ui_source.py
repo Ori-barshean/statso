@@ -126,14 +126,21 @@ class UiSourceTests(unittest.TestCase):
         self.assertIn('input[name="calc-kind"]', init_body)
         self.assertIn("showKind(currentKind());", init_body)
 
-    def test_top_nav_is_four_destinations_plus_the_tools_menu(self):
+    def test_top_nav_is_five_destinations_with_two_tool_menus(self):
         nav = re.search(r'<nav class="site-nav".*?</nav>', self.html, re.DOTALL).group(0)
-        self.assertEqual(len(re.findall(r'class="nav-item(?: [^"]+)?"', nav)), 4)
+        self.assertEqual(len(re.findall(r'class="nav-item(?: [^"]+)?"', nav)), 5)
         self.assertNotIn('<br', nav)
-        self.assertGreater(nav.index('href="#/mcode"'), nav.index('</ul>'))
-        for href in ('href="#/"', 'href="#/guides"', 'href="#/tools"', 'href="#/mcode"'):
+        self.assertEqual(len(re.findall(r'class="nav-item nav-item-stacked"', nav)), 2)
+        # the accounting menu comes right after the tools menu and before the export-code tab
+        self.assertLess(nav.index('id="tools-trigger"'), nav.index('id="accounting-trigger"'))
+        self.assertLess(nav.index('id="accounting-trigger"'), nav.index('href="#/mcode"'))
+        self.assertGreater(nav.index('href="#/mcode"'), nav.rindex('</ul>'))
+        for href in ('href="#/"', 'href="#/guides"', 'href="#/tools"', 'href="#/accounting"', 'href="#/mcode"'):
             self.assertIn(href, nav)
-        submenu = re.search(r'<ul class="nav-submenu".*?</ul>', nav, re.DOTALL).group(0)
+        accounting = re.search(r'<ul class="nav-submenu" id="accounting-submenu".*?</ul>', nav, re.DOTALL).group(0)
+        self.assertEqual(accounting.count("<a "), 1)
+        self.assertIn('href="#/accounting/travel"', accounting)
+        submenu = re.search(r'<ul class="nav-submenu" id="tools-submenu".*?</ul>', nav, re.DOTALL).group(0)
         self.assertEqual(submenu.count("<a "), 6)
         for route in ("index", "fx", "history", "rate-history", "fx-history", "rent"):
             self.assertIn(f'href="#/tools/{route}"', submenu)
@@ -141,7 +148,7 @@ class UiSourceTests(unittest.TestCase):
         # in both the dropdown menu and the tools-tab card grid
         self.assertLess(submenu.index('href="#/tools/history"'), submenu.index('href="#/tools/rate-history"'))
         self.assertLess(submenu.index('href="#/tools/rate-history"'), submenu.index('href="#/tools/fx-history"'))
-        cards = re.search(r'<div class="tool-cards"[^>]*>.*?</div>', self.html, re.DOTALL).group(0)
+        cards = re.search(r'<div class="tool-cards" id="tools-index"[^>]*>.*?</div>', self.html, re.DOTALL).group(0)
         self.assertLess(cards.index('href="#/tools/history"'), cards.index('href="#/tools/rate-history"'))
         self.assertLess(cards.index('href="#/tools/rate-history"'), cards.index('href="#/tools/fx-history"'))
 
@@ -225,7 +232,7 @@ class UiSourceTests(unittest.TestCase):
     def test_readme_names_every_tool_the_site_offers(self):
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         names = re.findall(r'<a class="tool-card"[^>]*>.*?<strong>(.*?)</strong>', self.html)
-        self.assertEqual(len(names), 6)
+        self.assertEqual(len(names), 7)   # six tools + the foreign travel report
         for name in names:
             self.assertIn("| " + name + " |", readme)
         for stale in ("ארבעה מחשבונים", "שלושת קובצי ה־JSON", "159 נכון", "אינה חלק מהגרסה הזאת"):

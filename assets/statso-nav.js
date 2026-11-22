@@ -18,8 +18,11 @@
     '#/tools/fx-history': 'tool-fx-history-page',
     '#/tools/rent': 'tool-rent-page'
   };
+  const accountingRoutes = {'#/accounting/travel': 'tool-travel-page'};
+  const MENUS = [{trigger: 'tools-trigger', menu: 'tools-submenu', landing: '#/tools'},
+    {trigger: 'accounting-trigger', menu: 'accounting-submenu', landing: '#/accounting'}];
   let firstRoute = true;
-  let toolsMenuJustOpened = false;
+  let menuJustOpened = false;
   // Read while the script is evaluated, before the i18n engine paints, so this
   // is still the page's own Hebrew <title> whatever language was requested.
   const siteTitle = document.title;
@@ -56,13 +59,16 @@
     heading.focus({preventScroll: true});
   }
 
-  function closeToolsMenu() {
-    const trigger = document.getElementById('tools-trigger');
-    const group = trigger && trigger.closest('.nav-group');
+  function closeMenu(spec) {
+    const trigger = document.getElementById(spec.trigger);
+    if (!trigger || typeof trigger.closest !== 'function') return;
+    const group = trigger.closest('.nav-group');
     if (!group) { return; }
     group.removeAttribute('data-open');
     trigger.setAttribute('aria-expanded', 'false');
   }
+  // A navigation closes every menu; Escape or a click outside closes only the menu it belongs to.
+  function closeMenus() { MENUS.forEach(closeMenu); }
 
   // The tools submenu hangs from the end edge of its trigger, so near a window edge it ran out of the page: at 320px the
   // Hebrew menu crossed the right edge and the English one the left. Pure: the horizontal shift (px) that brings the menu's
@@ -80,9 +86,10 @@
   // The page box is measured rather than assumed to start at 0: a scrollbar on the left (an RTL page in Firefox, or in a
   // frame in Chrome) moves it. The rect is valid while the menu is closed too (visibility: hidden still lays it out); it
   // already includes the shift last applied, which is taken off before measuring again.
-  let submenuOffset = 0;
-  function fitToolsMenu() {
-    const menu = document.getElementById('tools-submenu');
+  const submenuOffsets = {};
+  function fitMenu(menuId) {
+    const submenuOffset = submenuOffsets[menuId] || 0;
+    const menu = document.getElementById(menuId);
     const html = document.documentElement;
     if (!menu || typeof menu.getBoundingClientRect !== 'function' || !menu.style || typeof menu.style.setProperty !== 'function') { return; }
     if (!html || typeof html.getBoundingClientRect !== 'function' || !(html.clientWidth > 0)) { return; }
@@ -90,7 +97,7 @@
     const rect = menu.getBoundingClientRect();
     const shift = submenuShift(rect.left - submenuOffset, rect.right - submenuOffset, start, start + html.clientWidth, SUBMENU_MARGIN);
     if (shift === submenuOffset) { return; }
-    submenuOffset = shift;
+    submenuOffsets[menuId] = shift;
     menu.style.setProperty('--submenu-shift', shift + 'px');
   }
 
@@ -106,15 +113,18 @@
     const mcode = hash === '#/mcode';
     const toolPageId = toolRoutes[hash];
     const tools = hash === '#/tools' || Boolean(toolPageId);
+    const accountingPageId = accountingRoutes[hash];
+    const accounting = hash === '#/accounting' || Boolean(accountingPageId);
     const home = hash === '' || hash === '#' || hash === '#/';
-    const notFound = !home && !guides && !mcode && !tools && !infoRoutes[hash];
+    const notFound = !home && !guides && !mcode && !tools && !accounting && !infoRoutes[hash];
     const infoPageId = infoRoutes[hash] || (notFound ? 'notfound-page' : '');
     const info = Boolean(infoPageId);
     const dashboardView = document.getElementById('dashboard-view');
     const guidesView = document.getElementById('guides-view');
     const infoView = document.getElementById('info-view');
     const toolsView = document.getElementById('tools-view');
-    dashboardView.hidden = guides || info || tools || mcode;
+    const accountingView = document.getElementById('accounting-view');
+    dashboardView.hidden = guides || info || tools || mcode || accounting;
     document.getElementById('mcode-view').hidden = !mcode;
     guidesView.hidden = !guides;
     infoView.hidden = !info;
@@ -125,6 +135,12 @@
         page.hidden = page.id !== toolPageId;
       });
     }
+    if (accountingView) {
+      accountingView.hidden = !accounting;
+      const index = document.getElementById('accounting-index');
+      if (index) { index.hidden = Boolean(accountingPageId); }
+      accountingView.querySelectorAll('.tool-page').forEach(function (page) { page.hidden = page.id !== accountingPageId; });
+    }
     infoView.querySelectorAll('.info-page').forEach(function (page) {
       page.hidden = page.id !== infoPageId;
     });
@@ -132,21 +148,22 @@
       if (!(guideMatch && Statso.guides.showGuide(guideMatch[1], true))) { Statso.guides.showIndex(true); }
     }
     if (mcode && Statso.mcode) { Statso.mcode.render(); }
-    if (info || tools || mcode) { root.scrollTo(0, 0); }
+    if (info || tools || mcode || accounting) { root.scrollTo(0, 0); }
     document.querySelectorAll('.site-nav a').forEach(function (link) {
       const href = link.getAttribute('href');
       const active = guides ? href === '#/guides'
         : tools ? href === '#/tools'
+        : accounting ? href === '#/accounting'
         : mcode ? href === '#/mcode'
         : (!info && href === '#/');
       if (active) { link.setAttribute('aria-current', 'page'); } else { link.removeAttribute('aria-current'); }
     });
-    if (!guides && !info && !tools && !mcode) {
+    if (!guides && !info && !tools && !mcode && !accounting) {
       root.requestAnimationFrame(function () {
         if (root.Statso.chart && root.Statso.chart.resize) { root.Statso.chart.resize(); }
       });
     }
-    if (toolsMenuJustOpened) { toolsMenuJustOpened = false; } else { closeToolsMenu(); }
+    if (menuJustOpened) { menuJustOpened = false; } else { closeMenus(); }
     if (firstRoute) { firstRoute = false; updateTitle(); } else { focusView(); }
   }
 
@@ -155,26 +172,28 @@
   // data-open for anything involving focus — Tab landing on the trigger,
   // click, Enter, Space — which does keep aria-expanded truthful, since
   // real focus already gets a screen reader all the way onto the trigger.
-  function initToolsMenu() {
-    const trigger = document.getElementById('tools-trigger');
+  function initMenu(spec) {
+    const trigger = document.getElementById(spec.trigger);
+    if (!trigger || typeof trigger.closest !== 'function') return;
     const group = trigger && trigger.closest('.nav-group');
     if (!trigger || !group) { return; }
+    function fit() { fitMenu(spec.menu); }
     let refocusing = false;
     function open() {
       if (refocusing) { return; }
-      fitToolsMenu();
+      fit();
       group.removeAttribute('data-closed');
       group.setAttribute('data-open', 'true');
       trigger.setAttribute('aria-expanded', 'true');
     }
-    function close() { closeToolsMenu(); group.removeAttribute('data-closed'); }
+    function close() { closeMenu(spec); group.removeAttribute('data-closed'); }
     trigger.addEventListener('focus', open);
     trigger.addEventListener('click', function (event) {
       if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) { return; }
       // Only a real navigation (a hash that's about to change) reaches
       // route(); a same-hash click never fires hashchange, so never leave
       // this set for some later, unrelated navigation to misread.
-      if (root.location.hash !== '#/tools') { toolsMenuJustOpened = true; }
+      if (root.location.hash !== spec.landing) { menuJustOpened = true; }
       open();
     });
     trigger.addEventListener('keydown', function (event) {
@@ -204,20 +223,20 @@
     group.addEventListener('focusout', function (event) {
       if (!group.contains(event.relatedTarget)) { close(); }
     });
-    group.addEventListener('mouseenter', function () { group.removeAttribute('data-closed'); fitToolsMenu(); });
+    group.addEventListener('mouseenter', function () { group.removeAttribute('data-closed'); fit(); });
     document.addEventListener('click', function (event) {
       if (group.getAttribute('data-open') === 'true' && !group.contains(event.target)) { close(); }
     });
     // Re-placed whenever the menu or the room for it can change: a resized window, the other language (new labels,
     // the other direction), a new text size (ResizeObserver), and right before it opens (focus, click, hover).
-    if (typeof root.addEventListener === 'function') { root.addEventListener('resize', fitToolsMenu); }
-    if (Statso.i18n && typeof Statso.i18n.onChange === 'function') { Statso.i18n.onChange(fitToolsMenu); }
-    const menu = document.getElementById('tools-submenu');
+    if (typeof root.addEventListener === 'function') { root.addEventListener('resize', fit); }
+    if (Statso.i18n && typeof Statso.i18n.onChange === 'function') { Statso.i18n.onChange(fit); }
+    const menu = document.getElementById(spec.menu);
     if (typeof root.ResizeObserver === 'function') {
-      const observer = new root.ResizeObserver(fitToolsMenu);
+      const observer = new root.ResizeObserver(fit);
       [group, menu].forEach(function (node) { if (node && node.nodeType === 1) { observer.observe(node); } });
     }
-    fitToolsMenu();
+    fit();
   }
 
   function initSkipLink() {
@@ -240,6 +259,11 @@
     // Three other tools share the rent form's class for their layout, so the class says nothing about which tool
     // the visitor is in: the page does. A change in the rent tool says its totals; a change in a historical-data tool
     // says how many rows the table now holds (the first sentence of the note under it).
+    // free text inside the calculating fieldsets (names, roles, a country's name, a description) changes no figure
+    if (target.closest('#tool-travel-page .travel-calc') && !target.closest('.tt-name, .tt-role, #tt-country-other, #tt-other-desc')) {
+      const summary = document.getElementById('tt-summary');
+      return summary && !document.getElementById('tt-output').hidden ? [summary] : [];
+    }
     if (target.closest('#tool-rent-page .rent-form')) {
       const summary = document.getElementById('tr-summary');
       return summary ? [summary] : [];
@@ -340,7 +364,7 @@
     // The guides re-render their open view on this same event, so read the
     // heading once that has happened rather than whenever this listener runs.
     if (Statso.i18n && Statso.i18n.onChange) { Statso.i18n.onChange(function () { root.setTimeout(updateTitle, 0); }); }
-    initToolsMenu();
+    MENUS.forEach(initMenu);
     initSkipLink();
     initResultAnnouncements();
     initHeaderOffset();
@@ -348,5 +372,6 @@
   }
   document.addEventListener('DOMContentLoaded', init);
   Statso.nav = {route: route, init: init, toolRoutes: toolRoutes, focusView: focusView};
+  Statso.nav.accountingRoutes = accountingRoutes;
   Statso.nav.submenuShift = submenuShift;
 })(window);

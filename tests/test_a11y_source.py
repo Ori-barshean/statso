@@ -311,11 +311,14 @@ process.stdout.write(JSON.stringify(seen));
     # ---------- accessible tools disclosure ----------------------------------
 
     def test_tools_trigger_starts_collapsed_and_wired(self):
-        self.assertIn('id="tools-trigger"', self.html)
-        self.assertIn('aria-expanded="false"', self.html)
-        self.assertIn('aria-controls="tools-submenu"', self.html)
-        submenu_tag = re.search(r'<ul class="nav-submenu"[^>]*>', self.html).group(0)
-        self.assertLess(submenu_tag.index('class="nav-submenu"'), submenu_tag.index('id="tools-submenu"'))
+        # both navigation menus (tools, accounting and tax tools) are the same disclosure pattern
+        for trigger, submenu in [('tools-trigger', 'tools-submenu'), ('accounting-trigger', 'accounting-submenu')]:
+            tag = re.search(r'<a [^>]*id="' + trigger + r'"[^>]*>', self.html).group(0)
+            self.assertIn('aria-expanded="false"', tag)
+            self.assertIn('aria-controls="' + submenu + '"', tag)
+            submenu_tag = re.search(r'<ul class="nav-submenu"[^>]*id="' + submenu + r'"[^>]*>', self.html).group(0)
+            self.assertLess(submenu_tag.index('class="nav-submenu"'), submenu_tag.index('id="' + submenu + '"'))
+        self.assertEqual(len(re.findall(r'<ul class="nav-submenu"', self.html)), 2)
         self.assertIn("aria-expanded", self.nav)
         self.assertIn("Escape", self.nav)
         # mouse-hover convenience must survive the accessibility layer
@@ -355,7 +358,10 @@ process.stdout.write(JSON.stringify(seen));
         # wrongly find it still set and skip closing the menu).
         click_handler = re.search(r"trigger\.addEventListener\('click'.*?\n    \}\);", self.nav, re.DOTALL)
         self.assertIsNotNone(click_handler)
-        self.assertIn("location.hash !== '#/tools'", click_handler.group(0))
+        # the landing hash is the menu's own (#/tools or #/accounting), not a fixed one
+        self.assertIn("location.hash !== spec.landing", click_handler.group(0))
+        self.assertIn("landing: '#/tools'", self.nav)
+        self.assertIn("landing: '#/accounting'", self.nav)
         # a modifier/middle click opens a new tab without changing this
         # page's hash at all — must not arm the flag either
         self.assertIn("metaKey", click_handler.group(0))
@@ -376,7 +382,7 @@ process.stdout.write(JSON.stringify(seen));
 
     def test_every_table_wrap_is_a_focusable_labeled_region(self):
         wraps = re.findall(r'<div class="table-wrap"[^>]*>', self.html)
-        self.assertEqual(len(wraps), 4)  # dashboard fx-table + 3 tool history tables
+        self.assertEqual(len(wraps), 5)  # dashboard fx-table + 3 tool history tables + the foreign travel report table
         for wrap in wraps:
             self.assertIn('tabindex="0"', wrap)
             self.assertIn('role="region"', wrap)
@@ -594,7 +600,8 @@ process.stdout.write(JSON.stringify(seen));
 
     def test_disclosure_buttons_do_not_claim_a_popup(self):
         self.assertNotIn('aria-haspopup', self.html)
-        for id_, controls in [('tools-trigger', 'tools-submenu'), ('lang-toggle', 'lang-menu')]:
+        for id_, controls in [('tools-trigger', 'tools-submenu'), ('accounting-trigger', 'accounting-submenu'),
+                              ('lang-toggle', 'lang-menu')]:
             tag = re.search(r'<[^>]+id="' + id_ + r'"[^>]*>', self.html).group(0)
             self.assertIn('aria-expanded="false"', tag)
             self.assertIn('aria-controls="' + controls + '"', tag)

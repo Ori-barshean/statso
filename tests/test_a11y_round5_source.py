@@ -99,7 +99,7 @@ class DecorativeSymbolTests(unittest.TestCase):
 
     def test_tool_card_marks_are_hidden_from_screen_readers(self):
         marks = re.findall(r'<span class="tool-card-mark"([^>]*)>', HTML)
-        self.assertEqual(len(marks), 6)
+        self.assertEqual(len(marks), 7)   # six history and rent tools + the accounting and tax tools card
         for attrs in marks:
             self.assertIn('aria-hidden="true"', attrs)
 
@@ -403,7 +403,7 @@ process.stdout.write(JSON.stringify(spoken));
             section = re.search(r'<section[^>]*id="%s".*?</section>' % page, HTML, re.S).group(0)
             self.assertIn('id="%s"' % note, section)
             self.assertNotIn("tr-summary", section)
-        self.assertEqual(len(re.findall(r'<form class="rent-form"', HTML)), 4)   # why the class cannot identify the rent tool
+        self.assertEqual(len(re.findall(r'<form class="rent-form"', HTML)), 5)   # why the class cannot identify the rent tool
 
     def test_the_scripts_use_no_regex_lookbehind(self):
         # a lookbehind in a regex literal is a parse error on Safari before 16.4, which would take the whole script down

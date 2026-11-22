@@ -129,7 +129,7 @@
       return '<c r="' + reference + '"' + style + '><v>' + value + '</v></c>';
     }
     return '<c r="' + reference + '"' + style + ' t="inlineStr"><is><t xml:space="preserve">'
-      + escapeXml(say(value)) + '</t></is></c>';
+      + escapeXml(typeof cell === 'object' && cell.raw ? value : say(value)) + '</t></is></c>';
   }
 
   function sheetXml(sheet) {
@@ -248,5 +248,5 @@
     return zip(files);
   }
 
-  Statso.xlsx = {build: build, STYLE: STYLE, columnName: columnName, escapeXml: escapeXml, crc32: crc32};
+  Statso.xlsx = {build: build, STYLE: STYLE, columnName: columnName, escapeXml: escapeXml, crc32: crc32, zip: zip, utf8: utf8};
 })(window);
