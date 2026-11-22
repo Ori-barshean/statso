@@ -340,17 +340,17 @@
         </fieldset>
         <fieldset class="rent-block"><legend>תקופת השכירות הבסיסית</legend>
           <div class="rent-grid">
-            <label>מחודש <input id="tr-base-start" type="month" placeholder="YYYY-MM"></label>
-            <label>עד חודש <input id="tr-base-end" type="month" placeholder="YYYY-MM"></label>
+            <label>מחודש <input id="tr-base-start" type="text" inputmode="numeric" dir="ltr" placeholder="M/YYYY" maxlength="7" autocomplete="off" spellcheck="false"></label>
+            <label>עד חודש <input id="tr-base-end" type="text" inputmode="numeric" dir="ltr" placeholder="M/YYYY" maxlength="7" autocomplete="off" spellcheck="false"></label>
             <label>דמי שכירות חודשיים (₪) <input id="tr-base-rent" type="number" min="0" step="any" value="5000" inputmode="decimal"></label>
           </div>
-          <p class="rent-hint" id="tr-base-month-hint" hidden>פורמט החודש: YYYY-MM או MM/YYYY (למשל 2024-09 או 09/2024)</p>
+          <p class="rent-hint" id="tr-base-month-hint">פורמט החודש: חודש ושנה, למשל 7/2025, 07/2025, 72025, 072025 או 2025-07</p>
         </fieldset>
         <fieldset class="rent-block"><legend>תקופות אופציה והארכה</legend>
           <label class="rent-inline"><input id="tr-has-options" type="checkbox"> קיימות תקופות אופציה</label>
           <div id="tr-options" hidden>
             <div id="tr-option-rows"></div>
-            <p class="rent-hint" id="tr-options-month-hint" hidden>פורמט החודש: YYYY-MM או MM/YYYY (למשל 2024-09 או 09/2024)</p>
+            <p class="rent-hint" id="tr-options-month-hint">פורמט החודש: חודש ושנה, למשל 7/2025, 07/2025, 72025, 072025 או 2025-07</p>
             <button type="button" class="btn-ghost" id="tr-add-option">הוספת תקופה</button>
           </div>
         </fieldset>
@@ -366,19 +366,24 @@
           <label class="rent-inline"><input type="radio" name="tr-floor" value="floor" checked> רק הפרש לתשלום — אם המדד ירד, התשלום נשאר הנומינלי</label>
           <label class="rent-inline"><input type="radio" name="tr-floor" value="full"> הצמדה מלאה — להתחשב גם בירידת המדד</label>
         </fieldset>
+        <fieldset class="rent-block"><legend>מע״מ</legend><div class="rent-grid"><label>שיעור מע״מ (%) <input id="tr-vat" type="number" min="0" max="100" step="any" inputmode="decimal" value="18"></label></div></fieldset>
       </form>
       <p class="inline-error" id="tr-error" role="alert"></p>
       <div id="tr-output" hidden>
         <div class="rent-summary" id="tr-summary"></div>
         <p class="result-disclaimer">התוצאה מיועדת להמחשה בלבד. לפני שימוש כספי או משפטי יש לאמת את הנתונים ואת שיטת החישוב.</p>
+        <section class="rent-period"><header class="rent-period-head"><h3 id="tr-details-title">פרטי ההסכם</h3></header>
+          <div class="table-wrap rent-scroll" id="tr-details" tabindex="0" role="region" aria-labelledby="tr-details-title"></div></section>
+        <section class="rent-period"><header class="rent-period-head"><h3 id="tr-current-title">סכומים עדכניים</h3></header>
+          <div class="table-wrap rent-scroll rent-current" id="tr-current" tabindex="0" role="region" aria-labelledby="tr-current-title"></div></section>
         <div id="tr-periods"></div>
         <fieldset class="rent-block"><legend>טווח לייצוא</legend>
           <div class="rent-grid">
             <label>תקופה <select id="tr-export-period"><option value="all">כל התקופות</option></select></label>
-            <label>מחודש <input id="tr-export-from" type="month" placeholder="YYYY-MM"></label>
-            <label>עד חודש <input id="tr-export-to" type="month" placeholder="YYYY-MM"></label>
+            <label>מחודש <input id="tr-export-from" type="text" inputmode="numeric" dir="ltr" placeholder="M/YYYY" maxlength="7" autocomplete="off" spellcheck="false"></label>
+            <label>עד חודש <input id="tr-export-to" type="text" inputmode="numeric" dir="ltr" placeholder="M/YYYY" maxlength="7" autocomplete="off" spellcheck="false"></label>
           </div>
-          <p class="rent-hint" id="tr-export-month-hint" hidden>פורמט החודש: YYYY-MM או MM/YYYY (למשל 2024-09 או 09/2024)</p>
+          <p class="rent-hint" id="tr-export-month-hint">פורמט החודש: חודש ושנה, למשל 7/2025, 07/2025, 72025, 072025 או 2025-07</p>
           <label class="rent-inline"><input id="tr-exclude-paid" type="checkbox" checked> להשמיט חודשים שההפרש בגינם כבר שולם</label>
         </fieldset>
         <div class="tool-actions"><button type="button" class="btn-ghost" id="tr-xlsx">ייצוא לאקסל</button><button type="button" class="btn-ghost" id="tr-pdf">ייצוא ל־PDF</button></div>
@@ -821,7 +826,7 @@
             <li>שמות ברורים לתקופות בכלי הצמדת הסכם שכירות והעברת מיקוד תקינה בהוספה ובהסרה שלהן</li>
             <li>כיתוב לכל טבלת תקופה בכלי הצמדת הסכם שכירות, ועדכון הטבלה במקומה בעריכת סכום ששולם או בסימון "שולם", כך שהמיקוד ומקום הגלילה נשמרים; תיבת "סימון כל התקופה כשולמה" מציגה מצב ביניים (<span lang="en" dir="ltr">mixed</span>) כשרק חלק מהחודשים סומנו</li>
             <li>בכלי הצמדת הסכם שכירות, השם הנגיש של כל שדה "שולם בפועל" ושל כל תיבת "שולם" כולל את חודש השורה, והשם של תיבת "סימון כל התקופה כשולמה" כולל את שם התקופה</li>
-            <li>שדות החודש בכלי הצמדת הסכם שכירות: כשהדפדפן אינו מציג בורר חודשים מובנה אפשר להקליד <span lang="en" dir="ltr">YYYY-MM</span> או <span lang="en" dir="ltr">MM/YYYY</span> (גם עם חודש בספרה אחת), מוצגת הנחיית פורמט גלויה המקושרת לשדה, וערך שלא ניתן לפענח מציג הודעת שגיאה מוכרזת במקום טבלה ריקה</li>
+            <li>שדות החודש בכלי הצמדת הסכם שכירות הם שדות טקסט להקלדה ידנית ואינם תלויים בבורר חודשים של הדפדפן: אפשר להקליד <span lang="en" dir="ltr">M/YYYY</span> או <span lang="en" dir="ltr">MM/YYYY</span> (גם עם חודש בספרה אחת), חמש או שש ספרות רצופות (<span lang="en" dir="ltr">MYYYY</span> או <span lang="en" dir="ltr">MMYYYY</span>) או <span lang="en" dir="ltr">YYYY-MM</span>, והשדה מציג את החודש בצורה <span dir="ltr">7/2025</span>; מוצגת הנחיית פורמט גלויה המקושרת לשדה, וערך שלא ניתן לפענח מציג הודעת שגיאה מוכרזת במקום טבלה ריקה</li>
             <li>הודעה בעברית ובאנגלית למי שהדפדפן שלו אינו מריץ <span lang="en" dir="ltr">JavaScript</span></li>
             <li>כשאחד מקובצי הסקריפט של האתר אינו נטען (למשל בגלל חסימה או תקלת רשת), מוצגת ומוכרזת מעל כל עמוד הודעה שחלק מהאתר לא נטען ושאפשר לרענן את הדף; ההודעה כתובה בעברית ובאנגלית יחד ואינה תלויה במנגנון התרגום, כך שהיא מופיעה גם כשקובץ התרגום הוא שלא נטען</li>
           </ul>
@@ -864,6 +869,7 @@
             <li>חסימת הטעינה של כל אחד מקובצי הסקריפט של האתר בתורו, לבדיקת ההודעה על חלק מהאתר שלא נטען, ומעבר מקלדת אמיתי לעמוד ״הדף לא נמצא״ ובתוך דף השגיאה 404</li>
           </ul>
           <p>אחרי 15 באוקטובר 2026 לא הורצה סריקת <span lang="en" dir="ltr">axe-core</span>, והשינויים שקדמו לדו״ח הנסיעה, כולל מפת האתר, נבדקו במקלדת, בגלישה ובטסטים של הפרויקט. דו״ח הנסיעה נבדק בבדיקות חישוב, תרגום, מבנה קבצים ובדיקות מיקוד עם ממשק מדומה; הוא טרם נבדק בקורא מסך אמיתי, במעבר מקלדת בדפדפן או בסריקת נגישות.</p>
+          <p>השינויים שבאו אחריו בכלי הצמדת הסכם שכירות (שדות חודש להקלדה ידנית, טבלת פרטי ההסכם וטבלת הסכומים העדכניים) נבדקו בטסטים של הפרויקט עם ממשק מדומה ובהרצה אוטומטית ב־<span lang="en" dir="ltr">Chromium</span> (הקלדה בשדות ובדיקת גלישה ברוחב 320 וברוחב 1280 פיקסלים); הם לא נבדקו בקורא מסך אמיתי, במעבר מקלדת ידני או בסריקת נגישות.</p>
           <p>נבדקו גם קובצי הייצוא: קובץ <span lang="en" dir="ltr">PDF</span> שנוצר ב־<span lang="en" dir="ltr">Chrome</span> נבדק לתיוג, לשפה ולכותרת, וקובצי <span lang="en" dir="ltr">XLSX</span> נפתחו בספריית גיליונות לבדיקת מאפייני המסמך, ההקפאה, המסנן והיעדר תאים ממוזגים.</p>
           <p>הבדיקות לא כללו קורא מסך (<span lang="en" dir="ltr">VoiceOver</span>, <span lang="en" dir="ltr">NVDA</span>, <span lang="en" dir="ltr">JAWS</span> או <span lang="en" dir="ltr">TalkBack</span>), דפדפנים נוספים מלבד <span lang="en" dir="ltr">Chromium</span>, מכשירים ניידים אמיתיים או בדיקה עם משתמשים עם מוגבלות, ואינן ביקורת נגישות מקצועית.</p>
           <p>רשימת הבדיקות חלקית: בכל סבב בדיקה נוספו סוגי בדיקה שגילו ליקויים שלא נמצאו קודם, ולכן אין לראות בה אישור שכל הליקויים אותרו. חלק מהסוגים נאכפים עתה בבדיקות אוטומטיות שנכשלות כשמופיע ליקוי חדש מאותו סוג.</p>
@@ -935,7 +941,7 @@
             <li>clear names for the periods in the rental-agreement tool, with focus handled when they are added or removed</li>
             <li>A caption on each period table in the rental-agreement tool, and the table updating in place when a paid amount is edited or "paid" is ticked, so keyboard focus and scroll position are kept; the "Mark the whole period as settled" box shows a mixed state when only some of the months are marked</li>
             <li>In the rental-agreement tool, the accessible name of every "Actually paid" field and every "Settled" box includes the row's month, and each "Mark the whole period as settled" box includes the period's name</li>
-            <li>Month fields in the rental-agreement tool: when the browser has no built-in month picker, you can type <span dir="ltr">YYYY-MM</span> or <span dir="ltr">MM/YYYY</span> (including a single-digit month), a visible format hint is linked to the field, and an unrecognised value produces an announced error instead of an empty table</li>
+            <li>Month fields in the rental-agreement tool are text fields for typing the month by hand and do not depend on the browser's month picker: you can type <span dir="ltr">M/YYYY</span> or <span dir="ltr">MM/YYYY</span> (including a single-digit month), five or six digits in a row (<span dir="ltr">MYYYY</span> or <span dir="ltr">MMYYYY</span>) or <span dir="ltr">YYYY-MM</span>, and the field shows the month as <span dir="ltr">7/2025</span>; a visible format hint is linked to the field, and an unrecognised value produces an announced error instead of an empty table</li>
             <li>a notice in Hebrew and English for browsers that do not run <span dir="ltr">JavaScript</span></li>
             <li>When one of the site's script files does not load (for example because it was blocked or the network failed), a notice above every page says that part of the site did not load and that refreshing the page may help, and is announced; the notice is written in Hebrew and English together and does not depend on the translation mechanism, so it appears even when the translation file is the one that failed to load</li>
           </ul>
@@ -978,6 +984,7 @@
             <li>Blocking each of the site's script files from loading in turn, to check the notice about part of the site not loading, and a real keyboard walk to the "Page not found" view and through the 404 error page</li>
           </ul>
           <p>No <span dir="ltr">axe-core</span> scan has been run since 15 October 2026; the changes made before the travel report, including the site map, were checked with the keyboard, for overflow and with the project's tests. The travel report was checked with calculation, translation, file-structure and focus tests against a mock interface; it has not yet been checked with a real screen reader, a keyboard walk-through in a browser or an accessibility scan.</p>
+          <p>The later changes to the rental-agreement tool (manual month entry, the agreement-details table and the current-figures table) were checked with the project's tests against a mock interface and with an automated <span dir="ltr">Chromium</span> run (typing into the fields and an overflow check at widths of 320 and 1280 pixels); they have not been checked with a real screen reader, a manual keyboard walk-through or an accessibility scan.</p>
           <p>The export files were checked too: a <span dir="ltr">PDF</span> produced in <span dir="ltr">Chrome</span> was inspected for tagging, language and title, and <span dir="ltr">XLSX</span> files were opened with a spreadsheet library to check the document properties, the frozen header, the filter and the absence of merged cells.</p>
           <p>The testing did not include a screen reader (<span dir="ltr">VoiceOver</span>, <span dir="ltr">NVDA</span>, <span dir="ltr">JAWS</span> or <span dir="ltr">TalkBack</span>), browsers other than <span dir="ltr">Chromium</span>, real mobile devices, or testing with people with disabilities, and it is not a professional accessibility audit.</p>
           <p>This list of tests is partial: every round of testing added kinds of checks that found defects not found before, so it should not be read as confirmation that every defect has been found. Some of these kinds are now enforced by automated tests that fail when a new defect of the same kind appears.</p>

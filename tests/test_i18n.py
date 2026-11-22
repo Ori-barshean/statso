@@ -168,6 +168,29 @@ class EngineTests(unittest.TestCase):
         self.assertIn("function closeMenu()", self.engine)
         self.assertIn("event.key === 'Escape'", self.engine)
 
+    def test_typed_text_with_replacement_codes_survives_translation(self):
+        import json
+        import subprocess
+        script = r'''
+global.window = {scrollTo() {}};
+function element() { return {nodeType: 9, hidden: false, innerHTML: '', setAttribute() {}, addEventListener() {}}; }
+global.document = {documentElement: {setAttribute() {}}, body: {nodeType: 9},
+  addEventListener() {}, getElementById: () => element(), querySelector: () => null, querySelectorAll: () => []};
+''' + '\n'.join('require(' + json.dumps(str(ROOT / 'assets' / name)) + ');'
+               for name in ('statso-lang-en.js', 'statso-i18n.js')) + r'''
+const S = window.Statso;
+S.i18n.set('en');
+const samples = ["$' ← $` · מדד בסיס 10/2024", 'A$& ← $$B · מדד בסיס 10/2024', '$& (מוסכם)',
+  'תיאור', '  תיאור ', 'שם $& חופשי'];
+process.stdout.write(JSON.stringify(samples.map(text => S.i18n.t(text))));
+'''
+        out = json.loads(subprocess.run(['node', '-e', script], cwd=ROOT, check=True,
+                                        capture_output=True, text=True).stdout)
+        # a visitor's "$&", "$'", "$`" or "$$" is kept as typed (the engine puts the translation back through a function,
+        # so JavaScript never reads those sequences as replacement codes); ordinary translation and spacing are unchanged
+        self.assertEqual(out, ["$' → $` · base index 10/2024", 'A$& → $$B · base index 10/2024',
+                               '$& (agreed)', 'Description', '  Description ', 'שם $& חופשי'])
+
     def test_exports_follow_the_language(self):
         xlsx = (ROOT / "assets/statso-xlsx.js").read_text(encoding="utf-8")
         self.assertIn("Statso.i18n ? Statso.i18n.t(text) : text", xlsx)

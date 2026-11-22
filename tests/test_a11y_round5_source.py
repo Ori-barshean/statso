@@ -343,6 +343,16 @@ process.stdout.write(JSON.stringify(live.textContent));
     def test_a_change_in_the_rent_tool_says_the_rent_totals(self):
         self.assertEqual(self.announced("tool-rent-page"), "סה״כ נומינלי 60,000.00 ₪")
 
+    def test_the_rent_vat_rate_leaves_the_region_to_the_rent_tool(self):
+        seen = node(self.NAV + module("statso-nav.js") + r"""
+const vat = {closest: s => s === '#tool-rent-page .rent-form' ? {id: 'tool-rent-page'} : s === '#tr-vat' ? {id: 'tr-vat'} : null};
+window.Statso.nav.init();
+listeners.input({target: vat}); listeners.change({target: vat});
+process.stdout.write(JSON.stringify({queued: timers.filter(t => t.live).length, text: live.textContent}));
+""")
+        self.assertEqual(seen['queued'], 0)
+        self.assertEqual(seen['text'], '')
+
     def test_the_rent_tools_period_tables_and_export_controls_stay_silent_as_before(self):
         # they sit inside the rent page but outside its form; the summary there would be unrelated noise or stale
         self.assertEqual(self.announced("tool-rent-page", in_form=False), "")

@@ -86,14 +86,16 @@
 
   function formatRate(x) { return new Intl.NumberFormat('he-IL', {minimumFractionDigits: 2, maximumFractionDigits: 4}).format(x); }
   function formatMonthHe(key) { const p = key.split('-'); return p[1] + '/' + p[0]; }
+  function formatMonthInput(key) { const p = key.split('-'); return Number(p[1]) + '/' + p[0]; }
   function parseMonthInput(text) {
     const value = text.trim();
     if (!value) { return ''; }
     const iso = /^(\d{4})-(\d{1,2})$/.exec(value);
     const slash = /^(\d{1,2})\/(\d{4})$/.exec(value);
-    if (!iso && !slash) { return null; }
-    const year = iso ? iso[1] : slash[2];
-    const month = Number(iso ? iso[2] : slash[1]);
+    const digits = /^(\d{1,2})(\d{4})$/.exec(value);
+    if (!iso && !slash && !digits) { return null; }
+    const year = iso ? iso[1] : (slash || digits)[2];
+    const month = Number(iso ? iso[2] : (slash || digits)[1]);
     return Number(year) >= 1 && month >= 1 && month <= 12 ? year + '-' + String(month).padStart(2, '0') : null;
   }
   function formatIsoDateHe(value) { const p = value.split('-'); return p[2] + '/' + p[1] + '/' + p[0]; }
@@ -175,7 +177,7 @@
     formatRateSmart: formatRateSmart,
     CURRENCY_NAMES: CURRENCY_NAMES, latestObservation: latestObservation,
     formatNumber: formatNumber, formatPercent: formatPercent, formatMonthHe: formatMonthHe,
-    parseMonthInput: parseMonthInput,
+    parseMonthInput: parseMonthInput, formatMonthInput: formatMonthInput,
     formatIsoDateHe: formatIsoDateHe, nextCpiPublicationDate: nextCpiPublicationDate, escapeHtml: escapeHtml,
     flagFields: flagFields};
 })(window);

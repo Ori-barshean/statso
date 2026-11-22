@@ -25,7 +25,6 @@
 
   function key(periodIndex, month) { return periodIndex + ':' + month; }
 
-  function isTextMonth(input) { return input.type !== 'month'; }
   const MONTH_GROUPS = [
     {hint: 'tr-base-month-hint', fields: function () { return [el('tr-base-start'), el('tr-base-end')]; }},
     {hint: 'tr-options-month-hint', fields: function () {
@@ -41,21 +40,20 @@
   function syncMonthFields() {
     MONTH_GROUPS.forEach(function (group) {
       const fields = Array.from(group.fields());
-      el(group.hint).hidden = !fields.some(isTextMonth);
       fields.forEach(function (input) {
-        if (isTextMonth(input)) { input.dataset.monthHint = group.hint; describe(input); }
+        input.dataset.monthHint = group.hint; describe(input);
       });
     });
   }
 
   function monthOf(input) {
-    if (!isTextMonth(input)) { return input.value; }
     const month = Statso.core.parseMonthInput(input.value);
     // Once the parse itself fails, this mechanism owns the flag, so flagFields never withdraws it.
     if (month === null) { input.setAttribute('aria-invalid', 'true'); input.removeAttribute('data-error-flag'); }
     else {
       input.removeAttribute('aria-invalid');
-      if (month !== input.value) { input.value = month; }
+      const shown = month ? Statso.core.formatMonthInput(month) : '';
+      if (shown !== input.value) { input.value = shown; }
     }
     if (input.dataset.monthHint) { describe(input); }
     return month;
@@ -66,7 +64,7 @@
   function exportRangeProblem() {
     const from = monthOf(el('tr-export-from'));
     const to = monthOf(el('tr-export-to'));
-    return from === null || to === null ? 'חודש לא תקין בטווח הייצוא — יש להזין YYYY-MM או MM/YYYY.' : '';
+    return from === null || to === null ? 'חודש לא תקין בטווח הייצוא — יש להזין חודש ושנה, למשל 7/2025.' : '';
   }
 
   // ---------- reading the form ---------------------------------------------
@@ -82,8 +80,8 @@
     const removeId = 'tr-opt-remove-' + optionSerial;
     return '<div class="rent-option" role="group" aria-labelledby="' + titleId + '" data-option="' + index + '">'
       + '<p class="rent-option-title sr-only" id="' + titleId + '">תקופה <span class="tr-opt-num">' + (index + 1) + '</span></p>'
-      + '<label>מחודש <input type="month" placeholder="YYYY-MM" class="tr-opt-start" value="' + (values.start || '') + '"></label>'
-      + '<label>עד חודש <input type="month" placeholder="YYYY-MM" class="tr-opt-end" value="' + (values.end || '') + '"></label>'
+      + '<label>מחודש <input type="text" inputmode="numeric" dir="ltr" placeholder="M/YYYY" maxlength="7" autocomplete="off" spellcheck="false" class="tr-opt-start" value="' + (values.start ? Statso.core.formatMonthInput(values.start) : '') + '"></label>'
+      + '<label>עד חודש <input type="text" inputmode="numeric" dir="ltr" placeholder="M/YYYY" maxlength="7" autocomplete="off" spellcheck="false" class="tr-opt-end" value="' + (values.end ? Statso.core.formatMonthInput(values.end) : '') + '"></label>'
       + '<label>דמי שכירות חודשיים (₪) <input type="number" min="0" step="any" class="tr-opt-rent" value="'
       + (values.rent || '') + '"></label>'
       + '<button type="button" class="btn-ghost tr-opt-remove" id="' + removeId + '" aria-labelledby="' + removeId + ' ' + titleId
@@ -145,7 +143,7 @@
     const form = readForm();
     const baseMonths = ['tr-base-start', 'tr-base-end'];
     if (!form.contractDate) { fail('יש לבחור את מועד הסכם השכירות.', ['tr-contract-date']); return; }
-    if (form.baseStart === null || form.baseEnd === null) { fail('חודש לא תקין בתקופת השכירות הבסיסית — יש להזין YYYY-MM או MM/YYYY.', baseMonths); return; }
+    if (form.baseStart === null || form.baseEnd === null) { fail('חודש לא תקין בתקופת השכירות הבסיסית — יש להזין חודש ושנה, למשל 7/2025.', baseMonths); return; }
     if (!form.baseStart || !form.baseEnd) { fail('יש לבחור את חודשי תחילת וסיום השכירות.', baseMonths.filter(function (id) { return !el(id).value; })); return; }
     if (Statso.core.monthToOrdinal(form.baseStart) > Statso.core.monthToOrdinal(form.baseEnd)) {
       fail('חודש סיום השכירות מוקדם מחודש ההתחלה.', baseMonths); return;
@@ -165,7 +163,7 @@
       const option = form.options[i];
       const row = document.querySelectorAll('#tr-option-rows .rent-option')[i];
       const optionMonths = [row.querySelector('.tr-opt-start'), row.querySelector('.tr-opt-end')];
-      if (option.start === null || option.end === null) { fail('חודש לא תקין בתקופת אופציה ' + (i + 1) + ' — יש להזין YYYY-MM או MM/YYYY.', optionMonths); return; }
+      if (option.start === null || option.end === null) { fail('חודש לא תקין בתקופת אופציה ' + (i + 1) + ' — יש להזין חודש ושנה, למשל 7/2025.', optionMonths); return; }
       if (!option.start || !option.end) { fail('יש להשלים את חודשי תקופת האופציה ' + (i + 1) + '.', optionMonths.filter(function (input) { return !input.value; })); return; }
       if (Statso.core.monthToOrdinal(option.start) > Statso.core.monthToOrdinal(option.end)) {
         fail('בתקופת אופציה ' + (i + 1) + ' חודש הסיום מוקדם מחודש ההתחלה.', optionMonths); return;
@@ -209,7 +207,8 @@
     render();
     // setText leaves an unchanged message alone, so a pending export error is not re-announced on every recompute
     // (the rent field recomputes on each keystroke).
-    showError(exportRangeProblem());
+    writeHtml('tr-details', detailsHtml());
+    refreshOutput();
   }
 
   // ---------- rendering -----------------------------------------------------
@@ -374,8 +373,8 @@
     }).join('');
     select.value = Array.prototype.some.call(select.options, function (o) { return o.value === current; }) ? current : 'all';
     if (all.length && !rangeTouched) {
-      el('tr-export-from').value = all[0].month;
-      el('tr-export-to').value = all[all.length - 1].month;
+      el('tr-export-from').value = Statso.core.formatMonthInput(all[0].month);
+      el('tr-export-to').value = Statso.core.formatMonthInput(all[all.length - 1].month);
     }
   }
 
@@ -418,13 +417,111 @@
     }).filter(function (period) { return period.rows.length; });
   }
 
+  function selectionPayable(selection) {
+    return totalsOf(selection.reduce(function (acc, period) { return acc.concat(period.rows); }, [])).payable;
+  }
+
+  function vatRate() {
+    const value = el('tr-vat').value.trim();
+    if (!value) { return null; }
+    const rate = Number(value);
+    return Number.isFinite(rate) && rate >= 0 && rate <= 100 ? rate : null;
+  }
+
+  // Rounds exactly like Statso.core.formatNumber(x, 2) (same Intl digit rule, so 1.005 -> 1.01 everywhere); no grouping so Number() can read it back.
+  const CENTS = new Intl.NumberFormat('en-US', {useGrouping: false, minimumFractionDigits: 2, maximumFractionDigits: 2});
+  // A result that overflows (Infinity formats as "∞") is not a number: it becomes null, which every output shows as a dash.
+  function money(x) { const r = Number(CENTS.format(settled(x))); return Number.isFinite(r) ? (r === 0 ? 0 : r) : null; }
+
+  function withVat(label, amount, rate) {
+    const before = amount === null ? null : money(amount);
+    const vat = before === null || rate === null ? null : money(before * rate / 100);
+    const total = vat === null ? null : money(before + vat);
+    return {label: label, before: before, vat: vat, total: total};
+  }
+
+  function latestPublished() {
+    let latest = null, best = -Infinity;
+    periods.forEach(function (period) {
+      period.rows.forEach(function (row) {
+        const month = Statso.core.monthToOrdinal(row.month);
+        if (row.available && month >= best) { latest = row; best = month; }
+      });
+    });
+    return latest;
+  }
+
+  function currentFigures(payable, rate) {
+    const latest = latestPublished();
+    return {rate: rate, rows: [withVat(CURRENT_LABELS[0], payable, rate),
+      withVat(CURRENT_LABELS[1], latest ? latest.indexed : null, rate)]};
+  }
+
+  function screenFigures() {
+    return currentFigures(exportRangeProblem() ? null : selectionPayable(exportSelection()), vatRate());
+  }
+
+  function figuresCells(row) {
+    return [row.before, row.vat, row.total].map(function (value) {
+      return value === null ? '—' : Statso.core.formatNumber(value, 2);
+    });
+  }
+
+  function currentHtml(figures) {
+    return '<table class="data-table rent-table"><caption class="sr-only">סכומים עדכניים</caption><thead><tr>'
+      + CURRENT_HEAD.map(function (text) { return '<th scope="col">' + text + '</th>'; }).join('')
+      + '</tr></thead><tbody>' + figures.rows.map(function (row) {
+        const amounts = [row.before, row.vat, row.total];
+        return '<tr><th scope="row">' + row.label + '</th>' + figuresCells(row).map(function (text, i) {
+          return '<td dir="ltr"' + (amounts[i] !== null && negative(amounts[i]) ? ' class="rent-negative"' : '') + '>' + text + '</td>';
+        }).join('') + '</tr>';
+      }).join('') + '</tbody></table>';
+  }
+
+  function detailsHtml() {
+    return '<table class="data-table rent-table"><caption class="sr-only">פרטי ההסכם</caption>'
+      + '<thead><tr><th scope="col">פריט</th><th scope="col">ערך</th></tr></thead><tbody>'
+      + contractRows().map(function (row) {
+        const cell = row[1];
+        const isRaw = Boolean(cell && typeof cell === 'object' && cell.raw);
+        const value = isRaw ? cell.v : cell;
+        const numeric = typeof value === 'number';
+        return '<tr><th scope="row">' + row[0] + '</th><td'
+          + (isRaw ? ' dir="auto" data-i18n-skip' : numeric ? ' dir="ltr"' : '') + '>'
+          + Statso.core.escapeHtml(numeric ? Statso.core.formatNumber(value, 2) : value) + '</td></tr>';
+      }).join('') + '</tbody></table>';
+  }
+
+  const written = {};
+  function writeHtml(id, html) {
+    if (written[id] !== html) { el(id).innerHTML = html; written[id] = html; }
+  }
+
+  function refreshOutput() {
+    if (!model) { return; }
+    const range = exportRangeProblem();
+    if (range) { showError(range); }
+    else if (vatRate() === null) { showError(VAT_ERROR, ['tr-vat']); }
+    else { showError(''); }
+    writeHtml('tr-current', currentHtml(screenFigures()));
+  }
+
+  let currentTimer = null;
+  function announceCurrent() {
+    if (!Statso.exporter || !Statso.exporter.announce || typeof root.setTimeout !== 'function') { return; }
+    root.clearTimeout(currentTimer);
+    currentTimer = root.setTimeout(function () {
+      if (!model || el('tr-error').textContent) { return; }
+      Statso.exporter.announce(screenFigures().rows.filter(function (row) { return row.total !== null; }).map(function (row) {
+        return say(row.label) + ', ' + say('כולל מע״מ') + ': ' + Statso.core.formatNumber(row.total, 2) + ' ₪';
+      }).join('. '));
+    }, 800);
+  }
+
   function contractRows() {
     const form = model.form;
     return [['מועד הסכם השכירות', Statso.core.formatIsoDateHe(form.contractDate)],
-      ['שם המשכיר', form.landlord || '—'], ['שם השוכר', form.tenant || '—'],
-      ['תקופת השכירות', Statso.core.formatMonthHe(form.baseStart) + '–' + Statso.core.formatMonthHe(form.baseEnd)],
-      ['דמי שכירות חודשיים (₪)', form.baseRent],
-      ['תקופות אופציה', form.options.length ? String(form.options.length) : 'אין'],
+      ['שם המשכיר', {v: form.landlord || '—', raw: true}], ['שם השוכר', {v: form.tenant || '—', raw: true}],
       ['מדד הבסיס', Statso.core.formatMonthHe(model.baseIndexMonth)
         + (form.customBase ? ' (מוסכם)' : ' (מדד ידוע במועד ההסכם)')],
       ['ערך מדד הבסיס', model.baseIndexPublished],
@@ -432,6 +529,9 @@
   }
 
   const HEAD = ['חודש', 'נומינלי', 'מדד בבסיס ההסכם', 'מקדם', 'ממודד', 'שולם בפועל', 'הפרש', 'הפרש לתשלום'];
+  const CURRENT_HEAD = ['תיאור', 'סכום לפני מע״מ (₪)', 'מע״מ (₪)', 'סכום כולל מע״מ (₪)'];
+  const CURRENT_LABELS = ['סה״כ הפרשים לתשלום על ידי הלקוח', 'סכום עדכני לשכירות חודשית'];
+  const VAT_ERROR = 'יש להזין שיעור מע״מ בין 0 ל־100.';
 
   function matrix(rows) {
     return rows.map(function (row) {
@@ -446,26 +546,37 @@
     syncMonthFields();
     const problem = exportRangeProblem();
     if (problem) { showError(problem); return; }
+    const rate = vatRate();
+    if (rate === null) { showError(VAT_ERROR, ['tr-vat']); return; }
     const selection = exportSelection();
     if (!selection.length) { showError('אין חודשים בטווח שנבחר לייצוא.', ['tr-export-from', 'tr-export-to']); return; }
     showError('');
-    const grand = totalsOf(selection.reduce(function (acc, period) { return acc.concat(period.rows); }, []));
+    const grand = {payable: selectionPayable(selection)};
+    const figures = currentFigures(grand.payable, rate);
+    const currentTitle = 'סכומים עדכניים (מע״מ ' + rate + '%)';
     const subtitle = (model.form.landlord || say('משכיר')) + ' ← ' + (model.form.tenant || say('שוכר'))
       + ' · מדד בסיס ' + Statso.core.formatMonthHe(model.baseIndexMonth);
 
     if (kind === 'xlsx') {
-      const details = {name: 'פרטי ההסכם', columns: [{width: 28}, {width: 30}],
+      const details = {name: 'פרטי ההסכם', columns: [{width: 34}, {width: 30}, {width: 14}, {width: 18}],
         rows: [[{v: 'הצמדת הסכם שכירות למדד', s: S().title}], []]};
       contractRows().forEach(function (row) {
         details.rows.push([{v: row[0], s: S().header},
-          typeof row[1] === 'number' ? {v: row[1], s: S().money} : {v: row[1], s: S().boxed}]);
+          row[1] && typeof row[1] === 'object' ? {v: row[1].v, raw: row[1].raw, s: S().boxed}
+            : typeof row[1] === 'number' ? {v: row[1], s: S().money} : {v: row[1], s: S().boxed}]);
+      });
+      details.rows.push([], [{v: currentTitle, s: S().title}], CURRENT_HEAD.map(function (text) { return {v: text, s: S().header}; }));
+      figures.rows.forEach(function (row) {
+        details.rows.push([{v: row.label, s: S().header}].concat([row.before, row.vat, row.total].map(function (value) {
+          return {v: value === null ? '—' : value, s: S().moneyBold};
+        })));
       });
       const sheet = {name: 'הפרשי הצמדה',
         columns: [{width: 12}, {width: 13}, {width: 14}, {width: 10}, {width: 13}, {width: 13}, {width: 13}, {width: 15}],
         rows: [[{v: say('הפרשי הצמדה') + ' — ' + subtitle, s: S().title}], []]};
       selection.forEach(function (period) {
         sheet.rows.push([{v: say(period.label) + ' · ' + Statso.core.formatMonthHe(period.start) + '–'
-          + Statso.core.formatMonthHe(period.end), s: S().title}]);
+          + Statso.core.formatMonthHe(period.end) + ' · ' + Statso.core.formatNumber(period.rent, 2) + ' ₪ לחודש', s: S().title}]);
         sheet.rows.push(HEAD.map(function (text) { return {v: text, s: S().header}; }));
         matrix(period.rows).forEach(function (row) {
           sheet.rows.push([{v: row[0], s: S().boxed}].concat(row.slice(1).map(function (value) {
@@ -488,9 +599,14 @@
     }
 
     const blocks = ['<h2>פרטי ההסכם</h2>' + Statso.exporter.tableHtml(['פריט', 'ערך'], contractRows(), 'פרטי ההסכם')];
+    blocks.push('<h2>' + Statso.xlsx.escapeXml(currentTitle) + '</h2><div class="rent-current">'
+      + Statso.exporter.tableHtml(CURRENT_HEAD, figures.rows.map(function (row) {
+        return [row.label].concat([row.before, row.vat, row.total].map(function (value) { return value === null ? '—' : value; }));
+      }), currentTitle) + '</div>');
     selection.forEach(function (period) {
       blocks.push('<h2>' + Statso.xlsx.escapeXml(say(period.label)) + ' · '
-        + Statso.core.formatMonthHe(period.start) + '–' + Statso.core.formatMonthHe(period.end) + '</h2>'
+        + Statso.core.formatMonthHe(period.start) + '–' + Statso.core.formatMonthHe(period.end)
+        + ' · ' + Statso.core.formatNumber(period.rent, 2) + ' ₪ לחודש</h2>'
         + Statso.exporter.tableHtml(HEAD, matrix(period.rows), say(period.label) + ' · ' + Statso.core.formatMonthHe(period.start) + '–' + Statso.core.formatMonthHe(period.end)));
     });
     blocks.push('<p class="print-total">סך ההפרשים לתשלום: <strong dir="ltr"' + (negative(grand.payable) ? ' class="rent-negative"' : '') + '>'
@@ -530,8 +646,8 @@
     const startOrdinal = Statso.core.monthToOrdinal(lastMonth) - 23;
     const start = Statso.core.ordinalToMonth(startOrdinal);
     el('tr-contract-date').value = start + '-01';
-    el('tr-base-start').value = start;
-    el('tr-base-end').value = Statso.core.ordinalToMonth(startOrdinal + 11);
+    el('tr-base-start').value = Statso.core.formatMonthInput(start);
+    el('tr-base-end').value = Statso.core.formatMonthInput(Statso.core.ordinalToMonth(startOrdinal + 11));
     el('tr-contract-date').max = lastMonth + '-28';
 
     ['tr-contract-date', 'tr-landlord', 'tr-tenant', 'tr-base-start', 'tr-base-end', 'tr-base-rent',
@@ -554,15 +670,17 @@
     on('tr-periods', 'change', onPeriodsChange);
     on('tr-add-option', 'click', function () { addOptionRow({}).querySelector('input').focus(); });
     ['tr-export-period', 'tr-exclude-paid'].forEach(function (id) {
-      on(id, 'change', function () { showError(exportRangeProblem()); });
+      on(id, 'change', function () { refreshOutput(); announceCurrent(); });
     });
     ['tr-export-from', 'tr-export-to'].forEach(function (id) {
       on(id, 'change', function () {
         rangeTouched = true;
         syncMonthFields();
-        showError(exportRangeProblem());
+        refreshOutput(); announceCurrent();
       });
     });
+    on('tr-vat', 'input', function () { refreshOutput(); announceCurrent(); });
+    on('tr-vat', 'change', function () { refreshOutput(); announceCurrent(); });
     on('tr-xlsx', 'click', function () { exportRent('xlsx'); });
     on('tr-pdf', 'click', function () { exportRent('pdf'); });
     compute();
@@ -570,5 +688,6 @@
 
   Statso.rent = {init: init, compute: compute, exportRent: exportRent, exportSelection: exportSelection,
     monthsBetween: monthsBetween, totalsOf: totalsOf, HEAD: HEAD,
+    currentFigures: screenFigures, optionRowHtml: optionRowHtml,
     state: function () { return model; }};
 })(window);

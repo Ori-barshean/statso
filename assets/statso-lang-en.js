@@ -409,9 +409,20 @@
     'אין חודשים בטווח שנבחר לייצוא.': 'No months fall in the selected export range.',
     'יש לבחור את מועד הסכם השכירות.': 'Choose the date of the rent agreement.',
     'יש לבחור את חודשי תחילת וסיום השכירות.': 'Choose the first and last month of the tenancy.',
-    'פורמט החודש: YYYY-MM או MM/YYYY (למשל 2024-09 או 09/2024)': 'Month format: YYYY-MM or MM/YYYY (for example 2024-09 or 09/2024)',
-    'חודש לא תקין בתקופת השכירות הבסיסית — יש להזין YYYY-MM או MM/YYYY.': 'Invalid month in the base rental period — enter YYYY-MM or MM/YYYY.',
-    'חודש לא תקין בטווח הייצוא — יש להזין YYYY-MM או MM/YYYY.': 'Invalid month in the export range — enter YYYY-MM or MM/YYYY.',
+    'פורמט החודש: חודש ושנה, למשל 7/2025, 07/2025, 72025, 072025 או 2025-07': 'Month format: month and year, for example 7/2025, 07/2025, 72025, 072025 or 2025-07',
+    'חודש לא תקין בתקופת השכירות הבסיסית — יש להזין חודש ושנה, למשל 7/2025.': 'Invalid month in the base rental period — enter a month and year, for example 7/2025.',
+    'חודש לא תקין בטווח הייצוא — יש להזין חודש ושנה, למשל 7/2025.': 'Invalid month in the export range — enter a month and year, for example 7/2025.',
+    'סכומים עדכניים': 'Current figures',
+    'שיעור מע״מ (%)': 'VAT rate (%)',
+    'תיאור': 'Description',
+    'סכום לפני מע״מ (₪)': 'Amount before VAT (₪)',
+    'מע״מ (₪)': 'VAT (₪)',
+    'סכום כולל מע״מ (₪)': 'Amount incl. VAT (₪)',
+    'סה״כ הפרשים לתשלום על ידי הלקוח': 'Total differences payable by the client',
+    'סכום עדכני לשכירות חודשית': 'Current monthly rent amount',
+    'כולל מע״מ': 'incl. VAT',
+    'יש להזין שיעור מע״מ בין 0 ל־100.': 'Enter a VAT rate from 0 to 100.',
+    'מע״מ': 'VAT',
     'חודש סיום השכירות מוקדם מחודש ההתחלה.': 'The last month comes before the first month.',
     'יש להזין דמי שכירות חודשיים תקינים.': 'Enter a valid monthly rent.',
 
@@ -906,7 +917,8 @@
     [/^אקסל באנגלית — שלב (\d+)$/, 'Excel in English — step $1'],
     [/^אקסל בעברית — שלב (\d+), תמונה (\d+)$/, 'Excel in Hebrew — step $1, picture $2'],
     [/^אקסל באנגלית — שלב (\d+), תמונה (\d+)$/, 'Excel in English — step $1, picture $2'],
-    [/^חודש לא תקין בתקופת אופציה (\d+) — יש להזין YYYY-MM או MM\/YYYY\.$/, 'Invalid month in option period $1 — enter YYYY-MM or MM/YYYY.']
+    [/^חודש לא תקין בתקופת אופציה (\d+) — יש להזין חודש ושנה, למשל 7\/2025\.$/, 'Invalid month in option period $1 — enter a month and year, for example 7/2025.'],
+    [/^סכומים עדכניים \(מע״מ (.+)%\)$/, 'Current figures (VAT $1%)']
   ];
 
   Statso.lang = {en: en, enPatterns: enPatterns};

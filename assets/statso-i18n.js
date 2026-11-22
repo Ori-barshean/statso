@@ -17,15 +17,22 @@
 
   // Translate one Hebrew string. Falls back to the pattern rules, which cover
   // sentences the modules build by concatenation at run time.
+  // The translated core goes back between the original's leading and trailing spaces through a function, so a "$&", "$'",
+  // "$`" or "$$" in the text (typed by a visitor, say a landlord's name inside an export subtitle) is kept as typed
+  // instead of being read by String.replace as a replacement code.
+  function swapCore(text, core, translated) {
+    return String(text).replace(core, function () { return translated; });
+  }
+
   function translate(text) {
     const trimmed = String(text).trim();
     if (!trimmed) { return text; }
     const exact = dictionary()[trimmed];
-    if (exact !== undefined) { return String(text).replace(trimmed, exact); }
+    if (exact !== undefined) { return swapCore(text, trimmed, exact); }
     const rules = patterns();
     for (let i = 0; i < rules.length; i += 1) {
       if (rules[i][0].test(trimmed)) {
-        return String(text).replace(trimmed, trimmed.replace(rules[i][0], rules[i][1]));
+        return swapCore(text, trimmed, trimmed.replace(rules[i][0], rules[i][1]));
       }
     }
     return text;

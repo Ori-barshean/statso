@@ -7,9 +7,10 @@ from html.parser import HTMLParser
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-BASE_ERROR = 'חודש לא תקין בתקופת השכירות הבסיסית — יש להזין YYYY-MM או MM/YYYY.'
-EXPORT_ERROR = 'חודש לא תקין בטווח הייצוא — יש להזין YYYY-MM או MM/YYYY.'
-HINT = 'פורמט החודש: YYYY-MM או MM/YYYY (למשל 2024-09 או 09/2024)'
+BASE_ERROR = 'חודש לא תקין בתקופת השכירות הבסיסית — יש להזין חודש ושנה, למשל 7/2025.'
+EXPORT_ERROR = 'חודש לא תקין בטווח הייצוא — יש להזין חודש ושנה, למשל 7/2025.'
+HINT = 'פורמט החודש: חודש ושנה, למשל 7/2025, 07/2025, 72025, 072025 או 2025-07'
+VAT_ERROR = 'יש להזין שיעור מע״מ בין 0 ל־100.'
 FLAG_EXPORT_TO = '''
 const to = el('tr-export-to'); to.type = 'text'; to.value = 'bad'; to.change();
 const state = () => ({error: el('tr-error').textContent, invalid: to.getAttribute('aria-invalid'),
@@ -30,7 +31,7 @@ def node(body, modules=('statso-core.js',)):
 
 
 # Enough DOM to exercise the public rent API, including patching existing cells.
-# Fields keep the month attribute independently of their reported input type.
+# Month fields use manual text entry, with visible format hints.
 # Each section's region object is created only when the periods' markup is written,
 # so object identity shows whether an edit rewrote the markup.
 RENT_DOM = r'''
@@ -38,7 +39,7 @@ const elements = {}, optionRows = [], downloads = [];
 let floorMode = 'floor';
 function element(id = '') {
   const attrs = {}, listeners = {};
-  return {id, value: '', type: 'month', hidden: true, textContent: '', dataset: {},
+  return {id, value: '', type: 'text', hidden: !id.endsWith('-month-hint'), textContent: '', dataset: {},
     checked: false, options: [], children: [], listeners, writes: 0,
     classList: {names: new Set(), toggle(n, on) { if (on) { this.names.add(n); } else { this.names.delete(n); } },
       contains(n) { return this.names.has(n); }},
@@ -102,8 +103,9 @@ S.exporter = {stamp: () => 'test', downloadWorkbook(...args) { downloads.push(ar
 const observations = Array.from({length: 36}, (_, i) => ({month: S.core.shiftMonth('2023-01', i),
   value: 100 + i, chained_1951_09: 100 + i}));
 el('tr-base-rent').value = '5000';
+el('tr-vat').value = '18';
 for (const id of ['tr-base-start', 'tr-base-end', 'tr-export-from', 'tr-export-to']) {
-  el(id).setAttribute('type', 'month');
+  el(id).setAttribute('type', 'text');
 }
 '''
 
@@ -385,8 +387,8 @@ field.value = 'sept 2024'; S.rent.compute(); const invalid = read();
 field.value = '2024-9'; S.rent.compute(); const corrected = read();
 process.stdout.write(JSON.stringify({valid, invalid, corrected}));
 ''')
-        self.assertEqual(seen['valid']['value'], '2024-09')
-        self.assertEqual(seen['valid']['attr'], 'month')
+        self.assertEqual(seen['valid']['value'], '9/2024')
+        self.assertEqual(seen['valid']['attr'], 'text')
         self.assertEqual(seen['valid']['rows'], 4)
         self.assertEqual(seen['valid']['error'], '')
         self.assertFalse(seen['valid']['hidden'])
@@ -398,14 +400,14 @@ process.stdout.write(JSON.stringify({valid, invalid, corrected}));
         self.assertEqual(seen['invalid']['described'], 'tr-base-month-hint tr-error')
         self.assertEqual(seen['corrected'], {k: v for k, v in seen['valid'].items() if k != 'rows'})
 
-    def test_native_month_is_unchanged_and_hints_stay_hidden(self):
+    def test_iso_month_normalizes_and_all_hints_stay_visible(self):
         seen = rent('''
 el('tr-base-start').value = '2024-9'; S.rent.compute();
 process.stdout.write(JSON.stringify({value: el('tr-base-start').value,
   start: S.rent.state().form.baseStart, invalid: el('tr-base-start').hasAttribute('aria-invalid'),
   hints: ['base', 'options', 'export'].map(group => el('tr-' + group + '-month-hint').hidden)}));
 ''')
-        self.assertEqual(seen, {'value': '2024-9', 'start': '2024-9', 'invalid': False, 'hints': [True] * 3})
+        self.assertEqual(seen, {'value': '9/2024', 'start': '2024-09', 'invalid': False, 'hints': [False] * 3})
 
     def test_late_option_fields_are_normalized_and_validated(self):
         seen = rent('''
@@ -419,7 +421,7 @@ process.stdout.write(JSON.stringify({valid, error: el('tr-error').textContent,
 ''')
         self.assertEqual(seen['valid'], {'start': '2024-09', 'periods': 2, 'hint': False,
                                          'described': 'tr-options-month-hint'})
-        self.assertEqual(seen['error'], 'חודש לא תקין בתקופת אופציה 1 — יש להזין YYYY-MM או MM/YYYY.')
+        self.assertEqual(seen['error'], 'חודש לא תקין בתקופת אופציה 1 — יש להזין חודש ושנה, למשל 7/2025.')
         self.assertEqual(seen['invalid'], 'true')
         self.assertTrue(seen['hidden'])
 
@@ -436,14 +438,14 @@ el('tr-export-to').value = '10/2024'; el('tr-export-to').change();
 const corrected = {error: el('tr-error').textContent, from: el('tr-export-from').value, to: el('tr-export-to').value,
   invalid: el('tr-export-to').hasAttribute('aria-invalid'), described: el('tr-export-to').getAttribute('aria-describedby'),
   months: S.rent.exportSelection()[0].rows.map(row => row.month)};
-S.rent.compute(); corrected.rangePreserved = el('tr-export-from').value === '2024-09';
+S.rent.compute(); corrected.rangePreserved = el('tr-export-from').value === '9/2024';
 S.rent.exportRent('xlsx'); corrected.downloads = downloads.length;
 process.stdout.write(JSON.stringify({invalid, stillInvalid, corrected}));
 ''')
         self.assertEqual(seen['invalid'], {'error': EXPORT_ERROR, 'hidden': False, 'downloads': 0, 'hint': False,
             'fields': [{'invalid': 'true', 'described': 'tr-export-month-hint tr-error'}] * 2})
         self.assertEqual(seen['stillInvalid'], EXPORT_ERROR)
-        self.assertEqual(seen['corrected'], {'error': '', 'from': '2024-09', 'to': '2024-10', 'invalid': False,
+        self.assertEqual(seen['corrected'], {'error': '', 'from': '9/2024', 'to': '10/2024', 'invalid': False,
             'described': 'tr-export-month-hint', 'months': ['2024-09', '2024-10'], 'rangePreserved': True, 'downloads': 1})
 
     def test_a_month_the_text_fallback_rejects_stays_invalid_after_flagfields_withdraws_its_own(self):
@@ -501,7 +503,7 @@ process.stdout.write(JSON.stringify({fixed, value, period, computed}));
 ''')
         self.assertEqual(seen['fixed'], {'error': '', 'invalid': None,
                                          'described': 'tr-export-month-hint', 'hidden': False})
-        self.assertEqual(seen['value'], '2024-06')
+        self.assertEqual(seen['value'], '6/2024')
         self.assertEqual(seen['period'], '')
         self.assertEqual(seen['computed'], '')
 
@@ -539,7 +541,7 @@ process.stdout.write(JSON.stringify({html, same: first === el('tr-periods').firs
 
     def test_new_messages_translate(self):
         values = ['חודש התחלה', 'חודש סיום', HINT, BASE_ERROR, EXPORT_ERROR, 'כל השדות חובה.',
-                  'חודש לא תקין בתקופת אופציה 12 — יש להזין YYYY-MM או MM/YYYY.']
+                  'חודש לא תקין בתקופת אופציה 12 — יש להזין חודש ושנה, למשל 7/2025.']
         seen = node('''
 const L = window.Statso.lang;
 const t = s => { if (L.en[s]) { return L.en[s]; }
@@ -547,10 +549,403 @@ const t = s => { if (L.en[s]) { return L.en[s]; }
   return s; };
 process.stdout.write(JSON.stringify(''' + json.dumps(values) + '.map(t)));', ('statso-lang-en.js',))
         self.assertEqual(seen, ['Start month', 'End month',
-            'Month format: YYYY-MM or MM/YYYY (for example 2024-09 or 09/2024)',
-            'Invalid month in the base rental period — enter YYYY-MM or MM/YYYY.',
-            'Invalid month in the export range — enter YYYY-MM or MM/YYYY.', 'All fields are required.',
-            'Invalid month in option period 12 — enter YYYY-MM or MM/YYYY.'])
+            'Month format: month and year, for example 7/2025, 07/2025, 72025, 072025 or 2025-07',
+            'Invalid month in the base rental period — enter a month and year, for example 7/2025.',
+            'Invalid month in the export range — enter a month and year, for example 7/2025.', 'All fields are required.',
+            'Invalid month in option period 12 — enter a month and year, for example 7/2025.'])
+
+
+RENT_CURRENT_DOC = json.dumps({
+    'first_month': '2023-12', 'last_month': '2024-01',
+    'observations': [dict(month=m, value=v, chained_1951_09=v) for m, v in (
+        ('2023-12', 1000), ('2024-01', 1075))]})
+RENT_HALF_CENT_DOC = json.dumps({
+    'first_month': '2023-12', 'last_month': '2024-01',
+    'observations': [dict(month=m, value=v, chained_1951_09=v) for m, v in (
+        ('2023-12', 1000), ('2024-01', 1000))]})
+RENT_CURRENT_SETUP = '''
+el('tr-contract-date').value = '2024-01-15';
+el('tr-base-start').value = '2024-01'; el('tr-base-end').value = '2024-03';
+el('tr-base-rent').value = '10000'; S.rent.compute();
+'''
+RENT_EXPORT_MODULES = ''.join('require(' + json.dumps(str(ROOT / 'assets' / name)) + ');'
+                              for name in ('statso-xlsx.js', 'statso-export.js'))
+
+
+class RentCurrentFiguresTests(unittest.TestCase):
+    def test_manual_month_parse_table_and_round_trips(self):
+        valid = ['7/2025', '07/2025', '72025', '072025', '2025-07', '12025', '122025']
+        invalid = ['13/2025', '7/25', '720255', '0/2025', '02025', '002025', '132025',
+                   '202507', '7-2025', '2025/7', '50000']
+        seen = node('''
+const c = window.Statso.core;
+process.stdout.write(JSON.stringify({parsed: ''' + json.dumps(valid + invalid) + '''.map(c.parseMonthInput),
+  roundTrips: ['2025-07', '0001-05'].map(key => [c.formatMonthInput(key), c.parseMonthInput(c.formatMonthInput(key))])}));
+''')
+        self.assertEqual(seen['parsed'], ['2025-07'] * 5 + ['2025-01', '2025-12'] + [None] * len(invalid))
+        self.assertEqual(seen['roundTrips'], [['7/2025', '2025-07'], ['5/0001', '0001-05']])
+
+    def test_all_manual_forms_normalize_on_change_and_defaults_are_unpadded(self):
+        seen = rent('''
+const defaults = ['tr-base-start', 'tr-base-end', 'tr-export-from', 'tr-export-to'].map(id => el(id).value);
+el('tr-base-end').value = '8/2025';
+const forms = ['7/2025', '07/2025', '72025', '072025', '2025-07'].map(value => {
+  el('tr-base-start').value = value; el('tr-base-start').change();
+  return [el('tr-base-start').value, S.rent.state().form.baseStart];
+});
+process.stdout.write(JSON.stringify({defaults, forms, inputListeners: el('tr-base-start').listeners.input || []}));
+''')
+        self.assertTrue(all(re.fullmatch(r'[1-9]\d?/\d{4}', v) for v in seen['defaults']))
+        self.assertEqual(seen['forms'], [['7/2025', '2025-07']] * 5)
+        self.assertEqual(seen['inputListeners'], [])
+
+    def test_added_option_markup_uses_manual_month_values(self):
+        html = rent('''
+process.stdout.write(JSON.stringify(S.rent.optionRowHtml(0, {start: '2025-07', end: '2026-06', rent: '5000'})));
+''')
+        fields = [n for n in Tree(html).nodes if n.attrs.get('class') in ('tr-opt-start', 'tr-opt-end')]
+        self.assertEqual([n.attrs['value'] for n in fields], ['7/2025', '6/2026'])
+        for field in fields:
+            for attr, value in {'type': 'text', 'inputmode': 'numeric', 'dir': 'ltr', 'placeholder': 'M/YYYY',
+                                'maxlength': '7', 'autocomplete': 'off', 'spellcheck': 'false'}.items():
+                self.assertEqual(field.attrs[attr], value)
+
+    def test_half_cent_payable_rounds_like_format_number_on_screen_xlsx_and_pdf(self):
+        seen = rent_with(RENT_HALF_CENT_DOC, RENT_EXPORT_MODULES + r'''
+el('tr-contract-date').value = '2024-01-15';
+el('tr-base-start').value = '2024-01'; el('tr-base-end').value = '2024-03';
+el('tr-base-rent').value = '1.005'; S.rent.compute();
+el('tr-periods').listeners.change[0]({target: {classList: {contains: n => n === 'tr-actual'},
+  value: '0', dataset: {key: '0:2024-01'}}});
+let workbook, pdf;
+S.exporter.downloadWorkbook = (name, sheets) => { workbook = sheets; };
+S.exporter.printDocument = (title, html) => { pdf = html; };
+S.rent.exportRent('xlsx'); S.rent.exportRent('pdf');
+const current = S.rent.currentFigures(), row = current.rows[0];
+const grand = workbook[1].rows.find(r => r.length && r[0].v === 'סה״כ לתשלום').slice(-1)[0].v;
+const exported = workbook[0].rows.find(r => r.length && r[0].v === row.label);
+const pdfTotal = Number(pdf.match(/<p class="print-total">.*?<strong[^>]*>([\d,.]+) ₪/)[1].replace(/,/g, ''));
+process.stdout.write(JSON.stringify({current, html: el('tr-current').innerHTML, pdfTotal,
+  grandFormatted: S.core.formatNumber(grand, 2),
+  matches: S.core.formatNumber(grand, 2) === S.core.formatNumber(row.before, 2),
+  exported: exported.slice(1).map(c => c.v)}));
+''')
+        row = seen['current']['rows'][0]
+        self.assertEqual({k: row[k] for k in ('before', 'vat', 'total')},
+                         {'before': 1.01, 'vat': 0.18, 'total': 1.19})
+        self.assertIn('1.01', seen['html'])
+        self.assertEqual(seen['pdfTotal'], row['before'])
+        self.assertEqual(seen['grandFormatted'], '1.01')
+        self.assertTrue(seen['matches'])
+        self.assertEqual(seen['exported'], [1.01, 0.18, 1.19])
+        self.assertEqual(seen['current']['rows'][1]['before'], 1.01)
+
+    def test_half_cent_vat_rounds_like_format_number(self):
+        seen = rent_with(RENT_HALF_CENT_DOC, '''
+el('tr-contract-date').value = '2024-01-15';
+el('tr-base-start').value = '2024-01'; el('tr-base-end').value = '2024-03';
+el('tr-base-rent').value = '0.25'; el('tr-vat').value = '18'; S.rent.compute();
+const row = S.rent.currentFigures().rows[1];
+process.stdout.write(JSON.stringify({row, html: el('tr-current').innerHTML,
+  matches: S.core.formatNumber(row.vat, 2) === S.core.formatNumber(0.25 * 18 / 100, 2)}));
+''')
+        self.assertEqual({k: seen['row'][k] for k in ('before', 'vat', 'total')},
+                         {'before': 0.25, 'vat': 0.05, 'total': 0.3})
+        self.assertTrue(seen['matches'])
+        self.assertIn('0.05', seen['html'])
+        self.assertIn('0.30', seen['html'])
+
+    def test_overflowing_amounts_show_a_dash_instead_of_nan(self):
+        seen = rent_with(RENT_HALF_CENT_DOC, '''
+el('tr-contract-date').value = '2024-01-15';
+el('tr-base-start').value = '2024-01'; el('tr-base-end').value = '2024-03';
+el('tr-base-rent').value = '1e307'; el('tr-vat').value = '18'; S.rent.compute();
+const row = S.rent.currentFigures().rows[1];
+process.stdout.write(JSON.stringify({row, html: el('tr-current').innerHTML}));
+''')
+        self.assertIsNone(seen['row']['vat'])
+        self.assertIsNone(seen['row']['total'])
+        self.assertNotIn('NaN', seen['html'])
+        self.assertIn('—', seen['html'])
+
+    def test_vat_math_screen_and_zero_rate_keep_the_model_and_periods(self):
+        seen = rent_with(RENT_CURRENT_DOC, RENT_CURRENT_SETUP + '''
+const before = S.rent.currentFigures(), html = el('tr-current').innerHTML;
+const model = S.rent.state(), writes = el('tr-periods').writes;
+el('tr-vat').value = '0'; el('tr-vat').listeners.input[0]();
+const zero = S.rent.currentFigures();
+el('tr-vat').value = '100'; el('tr-vat').change();
+const hundred = S.rent.currentFigures();
+el('tr-vat').value = '17.5'; el('tr-vat').change();
+process.stdout.write(JSON.stringify({before, html, zero, hundred, decimal: S.rent.currentFigures(),
+  same: model === S.rent.state(), writes: el('tr-periods').writes - writes}));
+''')
+        self.assertEqual([list(row.values())[1:] for row in seen['before']['rows']], [[750, 135, 885], [10750, 1935, 12685]])
+        for value in ('10,750.00', '1,935.00', '12,685.00'):
+            self.assertIn(value, seen['html'])
+        self.assertEqual([seen['zero']['rows'][1][k] for k in ('before', 'vat', 'total')], [10750, 0, 10750])
+        self.assertEqual(seen['hundred']['rows'][1]['total'], 21500)
+        self.assertEqual(seen['decimal']['rows'][1]['vat'], 1881.25)
+        self.assertTrue(seen['same'])
+        self.assertEqual(seen['writes'], 0)
+        tree = Tree(seen['html'])
+        self.assertEqual(sum(n.tag == 'th' and n.attrs.get('scope') == 'col' for n in tree.nodes), 4)
+        self.assertEqual(sum(n.tag == 'th' and n.attrs.get('scope') == 'row' for n in tree.nodes), 2)
+
+    def test_latest_published_month_ignores_period_order_and_filters_and_breaks_ties(self):
+        seen = rent_with(RENT_CURRENT_DOC, RENT_CURRENT_SETUP + '''
+const late = addOption('2/2024', '2/2024'); late.querySelector('.tr-opt-rent').value = '20000';
+const early = addOption('1/2024', '1/2024'); early.querySelector('.tr-opt-rent').value = '30000';
+S.rent.compute(); const outOfOrder = S.rent.currentFigures().rows[1];
+const tie = addOption('2/2024', '2/2024'); tie.querySelector('.tr-opt-rent').value = '40000';
+S.rent.compute(); const tied = S.rent.currentFigures().rows[1];
+el('tr-export-period').value = '0'; el('tr-export-period').change();
+el('tr-export-to').value = '1/2024'; el('tr-export-to').change();
+const filtered = S.rent.currentFigures().rows[1];
+el('tr-has-options').checked = false;
+el('tr-base-start').value = '3/2024'; el('tr-base-end').value = '4/2024'; S.rent.compute();
+process.stdout.write(JSON.stringify({outOfOrder, tied, filtered, unpublished: S.rent.currentFigures(), html: el('tr-current').innerHTML}));
+''')
+        self.assertEqual(seen['outOfOrder']['before'], 21500)
+        self.assertEqual(seen['tied']['before'], 43000)
+        self.assertEqual(seen['filtered'], seen['tied'])
+        self.assertIsNone(seen['unpublished']['rows'][1]['before'])
+        self.assertEqual(seen['unpublished']['rows'][0]['before'], 0)
+        self.assertIn('—', seen['html'])
+
+    def test_selected_payable_matches_xlsx_and_pdf_without_rebuilding_periods(self):
+        seen = rent_with(RENT_CURRENT_DOC, RENT_CURRENT_SETUP + RENT_EXPORT_MODULES + '''
+let workbook, pdf;
+S.exporter.downloadWorkbook = (name, sheets) => { workbook = sheets; };
+S.exporter.printDocument = (title, html) => { pdf = html; };
+addOption('1/2024', '2/2024'); S.rent.compute();
+el('tr-periods').listeners.change[0]({target: {classList: {contains: n => n === 'tr-paid'},
+  checked: true, dataset: {key: '0:2024-02'}}});
+const cases = [], writes = el('tr-periods').writes;
+const before = el('tr-current').innerHTML;
+for (const [scope, from, to, exclude] of [
+  ['all', '1/2024', '2/2024', false], ['1', '1/2024', '2/2024', false],
+  ['all', '2/2024', '2/2024', true], ['0', '1/2024', '2/2024', true]]) {
+  el('tr-export-period').value = scope; el('tr-export-period').change();
+  el('tr-export-from').value = from; el('tr-export-from').change();
+  el('tr-export-to').value = to; el('tr-export-to').change();
+  el('tr-exclude-paid').checked = exclude; el('tr-exclude-paid').change();
+  S.rent.exportRent('xlsx'); S.rent.exportRent('pdf');
+  cases.push({current: S.rent.currentFigures(), workbook, pdf});
+}
+const changed = before !== el('tr-current').innerHTML;
+el('tr-export-from').value = 'bad'; el('tr-export-from').change();
+const invalid = S.rent.currentFigures().rows[0];
+el('tr-export-from').value = '3/2024'; el('tr-export-from').change();
+process.stdout.write(JSON.stringify({cases, changed, writes: el('tr-periods').writes - writes,
+  invalid, empty: S.rent.currentFigures().rows[0], html: el('tr-current').innerHTML}));
+''')
+        for case in seen['cases']:
+            row = case['current']['rows'][0]
+            grand = next(r[-1]['v'] for r in case['workbook'][1]['rows'] if r and r[0]['v'] == 'סה״כ לתשלום')
+            self.assertAlmostEqual(row['before'], grand)
+            pdf_total = re.search(r'<p class="print-total">.*?<strong[^>]*>([\d,.]+) ₪', case['pdf']).group(1)
+            self.assertEqual(row['before'], float(pdf_total.replace(',', '')))
+            exported = next(r for r in case['workbook'][0]['rows'] if r and r[0]['v'] == row['label'])
+            self.assertEqual([c['v'] for c in exported[1:]], [row['before'], row['vat'], row['total']])
+            self.assertEqual(case['current']['rows'][1]['before'], 5375)
+        self.assertEqual([c['current']['rows'][0]['before'] for c in seen['cases']], [375] * 3 + [0])
+        self.assertTrue(seen['changed'])
+        self.assertEqual(seen['writes'], 0)
+        self.assertIsNone(seen['invalid']['before'])
+        self.assertEqual(seen['empty']['before'], 0)
+        self.assertIn('0.00', seen['html'])
+
+    def test_vat_errors_are_announced_and_flagged_without_hiding_output_or_exporting(self):
+        seen = rent_with(RENT_CURRENT_DOC, RENT_CURRENT_SETUP + '''
+const read = () => ({error: el('tr-error').textContent, hidden: el('tr-output').hidden,
+  invalid: el('tr-vat').getAttribute('aria-invalid'), described: el('tr-vat').getAttribute('aria-describedby')});
+const invalid = ['', '-1', '101', 'abc'].map(value => {
+  el('tr-vat').value = value; el('tr-vat').listeners.input[0]();
+  S.rent.exportRent('xlsx'); return read();
+});
+const blocked = downloads.length;
+el('tr-export-to').value = 'bad'; el('tr-export-to').change();
+S.rent.exportRent('xlsx'); const precedence = read();
+el('tr-export-to').value = '2/2024'; el('tr-export-to').change(); const backToVat = read();
+el('tr-vat').value = '18'; el('tr-vat').change(); const corrected = read();
+S.rent.exportRent('xlsx');
+process.stdout.write(JSON.stringify({invalid, blocked, precedence, backToVat, corrected, downloads: downloads.length}));
+''')
+        for case in seen['invalid'] + [seen['backToVat']]:
+            self.assertEqual(case['error'], VAT_ERROR)
+            self.assertFalse(case['hidden'])
+            self.assertEqual(case['invalid'], 'true')
+            self.assertIn('tr-error', case['described'].split())
+        self.assertEqual(seen['blocked'], 0)
+        self.assertEqual(seen['precedence']['error'], EXPORT_ERROR)
+        self.assertFalse(seen['precedence']['hidden'])
+        self.assertEqual(seen['corrected']['error'], '')
+        self.assertIsNone(seen['corrected']['invalid'])
+        self.assertNotIn('tr-error', seen['corrected']['described'] or '')
+        self.assertEqual(seen['downloads'], 1)
+
+    def test_details_current_and_periods_order_and_export_styles(self):
+        seen = rent_with(RENT_CURRENT_DOC, RENT_CURRENT_SETUP + RENT_EXPORT_MODULES + '''
+let workbook, pdf;
+S.exporter.downloadWorkbook = (name, sheets) => { workbook = sheets; };
+S.exporter.printDocument = (title, html) => { pdf = html; };
+el('tr-landlord').value = '<b>משכיר & שם</b>'; el('tr-tenant').value = 'תקופות אופציה';
+el('tr-vat').value = '17.5'; S.rent.compute();
+S.rent.exportRent('xlsx'); S.rent.exportRent('pdf');
+process.stdout.write(JSON.stringify({workbook, pdf, styles: S.xlsx.STYLE, details: el('tr-details').innerHTML}));
+''')
+        expected = ['מועד הסכם השכירות', 'שם המשכיר', 'שם השוכר', 'מדד הבסיס', 'ערך מדד הבסיס', 'אופן ההצמדה']
+        details, periods = seen['workbook']
+        self.assertEqual(details['columns'], [{'width': n} for n in (34, 30, 14, 18)])
+        self.assertEqual([r[0]['v'] for r in details['rows'][2:8]], expected)
+        self.assertEqual(details['rows'][8], [])
+        self.assertEqual(details['rows'][9], [{'v': 'סכומים עדכניים (מע״מ 17.5%)', 's': seen['styles']['title']}])
+        self.assertEqual(len(details['rows']), 13)
+        header = details['rows'][10]
+        self.assertEqual(len(header), 4)
+        self.assertTrue(all(c['s'] == seen['styles']['header'] for c in header))
+        for row in details['rows'][11:]:
+            self.assertEqual(len(row), 4)
+            self.assertEqual(row[0]['s'], seen['styles']['header'])
+            self.assertTrue(all(c['s'] == seen['styles']['moneyBold'] for c in row[1:]))
+        titles = [r[0]['v'] for r in periods['rows'][2:] if len(r) == 1]
+        self.assertTrue(titles)
+        self.assertTrue(all(t.endswith(' ₪ לחודש') for t in titles))
+        pdf = Tree(seen['pdf'])
+        headings = [n.text() for n in pdf.nodes if n.tag == 'h2']
+        self.assertEqual(headings[:2], ['פרטי ההסכם', 'סכומים עדכניים (מע״מ 17.5%)'])
+        self.assertTrue(headings[2].startswith('תקופת השכירות הבסיסית · 01/2024–03/2024'))
+        self.assertTrue(headings[2].endswith('10,000.00 ₪ לחודש'))
+        tables = [n for n in pdf.nodes if n.tag == 'table']
+        detail_rows = [n for n in tables[0].descendants() if n.tag == 'tr'][1:]
+        self.assertEqual([r.children[0].text() for r in detail_rows], expected)
+        self.assertEqual(tables[1].parent.attrs, {'class': 'rent-current'})
+        self.assertEqual(sum(n.tag == 'th' for n in tables[1].descendants()), 4)
+        screen = Tree(seen['details'])
+        self.assertEqual([n.text() for n in screen.nodes if n.tag == 'th' and n.attrs.get('scope') == 'row'], expected)
+        names = [n for n in screen.nodes if 'data-i18n-skip' in n.attrs]
+        self.assertEqual([n.text() for n in names], ['<b>משכיר & שם</b>', 'תקופות אופציה'])
+        self.assertTrue(all(n.attrs['dir'] == 'auto' for n in names))
+        self.assertFalse(any(n.tag == 'b' for n in screen.nodes))
+
+    def test_exported_names_are_marked_raw_in_xlsx_and_pdf(self):
+        names = ['תיאור', 'תקופות אופציה']  # both are exact dictionary keys
+        seen = rent_with(RENT_CURRENT_DOC, RENT_CURRENT_SETUP + RENT_EXPORT_MODULES + '''
+let workbook, pdf;
+S.exporter.downloadWorkbook = (name, sheets) => { workbook = sheets; };
+S.exporter.printDocument = (title, html) => { pdf = html; };
+el('tr-landlord').value = ''' + json.dumps(names[0]) + '; el(\'tr-tenant\').value = ' + json.dumps(names[1]) + ''';
+S.rent.compute();
+S.rent.exportRent('xlsx'); S.rent.exportRent('pdf');
+process.stdout.write(JSON.stringify({workbook, pdf, date: S.core.formatIsoDateHe('2024-01-15')}));
+''')
+        cells = {r[0]['v']: r[1] for r in seen['workbook'][0]['rows'] if len(r) == 2}
+        for label, name in (('שם המשכיר', names[0]), ('שם השוכר', names[1])):
+            self.assertIs(cells[label].get('raw'), True, label)
+            self.assertEqual(cells[label]['v'], name)
+        self.assertEqual(cells['מועד הסכם השכירות']['v'], seen['date'])
+        self.assertNotIn('raw', cells['מועד הסכם השכירות'])
+        for name in names:
+            self.assertIn('<td dir="auto" data-i18n-skip>' + name + '</td>', seen['pdf'])
+        self.assertIn('<td>מועד הסכם השכירות</td><td>' + seen['date'] + '</td>', seen['pdf'])
+
+    def test_english_xlsx_keeps_typed_names_untranslated(self):
+        names = ['תיאור', 'תקופות אופציה']  # exact keys: 'Description' / 'Option periods' in English
+        seen = rent_with(RENT_CURRENT_DOC, RENT_CURRENT_SETUP + RENT_EXPORT_MODULES + '''
+require(''' + json.dumps(str(ROOT / 'assets' / 'statso-lang-en.js')) + ''');
+const L = window.Statso.lang, own = Object.prototype.hasOwnProperty;
+S.i18n = {t: text => {
+  const trimmed = String(text).trim();
+  if (!trimmed) { return text; }
+  if (own.call(L.en, trimmed)) { return String(text).replace(trimmed, L.en[trimmed]); }
+  for (const [pattern, replacement] of L.enPatterns) {
+    if (pattern.test(trimmed)) { return String(text).replace(trimmed, trimmed.replace(pattern, replacement)); }
+  }
+  return text;
+}};
+let workbook;
+S.exporter.downloadWorkbook = (name, sheets) => { workbook = sheets; };
+el('tr-landlord').value = ''' + json.dumps(names[0]) + '; el(\'tr-tenant\').value = ' + json.dumps(names[1]) + ''';
+S.rent.compute(); S.rent.exportRent('xlsx');
+const xml = Buffer.from(S.xlsx.build(workbook, {title: 'x'})).toString('utf8');
+process.stdout.write(JSON.stringify({xml, label: S.i18n.t('שם המשכיר'), header: S.i18n.t('תיאור')}));
+''')
+        xml = seen['xml']
+
+        def cell(text):
+            return '<t xml:space="preserve">' + text + '</t>'
+        self.assertNotEqual(seen['label'], 'שם המשכיר')  # English mode really is on
+        self.assertEqual(seen['header'], 'Description')
+        self.assertIn(cell(seen['label']), xml)  # the label is still translated
+        for name in names:
+            self.assertEqual(xml.count(cell(name)), 1, name)  # the typed name survives
+        self.assertEqual(xml.count(cell('Description')), 1)  # only the real table header
+        self.assertNotIn(cell('Option periods'), xml)
+
+    def test_screen_details_cells_follow_the_raw_flag_not_the_row_position(self):
+        seen = rent_with(RENT_CURRENT_DOC, RENT_CURRENT_SETUP + '''
+el('tr-landlord').value = 'תיאור'; el('tr-tenant').value = ''; S.rent.compute();
+process.stdout.write(JSON.stringify(el('tr-details').innerHTML));
+''')
+        rows = Tree(seen).nodes
+        values = {r.children[0].text(): r.children[1] for r in rows
+                  if r.tag == 'tr' and r.children[0].attrs.get('scope') == 'row'}
+        self.assertEqual(len(values), 6)
+        skipped = {label: 'data-i18n-skip' in cell.attrs for label, cell in values.items()}
+        self.assertEqual([label for label, flag in skipped.items() if flag], ['שם המשכיר', 'שם השוכר'])
+        self.assertEqual(values['שם השוכר'].text(), '—')
+        self.assertEqual({k: v.attrs.get('dir') for k, v in values.items() if k not in ('שם המשכיר', 'שם השוכר')},
+                         {'מועד הסכם השכירות': None, 'מדד הבסיס': None, 'ערך מדד הבסיס': 'ltr', 'אופן ההצמדה': None})
+        source = (ROOT / 'assets' / 'statso-rent.js').read_text()
+        body = re.search(r'function detailsHtml\(\) \{(.*?)\n  \}\n', source, re.S).group(1)
+        self.assertNotIn('i === 1', body)
+        self.assertNotIn('function (row, i)', body)
+
+    def test_current_announcements_debounce_and_suppress_invalid_states(self):
+        seen = rent_with(RENT_CURRENT_DOC, RENT_CURRENT_SETUP + '''
+let pending = new Map(), serial = 0; const spoken = [], delays = [];
+window.setTimeout = (fn, delay) => { delays.push(delay); pending.set(++serial, fn); return serial; };
+window.clearTimeout = id => pending.delete(id);
+S.exporter.announce = text => spoken.push(text);
+const flush = () => { const jobs = [...pending.values()]; pending.clear(); jobs.forEach(fn => fn()); };
+el('tr-vat').value = '0'; el('tr-vat').listeners.input[0](); el('tr-vat').change();
+const queued = pending.size; flush();
+el('tr-vat').value = ''; el('tr-vat').change(); flush();
+el('tr-vat').value = '18'; el('tr-vat').change();
+el('tr-base-start').value = 'bad'; el('tr-base-start').change(); flush();
+el('tr-base-start').value = '1/2024'; S.rent.compute();
+const afterCompute = pending.size;
+el('tr-export-period').change(); flush();
+process.stdout.write(JSON.stringify({queued, spoken, delays, afterCompute}));
+''')
+        self.assertEqual(seen['queued'], 1)
+        self.assertEqual(seen['afterCompute'], 0)
+        self.assertEqual(len(seen['spoken']), 2)
+        self.assertIn('כולל מע״מ: 10,750.00 ₪', seen['spoken'][0])
+        self.assertIn('כולל מע״מ: 12,685.00 ₪', seen['spoken'][1])
+        self.assertTrue(all(delay == 800 for delay in seen['delays']))
+
+    def test_current_figures_translation_keys_and_dynamic_titles(self):
+        translations = {
+            'סכומים עדכניים': 'Current figures', 'שיעור מע״מ (%)': 'VAT rate (%)', 'תיאור': 'Description',
+            'סכום לפני מע״מ (₪)': 'Amount before VAT (₪)', 'מע״מ (₪)': 'VAT (₪)',
+            'סכום כולל מע״מ (₪)': 'Amount incl. VAT (₪)',
+            'סה״כ הפרשים לתשלום על ידי הלקוח': 'Total differences payable by the client',
+            'סכום עדכני לשכירות חודשית': 'Current monthly rent amount', 'כולל מע״מ': 'incl. VAT',
+            VAT_ERROR: 'Enter a VAT rate from 0 to 100.', 'מע״מ': 'VAT',
+            'סכומים עדכניים (מע״מ 17.5%)': 'Current figures (VAT 17.5%)',
+            'Base rental period · 01/2024–03/2024 · 10,000.00 ₪ לחודש':
+                'Base rental period · 01/2024–03/2024 · 10,000.00 ₪ per month'}
+        seen = node('''
+const L = window.Statso.lang;
+const t = text => {
+  if (L.en[text]) { return L.en[text]; }
+  for (const [pattern, replacement] of L.enPatterns) { if (pattern.test(text)) { return text.replace(pattern, replacement); } }
+  return text;
+};
+process.stdout.write(JSON.stringify(''' + json.dumps(list(translations)) + '.map(t)));', ('statso-lang-en.js',))
+        self.assertEqual(seen, list(translations.values()))
 
 
 class Element:
@@ -660,9 +1055,34 @@ class ControlsMarkupTests(unittest.TestCase):
     def test_month_hints_are_single_text_nodes_and_alert_exists(self):
         for name in ('base', 'options', 'export'):
             hint = self.tree.by_id('tr-' + name + '-month-hint')
-            self.assertIn('hidden', hint.attrs)
+            self.assertNotIn('hidden', hint.attrs)
             self.assertEqual(hint.children, [HINT])
         self.assertEqual(self.tree.by_id('tr-error').attrs['role'], 'alert')
+
+    def test_rent_current_and_details_regions_and_vat_form_placement(self):
+        for name in ('details', 'current'):
+            region = self.tree.by_id('tr-' + name)
+            self.assertEqual(region.attrs['role'], 'region')
+            self.assertEqual(region.attrs['tabindex'], '0')
+            title = self.tree.by_id(region.attrs['aria-labelledby'])
+            self.assertEqual(title.tag, 'h3')
+            self.assertIn(title, region.parent.descendants())
+        output = self.tree.by_id('tr-output').descendants()
+        self.assertLess(output.index(self.tree.by_id('tr-details')), output.index(self.tree.by_id('tr-current')))
+        self.assertLess(output.index(self.tree.by_id('tr-current')), output.index(self.tree.by_id('tr-periods')))
+        vat = self.tree.by_id('tr-vat')
+        for attr, value in {'type': 'number', 'value': '18', 'min': '0', 'max': '100',
+                            'step': 'any', 'inputmode': 'decimal'}.items():
+            self.assertEqual(vat.attrs[attr], value)
+        form = next(n for n in self.tree.by_id('tool-rent-page').descendants()
+                    if n.tag == 'form' and n.attrs.get('class') == 'rent-form')
+        self.assertIn(vat, form.descendants())
+        blocks = [n for n in form.children if isinstance(n, Element) and n.tag == 'fieldset']
+        self.assertIn(vat, blocks[-1].descendants())
+        self.assertEqual([n.text() for n in blocks[-2].children if isinstance(n, Element) and n.tag == 'legend'], ['אופן ההצמדה'])
+        css = (ROOT / 'assets/statso.css').read_text()
+        self.assertIn('.rent-current th, .rent-current td { font-weight: 700; }', css)
+        self.assertIn('html[dir="rtl"] #tool-rent-page input[dir="ltr"] { text-align: end; }', css)
 
 
 if __name__ == '__main__':

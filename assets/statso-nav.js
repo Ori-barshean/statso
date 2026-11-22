@@ -264,7 +264,8 @@
       const summary = document.getElementById('tt-summary');
       return summary && !document.getElementById('tt-output').hidden ? [summary] : [];
     }
-    if (target.closest('#tool-rent-page .rent-form')) {
+    // the VAT rate changes no figure in the summary; the rent tool announces its current figures itself
+    if (target.closest('#tool-rent-page .rent-form') && !target.closest('#tr-vat')) {
       const summary = document.getElementById('tr-summary');
       return summary ? [summary] : [];
     }

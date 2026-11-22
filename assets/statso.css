@@ -200,6 +200,8 @@ html[dir="ltr"] .data-table .col-group-start { border-left: 2px solid var(--line
 .rent-table tfoot th, .rent-table tfoot td { border-top: 2px solid var(--line); font-weight: 700; }
 .rent-row-pending td { color: var(--muted); font-style: italic; }
 .rent-negative { color: #b42318; }
+.rent-current th, .rent-current td { font-weight: 700; }
+html[dir="rtl"] #tool-rent-page input[dir="ltr"] { text-align: end; }
 .fxh-currencies, .tool-checkboxes { display: flex; flex-wrap: wrap; gap: 10px 20px; }
 .fxh-currency, .tool-checkbox { display: flex; align-items: center; gap: 7px; font-size: .88rem; max-width: 100%; overflow-wrap: anywhere; }
 .fxh-currency .currency-code { flex-shrink: 0; }

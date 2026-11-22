@@ -768,10 +768,13 @@ process.stdout.write(JSON.stringify({success: await run(false), failure: await r
     def test_month_inputs_show_their_format(self):
         rent = (ROOT / 'assets/statso-rent.js').read_text(encoding='utf-8')
         for source, count in [(self.html, 4), (rent, 2)]:
-            tags = re.findall(r'<input[^>]*type="month"[^>]*>', source)
+            self.assertNotIn('type="month"', source)
+            tags = re.findall(r'<input[^>]*(?:id="tr-(?:base-start|base-end|export-from|export-to)"|class="tr-opt-(?:start|end)")[^>]*>', source)
             self.assertEqual(len(tags), count)
             for tag in tags:
-                self.assertIn('placeholder="YYYY-MM"', tag)
+                for attribute in ('type="text"', 'inputmode="numeric"', 'dir="ltr"', 'placeholder="M/YYYY"',
+                                  'maxlength="7"', 'autocomplete="off"', 'spellcheck="false"'):
+                    self.assertIn(attribute, tag)
 
     def test_chart_slider_and_summary_helpers_are_pure(self):
         script = """
@@ -1537,11 +1540,10 @@ process.stdout.write(JSON.stringify(escapeHtml('<a "x" \\'y\\' & b>')));
         self.assertEqual(out, "&lt;a &quot;x&quot; &#39;y&#39; &amp; b&gt;")
 
     def test_consumers_call_escape_html(self):
-        consumers = ["statso-fxtable.js", "statso-fxhistory.js", "statso-calculator.js", "statso-tools.js"]
+        consumers = ["statso-fxtable.js", "statso-fxhistory.js", "statso-calculator.js", "statso-tools.js", "statso-rent.js"]
         for name in consumers:
             text = (ROOT / "assets" / name).read_text(encoding="utf-8")
             self.assertIn("Statso.core.escapeHtml(", text, f"{name} does not call escapeHtml")
-        self.assertNotIn("Statso.core.escapeHtml(", (ROOT / "assets/statso-rent.js").read_text(encoding="utf-8"))
 
     def test_core_loads_before_its_escaping_consumers(self):
         scripts = re.findall(r'<script src="assets/([a-z0-9-]+\.js)"', self.html)
