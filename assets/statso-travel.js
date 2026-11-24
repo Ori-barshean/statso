@@ -351,7 +351,7 @@
     return out;
   }
 
-  const state = {fx: null, pending: false, failed: false, touched: false, businessTouched: false, model: null, serial: 0, longStay: false, education: false};
+  const state = {fx: null, pending: false, failed: false, touched: false, businessTouched: false, model: null, serial: 0, longStay: false, education: false, later: false, laterDays: null};
   function travelerRows() { return Array.from(el('tt-travelers').querySelectorAll('.rent-option')); }
   function travelerHtml() {
     state.serial += 1;
@@ -473,7 +473,10 @@
     const facts = tripFacts(form);
     if (facts.daysOk && facts.kOk) { state.longStay = facts.longStay; }
     if (facts.dated) { state.education = facts.education; }
-    el('tt-lodging7-group').hidden = state.longStay; el('tt-lodging90-group').hidden = state.longStay;
+    const laterTyped = form.rows.lodging90.amount !== ''; // NaN from a bad input counts as typed.
+    // Reconsider only when valid business days change, so clearing an amount does not hide the focused field.
+    if (facts.daysOk && facts.B !== state.laterDays) { state.laterDays = facts.B; state.later = facts.B >= 8 || laterTyped; }
+    el('tt-lodging7-group').hidden = state.longStay; el('tt-lodging90-group').hidden = state.longStay || !(state.later || laterTyped);
     el('tt-lodgingAll-group').hidden = !state.longStay; el('tt-education-group').hidden = !state.education;
     setText('tt-lodging-mode', state.longStay ? 'בשל נסיעה של מעל 90 לילות יש להזין את הלינה בשורה אחת.' : '');
     // an amount typed into a group that is now hidden is kept, but it is not in the calculation: the form says so
@@ -525,10 +528,19 @@
       ['ימים עסקיים', String(f.businessDays)], ['לילות לינה', String(model.nights)], ['מספר נוסעים', String(f.travelers.length)],
       ['תיאור הוצאות אחרות (אופציונלי)', raw(f.other)]];
   }
+  function exportName(form) {
+    function clean(text, max) {
+      return text.replace(/[/\\|]/g, '-').replace(/[:*?"<>\u0000-\u001f\u007f\u200e\u200f\u202a-\u202e\u2066-\u2069]/g, '')
+        .replace(/\s+/g, ' ').trim().replace(/[. ]+$/g, '').slice(0, max);
+    }
+    const month = form.depart.slice(5, 7) + '.' + form.depart.slice(0, 4);
+    const company = clean(form.company, 60), country = clean(form.listed ? say(form.country) : form.country, 40);
+    return [company, month].filter(Boolean).join(' ') + ' - ' + say('דו״ח נסיעה לחו״ל') + (country ? ' ' + country : '');
+  }
   function exportTravel(kind) {
     if (!state.model) { return; }
     const model = state.model, exporter = Statso.exporter;
-    const filename = 'statso-' + say('דו״ח נסיעה לחו״ל') + '-' + exporter.stamp();
+    const filename = exportName(model.form);
     const travelers = model.form.travelers.map(function (person, i) { return [say('נוסע ' + (i + 1)), raw(person.name), raw(person.role)]; });
     const tables = [
       {caption: 'פרטי הנסיעה', head: ['פריט', 'ערך'], rows: details(model)},
@@ -575,7 +587,7 @@
     }
     const blocks = tables.map(function (table) { return '<h2>' + esc(say(table.caption)) + '</h2>' + exporter.tableHtml(table.head.map(say), table.rows, say(table.caption)); });
     model.notes.concat([DISCLAIMER]).forEach(function (note) { blocks.push('<p>' + esc(say(note)) + '</p>'); });
-    exporter.printDocument('דו״ח נסיעה לחו״ל', exporter.documentHtml(say('דו״ח נסיעה לחו״ל'), '', blocks, say(SHORT)));
+    exporter.printDocument(filename, exporter.documentHtml(say('דו״ח נסיעה לחו״ל'), '', blocks, say(SHORT)));
   }
   function init() {
     const form = el('tt-form');
@@ -604,7 +616,7 @@
     if (Statso.i18n && Statso.i18n.onChange) { Statso.i18n.onChange(function () { renumber(); compute(); }); }
     compute(); ensureFx();
   }
-  Statso.travel = {init: init, calculate: calculate, liveCaps: liveCaps, tripFacts: tripFacts, educationRate: educationRate, EDUCATION_USD: EDUCATION_USD,
+  Statso.travel = {init: init, exportName: exportName, calculate: calculate, liveCaps: liveCaps, tripFacts: tripFacts, educationRate: educationRate, EDUCATION_USD: EDUCATION_USD,
     CAPS: CAPS, COUNTRIES: COUNTRIES, YEARS: YEARS, daysBetween: daysBetween, state: state};
   document.addEventListener('DOMContentLoaded', init);
 })(window);

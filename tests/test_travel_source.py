@@ -924,6 +924,164 @@ FLOW = r"""
 """
 
 
+LATER_FLOW = r"""
+(async () => {
+  T2.init(); await tick();
+  const o = {};
+  const save = name => { o[name] = snapshot(); o[name].amount = els['tt-lodging90-amount'].value; };
+  const set = (id, value) => { els[id].value = value; fire(id); };
+  const modeWrites = () => ['tt-lodging-mode', 'tt-lodging-kept'].map(id => writes[id + '.textContent'] || 0);
+  save('initial');
+  set('tt-depart', '2026-03-06'); set('tt-return', '2026-03-12'); save('seven');
+  o.beforeBoundary = modeWrites();
+  set('tt-return', '2026-03-13'); save('eight');
+  set('tt-business-days', '7'); save('manualSeven');
+  set('tt-business-days', '8'); save('manualEight');
+  o.afterBoundary = modeWrites();
+  set('tt-return', '2026-03-15'); set('tt-business-days', '10');
+  els['tt-partial'].checked = true; set('tt-lodging-days', '3');
+  set('tt-lodging90-amount', '100'); save('partialTen');
+  set('tt-lodging90-amount', ''); set('tt-business-days', '7'); save('partialSeven');
+  set('tt-business-days', '10'); save('partialTenEmpty');
+  els['tt-partial'].checked = false; set('tt-business-days', '5'); save('five');
+  for (const [name, value] of [['emptyHidden', ''], ['zeroHidden', '0'], ['excessHidden', '50']]) {
+    set('tt-business-days', value); save(name);
+  }
+  set('tt-business-days', '10');
+  for (const [name, value] of [['emptyVisible', ''], ['zeroVisible', '0'], ['excessVisible', '50']]) {
+    set('tt-business-days', value); save(name);
+  }
+  set('tt-business-days', '10'); set('tt-depart', ''); save('missingDatesVisible');
+  set('tt-depart', '2026-03-06');
+  set('tt-lodging90-amount', '100'); set('tt-return', '2026-03-10'); set('tt-business-days', '5'); save('kept');
+  const model = T2.state.model;
+  o.pure = T2.calculate(model.form, code => ({ok: true, rate: 3.5, unit: 1, date: '2026-03-05'}));
+  o.actualTotals = model.totals; o.actualRows = model.rows;
+  set('tt-lodging90-amount', ''); save('deleted');
+  set('tt-return', '2026-03-11'); set('tt-business-days', '6'); save('six');
+  set('tt-return', '2026-03-15'); set('tt-business-days', '10');
+  els['tt-lodging90-amount'].validity.badInput = true; fire('tt-lodging90-amount');
+  set('tt-business-days', '5'); save('badInput');
+  els['tt-lodging90-amount'].validity.badInput = false; set('tt-lodging90-amount', '100');
+  set('tt-return', '2026-06-04'); set('tt-business-days', '91'); save('long');
+  set('tt-return', '2026-03-10'); set('tt-business-days', '5'); save('back');
+  set('tt-lodging90-amount', ''); set('tt-business-days', '4'); save('hiddenAgain');
+  set('tt-lodging90-amount', '0'); save('typedZero');
+  process.stdout.write(JSON.stringify(o));
+})();
+"""
+
+
+class LaterNightsTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        with tempfile.TemporaryDirectory() as directory:
+            cls.results = {lang: ui(lang, directory, LATER_FLOW) for lang in ('he', 'en')}
+        cls.he = cls.results['he']
+
+    def test_initial_and_seven_days_are_hidden_eight_days_are_visible(self):
+        for name, hidden in [('initial', True), ('seven', True), ('eight', False),
+                             ('manualSeven', True), ('manualEight', False)]:
+            with self.subTest(name=name):
+                self.assertEqual(self.he[name]['groupsHidden']['lodging90'], hidden)
+
+    def test_partial_lodging_uses_business_days_for_visibility_and_nights_for_calculation(self):
+        self.assertFalse(self.he['partialTen']['groupsHidden']['lodging90'])
+        self.assertIn('אין לילות בטווח 8–90 (סה״כ לילות: 3)', self.he['partialTen']['body'])
+        self.assertTrue(self.he['partialSeven']['groupsHidden']['lodging90'])
+        empty = self.he['partialTenEmpty']
+        self.assertFalse(empty['groupsHidden']['lodging90'])   # partial, K=3, no amount: B=10 decides, not L=3
+        self.assertEqual(empty['amount'], '')
+
+    def test_invalid_days_preserve_the_last_visibility(self):
+        for name in ('five', 'emptyHidden', 'zeroHidden', 'excessHidden'):
+            self.assertTrue(self.he[name]['groupsHidden']['lodging90'], name)
+        for name in ('emptyVisible', 'zeroVisible', 'excessVisible', 'missingDatesVisible'):
+            self.assertFalse(self.he[name]['groupsHidden']['lodging90'], name)
+
+    def test_a_kept_amount_remains_visible_and_in_the_unchanged_calculation(self):
+        kept = self.he['kept']
+        self.assertFalse(kept['groupsHidden']['lodging90'])
+        self.assertEqual(kept['amount'], '100')
+        self.assertRegex(kept['body'], r'לינה — לילות 8–90</th>.*?350\.00')
+        self.assertIn('350.00', kept['foot'])
+        self.assertEqual(self.he['actualTotals'], self.he['pure']['totals'])
+        self.assertEqual(self.he['actualRows'], self.he['pure']['rows'])
+        self.assertEqual(len(self.he['actualRows']), 11)
+
+    def test_deleting_an_amount_waits_for_the_next_valid_business_day_change(self):
+        self.assertFalse(self.he['deleted']['groupsHidden']['lodging90'])
+        self.assertEqual(self.he['deleted']['amount'], '')
+        self.assertTrue(self.he['six']['groupsHidden']['lodging90'])
+
+    def test_bad_input_and_zero_count_as_typed_values(self):
+        self.assertFalse(self.he['badInput']['groupsHidden']['lodging90'])
+        self.assertIn('tt-lodging90-amount', self.he['badInput']['invalid'])
+        self.assertTrue(self.he['hiddenAgain']['groupsHidden']['lodging90'])
+        self.assertFalse(self.he['typedZero']['groupsHidden']['lodging90'])
+
+    def test_long_stay_still_hides_both_short_stay_groups_and_keeps_the_amount(self):
+        self.assertEqual(self.he['long']['groupsHidden'],
+                         {'lodging7': True, 'lodging90': True, 'lodgingAll': False, 'education': True})
+        self.assertFalse(self.he['back']['groupsHidden']['lodging90'])
+        self.assertEqual(self.he['back']['amount'], '100')
+
+    def test_threshold_changes_add_no_mode_messages_or_live_region_writes(self):
+        for name in ('initial', 'seven', 'eight', 'deleted', 'six'):
+            self.assertEqual(self.he[name]['modes']['lodging'], '')
+            self.assertEqual(self.he[name]['modes']['lodgingKept'], '')
+        self.assertEqual(self.he['beforeBoundary'], self.he['afterBoundary'])
+
+    def test_visibility_is_identical_in_both_languages(self):
+        for name, value in self.he.items():
+            if isinstance(value, dict) and 'groupsHidden' in value:
+                self.assertEqual(value['groupsHidden'], self.results['en'][name]['groupsHidden'], name)
+
+
+class ExportNameTests(unittest.TestCase):
+    def names(self, forms, english=False):
+        return calc('S.i18n = ' + ('{t: text => translate(text) ?? text}' if english else 'null')
+                    + '; process.stdout.write(JSON.stringify(' + json.dumps(forms)
+                    + '.map(f => T.exportName(Object.assign({company: "", depart: "2026-03-06", listed: true, country: "צרפת"}, f)))));')
+
+    def test_empty_company_and_departure_month_in_year_month_order(self):
+        self.assertEqual(self.names([{}, {'depart': '2026-11-05'}, {'depart': '2026-03-28', 'ret': '2026-04-03'}]),
+                         ['03.2026 - דו״ח נסיעה לחו״ל צרפת', '11.2026 - דו״ח נסיעה לחו״ל צרפת',
+                          '03.2026 - דו״ח נסיעה לחו״ל צרפת'])
+
+    def test_listed_and_custom_countries_and_empty_other_country(self):
+        self.assertEqual(self.names([{'country': 'אנגליה/בריטניה'}, {'listed': False, 'country': 'Ruritania/North'},
+                                     {'listed': False, 'country': ''}]),
+                         ['03.2026 - דו״ח נסיעה לחו״ל אנגליה-בריטניה',
+                          '03.2026 - דו״ח נסיעה לחו״ל Ruritania-North', '03.2026 - דו״ח נסיעה לחו״ל'])
+
+    def test_unsafe_characters_controls_direction_marks_and_whitespace_are_cleaned(self):
+        controls = ''.join(map(chr, list(range(32)) + [127, 0x200e, 0x200f] + list(range(0x202a, 0x202f)) + list(range(0x2066, 0x206a))))
+        self.assertEqual(self.names([{'company': '  A/\\|:*?"<>B' + controls + '   C...  ',
+                                      'listed': False, 'country': ' X/\\|:*?"<>Y' + controls + '  Z... '}]),
+                         ['A---B C 03.2026 - דו״ח נסיעה לחו״ל X---Y Z'])
+
+    def test_company_and_country_lengths_are_limited(self):
+        self.assertEqual(self.names([{'company': 'א' * 100, 'country': 'ב' * 100, 'listed': False}]),
+                         ['א' * 60 + ' 03.2026 - דו״ח נסיעה לחו״ל ' + 'ב' * 40])
+
+    def test_english_translates_only_the_report_and_listed_country(self):
+        self.assertEqual(self.names([{'company': 'צרפת'}, {'country': 'אנגליה/בריטניה'},
+                                     {'country': 'צרפת', 'listed': False}], english=True),
+                         ['צרפת 03.2026 - Foreign Travel Report France',
+                          '03.2026 - Foreign Travel Report England-United Kingdom',
+                          '03.2026 - Foreign Travel Report צרפת'])
+
+    def test_the_final_english_name_does_not_match_a_translation_pattern(self):
+        self.assertIsNone(calc('process.stdout.write(JSON.stringify(translate("חברת בדיקה & שותפים 03.2026 - Foreign Travel Report France")));'))
+
+    def test_all_exports_share_the_name_builder_without_the_old_prefix_or_stamp(self):
+        self.assertIn('exportName(model.form)', TRAVEL)
+        self.assertNotIn("'statso-' + say('דו״ח נסיעה לחו״ל')", TRAVEL)
+        self.assertNotIn('exporter.stamp()', TRAVEL)
+        self.assertIn('exporter.printDocument(filename,', TRAVEL)
+
+
 class FormBehaviourTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -1050,7 +1208,7 @@ class FormBehaviourTests(unittest.TestCase):
 
     def test_over_ninety_nights_there_is_one_lodging_group_and_the_hidden_amounts_stay_out_of_the_sum(self):
         short, long, amount, back = (self.he[name] for name in ("shortAgain", "longStay", "longStayAmount", "backToShort"))
-        self.assertEqual(short["groupsHidden"], {"lodging7": False, "lodging90": False, "lodgingAll": True, "education": True})
+        self.assertEqual(short["groupsHidden"], {"lodging7": False, "lodging90": True, "lodgingAll": True, "education": True})
         self.assertEqual(long["groupsHidden"], {"lodging7": True, "lodging90": True, "lodgingAll": False, "education": True})
         self.assertEqual(long["modes"]["lodging"], "בשל נסיעה של מעל 90 לילות יש להזין את הלינה בשורה אחת.")
         self.assertIn("נשמרו, אך אינם נכללים בחישוב", long["modes"]["lodgingKept"])        # the 4000 typed in the first group
@@ -1185,11 +1343,11 @@ class ExportFileTests(unittest.TestCase):
         archive = zipfile.ZipFile(self.dir / (lang + ".xlsx"))
         return archive, {name: archive.read(name).decode("utf-8") for name in archive.namelist()}
 
-    def test_file_names_follow_the_language_and_carry_the_date(self):
-        self.assertEqual(self.results["he"]["files"]["xlsx"], "statso-דו״ח נסיעה לחו״ל-20261120.xlsx")
-        self.assertEqual(self.results["he"]["files"]["docx"], "statso-דו״ח נסיעה לחו״ל-20261120.docx")
-        self.assertEqual(self.results["en"]["files"]["xlsx"], "statso-Foreign Travel Report-20261120.xlsx")
-        self.assertEqual(self.results["en"]["files"]["docx"], "statso-Foreign Travel Report-20261120.docx")
+    def test_file_names_follow_the_language_company_departure_month_and_country(self):
+        self.assertEqual(self.results["he"]["files"]["xlsx"], "חברת בדיקה & שותפים 03.2026 - דו״ח נסיעה לחו״ל צרפת.xlsx")
+        self.assertEqual(self.results["he"]["files"]["docx"], "חברת בדיקה & שותפים 03.2026 - דו״ח נסיעה לחו״ל צרפת.docx")
+        self.assertEqual(self.results["en"]["files"]["xlsx"], "חברת בדיקה & שותפים 03.2026 - Foreign Travel Report France.xlsx")
+        self.assertEqual(self.results["en"]["files"]["docx"], "חברת בדיקה & שותפים 03.2026 - Foreign Travel Report France.docx")
         self.assertEqual(self.results["en"]["files"]["docxMime"],
                          "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
 
@@ -1251,7 +1409,7 @@ class ExportFileTests(unittest.TestCase):
         for lang, short, full in (("he", SHORT_HE, FULL_HE), ("en", SHORT_EN, FULL_EN)):
             with self.subTest(lang=lang):
                 pdf = self.results[lang]["pdf"]
-                self.assertEqual(pdf["title"], "דו״ח נסיעה לחו״ל")
+                self.assertEqual(pdf["title"], self.results[lang]["files"]["xlsx"].removesuffix(".xlsx"))
                 html = pdf["html"]
                 self.assertEqual(html.count("<table>"), 4)
                 self.assertEqual(html.count("<caption"), 4)
@@ -1550,9 +1708,9 @@ class MarkupTests(unittest.TestCase):
             self.assertNotRegex(self.page, r'id="tt-%s-cap"[^>]*(role=|aria-live)' % key)
 
     def test_groups_that_come_and_go_are_hidden_by_default_and_announce_their_mode_in_status_areas(self):
-        for key in ("lodgingAll", "education"):
+        for key in ("lodging90", "lodgingAll", "education"):
             self.assertRegex(self.page, r'aria-labelledby="tt-%s-title" id="tt-%s-group" hidden>' % (key, key))
-        for key in ("lodging7", "lodging90"):
+        for key in ("lodging7",):
             self.assertRegex(self.page, r'aria-labelledby="tt-%s-title" id="tt-%s-group">' % (key, key))
         for area in ("tt-lodging-mode", "tt-lodging-kept", "tt-education-mode", "tt-education-kept"):
             self.assertRegex(self.page, r'<p class="rent-hint" id="%s" role="status">' % area)
