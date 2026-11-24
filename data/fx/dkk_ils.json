@@ -5,9 +5,9 @@
   "currency": "DKK",
   "counter_currency": "ILS",
   "unit": 1,
-  "count": 12946,
+  "count": 12947,
   "first_date": "1962-02-10",
-  "last_date": "2026-11-20",
+  "last_date": "2026-11-23",
   "observations": [
     {
       "date": "1962-02-10",
@@ -51792,6 +51792,10 @@
     {
       "date": "2026-11-20",
       "rate": 0.4883
+    },
+    {
+      "date": "2026-11-23",
+      "rate": 0.4903
     }
   ]
 }
