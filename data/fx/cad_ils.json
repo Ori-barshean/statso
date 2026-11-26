@@ -5,9 +5,9 @@
   "currency": "CAD",
   "counter_currency": "ILS",
   "unit": 1,
-  "count": 12947,
+  "count": 12948,
   "first_date": "1962-02-10",
-  "last_date": "2026-11-24",
+  "last_date": "2026-11-25",
   "observations": [
     {
       "date": "1962-02-10",
@@ -51796,6 +51796,10 @@
     {
       "date": "2026-11-24",
       "rate": 2.3332
+    },
+    {
+      "date": "2026-11-25",
+      "rate": 2.3681
     }
   ]
 }
