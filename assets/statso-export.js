@@ -88,6 +88,15 @@
     return true;
   }
 
+  // #print-root is shown by @media print, so a plain Ctrl+P after a PDF export would print the export again.
+  // printDocument adds is-printing before root.print(), and beforeprint fires inside print(), so the export keeps its sheet.
+  function clearStalePrint() {
+    if (document.body && document.body.classList.contains('is-printing')) { return; }
+    const container = document.getElementById('print-root');
+    if (container) { container.innerHTML = ''; }
+  }
+  if (typeof root.addEventListener === 'function') { root.addEventListener('beforeprint', clearStalePrint); }
+
   function formatCell(value, kind) {
     if (kind === 'ratio') { return Statso.core.formatNumber(value, 4); }
     if (kind === 'rate') { return Statso.core.formatRate(value); }

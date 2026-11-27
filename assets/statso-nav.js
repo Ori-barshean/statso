@@ -148,7 +148,7 @@
       if (!(guideMatch && Statso.guides.showGuide(guideMatch[1], true))) { Statso.guides.showIndex(true); }
     }
     if (mcode && Statso.mcode) { Statso.mcode.render(); }
-    if (info || tools || mcode || accounting) { root.scrollTo(0, 0); }
+    if (info || tools || mcode || accounting || (home && !firstRoute)) { root.scrollTo(0, 0); }
     document.querySelectorAll('.site-nav a').forEach(function (link) {
       const href = link.getAttribute('href');
       const active = guides ? href === '#/guides'

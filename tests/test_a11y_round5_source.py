@@ -499,6 +499,36 @@ process.stdout.write(JSON.stringify(log));
 
 
 class PrintSheetTests(unittest.TestCase):
+    def test_a_plain_print_after_an_export_drops_the_stale_sheet(self):
+        seen = node(r"""
+const handlers = {beforeprint: [], afterprint: []}, seen = {}, classes = new Set();
+const container = {innerHTML: '', setAttribute() {}};
+global.window = {
+ addEventListener(type, fn) { (handlers[type] = handlers[type] || []).push(fn); },
+ removeEventListener(type, fn) { handlers[type] = handlers[type].filter(handler => handler !== fn); },
+ print() {
+  handlers.beforeprint.forEach(fn => fn());
+  seen.during = container.innerHTML;
+  handlers.afterprint.forEach(fn => fn());
+ }};
+global.document = {title: 'page', getElementById: id => id === 'print-root' ? container : null,
+ body: {classList: {add: name => classes.add(name), remove: name => classes.delete(name),
+                   contains: name => classes.has(name)}}};
+""" + module("statso-export.js") + r"""
+window.Statso.i18n = {current: () => 'he', t: text => text, apply() {}};
+const listeners = handlers.beforeprint.length;
+window.Statso.exporter.printDocument('Doc', '<p>export</p>');
+const after = container.innerHTML;
+handlers.beforeprint.forEach(fn => fn());
+process.stdout.write(JSON.stringify({listeners, during: seen.during, after, plain: container.innerHTML,
+                                    listenersAfter: handlers.beforeprint.length}));
+""")
+        self.assertEqual(seen, {'listeners': 1, 'during': '<p>export</p>', 'after': '<p>export</p>',
+                                'plain': '', 'listenersAfter': 1})
+        exporter = (ROOT / "assets/statso-export.js").read_text(encoding="utf-8")
+        self.assertEqual(exporter.count("addEventListener('beforeprint'"), 1)
+        self.assertIn("classList.contains('is-printing')", exporter)
+
     def test_the_saved_pdf_gets_the_title_in_the_page_language(self):
         seen = node(r"""
 global.window = {print() { seen.title = document.title; }, addEventListener() {}, removeEventListener() {}};

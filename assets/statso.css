@@ -202,6 +202,8 @@ html[dir="ltr"] .data-table .col-group-start { border-left: 2px solid var(--line
 .rent-negative { color: #b42318; }
 .rent-current th, .rent-current td { font-weight: 700; }
 html[dir="rtl"] #tool-rent-page input[dir="ltr"] { text-align: end; }
+#tr-details th, #tr-details td { white-space: normal; }
+#tr-details td:not([dir="ltr"]) { overflow-wrap: anywhere; }
 .fxh-currencies, .tool-checkboxes { display: flex; flex-wrap: wrap; gap: 10px 20px; }
 .fxh-currency, .tool-checkbox { display: flex; align-items: center; gap: 7px; font-size: .88rem; max-width: 100%; overflow-wrap: anywhere; }
 .fxh-currency .currency-code { flex-shrink: 0; }
@@ -264,8 +266,10 @@ html[lang="he"] .guide-hero h1, html[lang="he"] .guide-header h1 { letter-spacin
 .guide-card span { font-size: 1.25rem; font-weight: 800; }
 .guide-card small { max-width: 48ch; color: var(--muted); font-size: .9rem; }
 .guide-card b { position: absolute; inset-inline-end: 24px; bottom: 18px; color: var(--link); font-size: 1.35rem; }
+html[dir="ltr"] .guide-card b { transform: scaleX(-1); }
 .guide-detail { padding-top: 28px; }
 .guide-back { display: inline-block; padding: 7px 0; color: var(--link); font-weight: 750; text-decoration: none; }
+html[dir="rtl"] .back-arrow { display: inline-block; transform: scaleX(-1); }
 .guide-header { padding: 30px 0 22px; }
 .guide-selectors { display: grid; grid-template-columns: 1fr 1.2fr; gap: 14px; margin-bottom: 22px; }
 .guide-selectors fieldset { min-width: 0; margin: 0; padding: 16px; border: 1px solid var(--line); border-radius: var(--r-group); background: var(--surface); }

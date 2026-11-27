@@ -266,6 +266,18 @@ def nav_run(body):
 
 
 class BrandLinkTests(unittest.TestCase):
+    def test_returning_home_scrolls_to_the_top_but_the_first_load_does_not(self):
+        seen = nav_run("""
+const first = scrolls; go('#/about'); const info = scrolls; go('#/'); const home = scrolls;
+go('#/guides'); const guides = scrolls; go('#/'); const homeAgain = scrolls;
+process.stdout.write(JSON.stringify({first, info, home, guides, homeAgain, focus: focuses[focuses.length - 1]}));
+""")
+        self.assertEqual(seen, {'first': 0, 'info': 1, 'home': 2, 'guides': 2, 'homeAgain': 3,
+                                'focus': 'dashboard-view'})
+        nav = (ROOT / 'assets/statso-nav.js').read_text(encoding='utf-8')
+        self.assertEqual(nav.count("root.scrollTo(0, 0)"), 1)
+        self.assertLess(nav.index("(home && !firstRoute)"), nav.index("if (firstRoute) { firstRoute = false;"))
+
     def test_brand_uses_the_same_hash_as_the_home_nav_without_a_special_listener(self):
         self.assertIn('<a class="brand" href="#/"', HTML)
         self.assertNotIn('href="index.html"', HTML)

@@ -135,6 +135,28 @@ def text_pairs():
 
 
 class DesignFoundationsSourceTests(unittest.TestCase):
+    def test_agreement_details_cells_wrap_but_keep_numbers_whole(self):
+        self.assertEqual(values(rule("#tr-details th, #tr-details td"), "white-space"), ["normal"])
+        self.assertEqual(values(rule('#tr-details td:not([dir="ltr"])'), "overflow-wrap"), ["anywhere"])
+        for selector, body, context, _ in rules(CSS):
+            if "#tr-details" in selector:
+                self.assertNotIn("rent-scroll", selector)
+                self.assertEqual(context, ())
+                if values(body, "overflow-wrap") or values(body, "word-break"):
+                    self.assertIn(':not([dir="ltr"])', selector)
+        self.assertEqual(values(rule(".data-table th, .data-table td"), "white-space"), ["nowrap"])
+
+    def test_arrows_point_along_the_reading_direction(self):
+        self.assertEqual(values(rule('html[dir="ltr"] .guide-card b'), "transform"), ["scaleX(-1)"])
+        back = rule('html[dir="rtl"] .back-arrow')
+        self.assertEqual(values(back, "transform"), ["scaleX(-1)"])
+        self.assertEqual(values(back, "display"), ["inline-block"])
+        self.assertEqual({selector for selector, body, _, _ in rules(CSS) if "scaleX(-1)" in body},
+                         {'html[dir="ltr"] .guide-card b', 'html[dir="rtl"] .back-arrow'})
+        self.assertEqual(values(rule(".guide-card b"), "position"), ["absolute"])
+        guides = (ROOT / "assets/statso-guides.js").read_text(encoding="utf-8")
+        self.assertIn('<b aria-hidden="true">←</b>', guides)
+
     def test_numbers_use_tabular_figures(self):
         for selector in (".kpi-value, .kpi-date", ".calc-result strong", ".rent-summary-grid strong"):
             self.assertEqual(values(rule(selector), "font-variant-numeric"), ["tabular-nums"], selector)
