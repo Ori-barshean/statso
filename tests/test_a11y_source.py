@@ -558,8 +558,11 @@ const state = () => [classes.has('is-tall'), props['--header-height']];
 const seen = {normal: state()};
 height = 282.8; observerCallback(); seen.tall = state();
 observerCallback(); seen.tallAgain = state();
-height = 200; observerCallback(); seen.exactlyAQuarter = state();
-height = 282.8; viewport = 1200; listeners.resize(); seen.windowGrew = state();
+height = 144; observerCallback(); seen.exactlyTheShare = state();
+height = 145; observerCallback(); seen.justOverTheShare = state();
+height = 120; observerCallback(); seen.fifteenPercent = state();
+height = 159.3; viewport = 812; listeners.resize(); seen.portraitPhone = state();
+height = 282.8; viewport = 1600; listeners.resize(); seen.windowGrew = state();
 viewport = 1000; height = 260; docListeners.keydown.fn({key: 'Tab'}); seen.beforeTab = state();
 viewport = 0; window.innerHeight = 1000; listeners.resize(); seen.innerHeightFallback = state();
 window.innerHeight = undefined; listeners.resize(); seen.noWindowHeight = state();
@@ -571,7 +574,8 @@ process.stdout.write(JSON.stringify(seen));
             ["node", "-e", script], check=True, capture_output=True, text=True, encoding="utf-8"
         ).stdout)
         self.assertEqual(seen, {"normal": [False, "109px"], "tall": [True, "0px"], "tallAgain": [True, "0px"],
-            "exactlyAQuarter": [False, "200px"], "windowGrew": [False, "283px"], "beforeTab": [True, "0px"],
+            "exactlyTheShare": [False, "144px"], "justOverTheShare": [True, "0px"], "fifteenPercent": [False, "120px"],
+            "portraitPhone": [True, "0px"], "windowGrew": [False, "283px"], "beforeTab": [True, "0px"],
             "innerHeightFallback": [True, "0px"], "noWindowHeight": [False, "260px"], "hiddenHeader": [False, "260px"],
             "noClassList": [False, "400px"]})
 
@@ -582,6 +586,7 @@ process.stdout.write(JSON.stringify(seen));
         self.assertEqual(match.group(1).strip(), 'position: relative;')
         self.assertLess(match.start(), plain.index('@media (forced-colors: active)'))
         self.assertIn("header.classList.toggle('is-tall', tall)", self.nav)
+        self.assertIn('const TALL_HEADER_SHARE = 0.18;', self.nav)
 
     def test_large_text_with_wide_spacing_does_not_widen_the_page(self):
         def body(selector):
@@ -1418,7 +1423,7 @@ process.stdout.write(JSON.stringify({before, after, fallback: target.textContent
         self.assertNotIn('no keyboard stop of its own', en)
         self.assertNotIn('horizontal scroll area has no keyboard stop', en)
         self.assertNotIn('אין עצירת מקלדת משלו', (ROOT / 'README.md').read_text(encoding='utf-8'))
-        # 1.0.86: a header taller than a quarter of the window scrolls with the page, and the label/summary rules remove
+        # 1.0.86 (threshold 18% since 2.0.7): a tall header scrolls with the page, and the label/summary rules remove
         # the overflow at 200% text with wider spacing (checked in a browser), so both limitations and the pointer to them are gone
         for stale in ('הכותרת הדביקה גבוהה', 'ומכסה חלק ניכר מהמסך', 'נותרה בכמה עמודים גלילה אופקית קלה', 'מפורטות במגבלות'):
             self.assertNotIn(stale, he)
@@ -1426,8 +1431,8 @@ process.stdout.write(JSON.stringify({before, after, fallback: target.textContent
             self.assertNotIn(stale, en)
         # what replaced them was checked in a real browser (header at 42 width/zoom/language combinations, overflow on 17 routes
         # at 5 widths in both languages at normal, 200% and 200% + spacing), so the statement now says it
-        self.assertIn('גבוהה מרבע מגובה החלון', he)
-        self.assertIn("taller than a quarter of the window's height", en)
+        self.assertIn('גבוהה מ־18% מגובה החלון', he)
+        self.assertIn("taller than 18% of the window's height", en)
         self.assertIn('יחד עם ריווח טקסט מוגדל: אין גלילה אופקית של העמוד', he)
         self.assertIn('together with increased text spacing: no horizontal page scroll', en)
         for stale in ('בונה אותן מחדש', 'מעבירה את המיקוד לראש הדף', 'אינן כוללות כיתוב',

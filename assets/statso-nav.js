@@ -324,12 +324,13 @@
     document.addEventListener('change', schedule);
   }
 
-  // A header taller than a quarter of the window (200% text in a narrow window: ~280px of 800) would cover that share of every
-  // screen if it stuck, so .is-tall lets it scroll away with the page and --header-height drops to 0px, so scroll-padding-top
-  // reserves nothing for it. Sticky and relative take the same room in the flow, so switching never changes the height measured
-  // here. The window's height is the root's clientHeight (it leaves out a horizontal scrollbar, as clientWidth does in the
-  // README's reflow checks), else innerHeight; with neither, or no classList, the header stays sticky exactly as before.
-  const TALL_HEADER_SHARE = 0.25;
+  // A header taller than 18% of the window (the normal header on a phone held upright: ~160px of 812; 200% text in a narrow
+  // window: ~280px of 800) would cover that share of every screen if it stuck, so .is-tall lets it scroll away with the
+  // page and --header-height drops to 0px, so scroll-padding-top reserves nothing for it. Sticky and relative take the same
+  // room in the flow, so switching never changes the height measured here. The window's height is the root's clientHeight
+  // (it leaves out a horizontal scrollbar, as clientWidth does in the README's reflow checks), else innerHeight; with
+  // neither, or no classList, the header stays sticky exactly as before.
+  const TALL_HEADER_SHARE = 0.18;
   function windowHeight(html) {
     if (typeof html.clientHeight === 'number' && html.clientHeight > 0) { return html.clientHeight; }
     return typeof root.innerHeight === 'number' && root.innerHeight > 0 ? root.innerHeight : 0;

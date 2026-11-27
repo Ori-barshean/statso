@@ -157,6 +157,11 @@ class DesignFoundationsSourceTests(unittest.TestCase):
         guides = (ROOT / "assets/statso-guides.js").read_text(encoding="utf-8")
         self.assertIn('<b aria-hidden="true">←</b>', guides)
 
+    def test_the_logo_card_is_hidden_only_on_phones(self):
+        phone = ("@media (max-width: 600px)",)
+        self.assertEqual(values(rule("#brand-kpi", phone), "display"), ["none"])
+        self.assertEqual([context for selector, body, context, _ in rules(CSS) if "#brand-kpi" in selector], [phone])
+
     def test_numbers_use_tabular_figures(self):
         for selector in (".kpi-value, .kpi-date", ".calc-result strong", ".rent-summary-grid strong"):
             self.assertEqual(values(rule(selector), "font-variant-numeric"), ["tabular-nums"], selector)

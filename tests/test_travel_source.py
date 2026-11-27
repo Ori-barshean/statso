@@ -1756,6 +1756,15 @@ class MarkupTests(unittest.TestCase):
         self.assertEqual(view.count('href="#/accounting"'), 1)
         self.assertEqual(len(re.findall(r"<h1\b", view)), 1)
 
+    def test_the_back_link_is_its_own_row_above_the_heading(self):
+        link = '<a class="tool-back" href="#/accounting"><span class="back-arrow" aria-hidden="true">←</span> לכל כלי החשבונאות והמיסוי</a>'
+        self.assertRegex(travel_page(), r'^<section class="panel tool-page" id="tool-travel-page" hidden aria-labelledby="tool-travel-title">\s*'
+                         + re.escape(link) + r'\s*<div class="section-heading"><div><p class="eyebrow">כלי 1</p><h2 id="tool-travel-title">')
+        heading = re.search(r'<div class="section-heading">.*?</h2></div></div>', travel_page(), re.S).group(0)
+        self.assertNotIn('tool-back', heading)
+        # the six pages under #/tools keep the link beside the title
+        self.assertEqual(len(re.findall(r'</h2></div><a class="tool-back" href="#/tools">', HTML)), 6)
+
 
 class AnnouncementTests(unittest.TestCase):
     """A change in a field that affects the result says the new totals once, after a pause; the report details do not."""
@@ -1804,6 +1813,16 @@ class StylesheetTests(unittest.TestCase):
         self.assertIn(".travel-expense { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));", css)
         self.assertIn(".travel-table td.travel-explain { white-space: normal; min-width: 18rem; }", css)
         self.assertIn('.rent-form select[aria-invalid="true"]', css)
+
+    def test_the_back_link_sits_at_the_inline_start_edge_above_the_heading(self):
+        css = (ROOT / "assets/statso.css").read_text(encoding="utf-8")
+        match = re.search(r'(?m)^#tool-travel-page > \.tool-back \{([^}]*)\}', css)
+        self.assertIsNotNone(match)
+        for declaration in ("display: flex", "width: fit-content", "max-width: 100%", "margin-block-end: 12px"):
+            self.assertIn(declaration, match.group(1))
+        self.assertIsNone(re.search(r"\b(left|right)\b|float|text-align", match.group(1)))
+        self.assertGreater(match.start(), css.index(".accounting-view .tool-back { white-space: normal; }"))
+        self.assertLess(match.start(), css.index("@media (forced-colors: active)"))
 
 
 # ---- children's education, the single lodging row over 90 nights, the live caps, the "!" button -----------------
