@@ -13,10 +13,10 @@
       "code": "USD",
       "unit": 1,
       "first_date": "1948-05-15",
-      "count": 13329,
+      "count": 13330,
       "latest": {
-        "date": "2026-11-26",
-        "rate": 3.334
+        "date": "2026-11-27",
+        "rate": 3.293
       },
       "years": [
         {
@@ -43,10 +43,10 @@
       "code": "EUR",
       "unit": 1,
       "first_date": "1999-01-04",
-      "count": 6831,
+      "count": 6832,
       "latest": {
-        "date": "2026-11-26",
-        "rate": 3.6594
+        "date": "2026-11-27",
+        "rate": 3.6092
       },
       "years": [
         {
@@ -73,10 +73,10 @@
       "code": "GBP",
       "unit": 1,
       "first_date": "1962-02-10",
-      "count": 12953,
+      "count": 12954,
       "latest": {
-        "date": "2026-11-26",
-        "rate": 4.3695
+        "date": "2026-11-27",
+        "rate": 4.3227
       },
       "years": [
         {
@@ -103,10 +103,10 @@
       "code": "CHF",
       "unit": 1,
       "first_date": "1962-02-10",
-      "count": 12948,
+      "count": 12949,
       "latest": {
-        "date": "2026-11-26",
-        "rate": 3.9957
+        "date": "2026-11-27",
+        "rate": 3.9403
       },
       "years": [
         {
@@ -133,10 +133,10 @@
       "code": "JPY",
       "unit": 100,
       "first_date": "1974-11-10",
-      "count": 12942,
+      "count": 12943,
       "latest": {
-        "date": "2026-11-26",
-        "rate": 2.0932
+        "date": "2026-11-27",
+        "rate": 2.0643
       },
       "years": [
         {
@@ -163,10 +163,10 @@
       "code": "CAD",
       "unit": 1,
       "first_date": "1962-02-10",
-      "count": 12949,
+      "count": 12950,
       "latest": {
-        "date": "2026-11-26",
-        "rate": 2.3426
+        "date": "2026-11-27",
+        "rate": 2.3125
       },
       "years": [
         {
@@ -193,10 +193,10 @@
       "code": "AUD",
       "unit": 1,
       "first_date": "1962-02-10",
-      "count": 12957,
+      "count": 12958,
       "latest": {
-        "date": "2026-11-26",
-        "rate": 2.2114
+        "date": "2026-11-27",
+        "rate": 2.1984
       },
       "years": [
         {
@@ -223,10 +223,10 @@
       "code": "DKK",
       "unit": 1,
       "first_date": "1962-02-10",
-      "count": 12950,
+      "count": 12951,
       "latest": {
-        "date": "2026-11-26",
-        "rate": 0.4896
+        "date": "2026-11-27",
+        "rate": 0.4829
       },
       "years": [
         {
@@ -253,10 +253,10 @@
       "code": "NOK",
       "unit": 1,
       "first_date": "1962-02-10",
-      "count": 12951,
+      "count": 12952,
       "latest": {
-        "date": "2026-11-26",
-        "rate": 0.3415
+        "date": "2026-11-27",
+        "rate": 0.3389
       },
       "years": [
         {
@@ -283,10 +283,10 @@
       "code": "SEK",
       "unit": 1,
       "first_date": "1962-02-10",
-      "count": 12948,
+      "count": 12949,
       "latest": {
-        "date": "2026-11-26",
-        "rate": 0.3266
+        "date": "2026-11-27",
+        "rate": 0.3227
       },
       "years": [
         {
